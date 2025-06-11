@@ -11,12 +11,14 @@ interface NuevoUsuarioProps {
 }
 
 const roles = ['publicador', 'auxiliar', 'regular', 'siervo', 'anciano', 'secretario', 'coordinador'];
+const rolesEnGrupo = ['miembro', 'auxiliar', 'encargado'];
 
 export default function NuevoUsuario({ grupos }: NuevoUsuarioProps) {
   const [nombre, setNombre] = useState("");
   const [apellido, setApellido] = useState("");
   const [idGrupo, setIdGrupo] = useState("");
   const [rolesSeleccionados, setRolesSeleccionados] = useState<string[]>([]);
+  const [rolEnGrupo, setRolEnGrupo] = useState("miembro");
   const [mensaje, setMensaje] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -25,7 +27,7 @@ export default function NuevoUsuario({ grupos }: NuevoUsuarioProps) {
     const res = await fetch("/api/usuario", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nombre, apellido, id_grupo: idGrupo, roles: rolesSeleccionados }),
+      body: JSON.stringify({ nombre, apellido, id_grupo: idGrupo, roles: rolesSeleccionados, rol_en_grupo: rolEnGrupo }),
     });
     if (res.ok) {
       setMensaje("Usuario creado exitosamente");
@@ -33,6 +35,7 @@ export default function NuevoUsuario({ grupos }: NuevoUsuarioProps) {
       setApellido("");
       setIdGrupo("");
       setRolesSeleccionados([]);
+      setRolEnGrupo("miembro");
     } else {
       setMensaje("Error al crear usuario");
     }
@@ -92,6 +95,22 @@ export default function NuevoUsuario({ grupos }: NuevoUsuarioProps) {
                     type="checkbox"
                     checked={rolesSeleccionados.includes(rol)}
                     onChange={() => toggleRol(rol)}
+                  />
+                  {rol}
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-sm text-gray-600">Rol en Grupo</label>
+            <div className="flex flex-wrap gap-2">
+              {rolesEnGrupo.map(rol => (
+                <label key={rol} className="flex items-center gap-1">
+                  <input
+                    type="radio"
+                    name="rolEnGrupo"
+                    checked={rolEnGrupo === rol}
+                    onChange={() => setRolEnGrupo(rol)}
                   />
                   {rol}
                 </label>

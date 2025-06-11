@@ -6,7 +6,7 @@ const token = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NDk1
 
 export async function POST(request: Request) {
   try {
-    const { nombre, apellido, id_grupo, roles } = await request.json();
+    const { nombre, apellido, id_grupo, roles, rol_en_grupo } = await request.json();
     const client = createClient({ url, authToken: token });
 
     // Insertar usuario
@@ -16,10 +16,10 @@ export async function POST(request: Request) {
     });
     const id_usuario = result.rows[0].id_usuario;
 
-    // Insertar relación en grupo_usuario
+    // Insertar relación en grupo_usuario con el rol_en_grupo proporcionado
     await client.execute({
       sql: 'INSERT INTO grupo_usuario (id_grupo, id_usuario, rol_en_grupo) VALUES (?, ?, ?)',
-      args: [id_grupo, id_usuario, 'miembro'],
+      args: [id_grupo, id_usuario, rol_en_grupo],
     });
 
     // Insertar roles seleccionados
