@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@libsql/client';
 import Filtro from './Filtro';
 import MenuAcciones from './MenuAcciones';
+import { redirect, useRouter } from 'next/navigation';
 
 const url = "libsql://reportsoldb-palominodev.aws-us-east-1.turso.io";
 const token = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NDk1OTg4NjksImlkIjoiYmQ3OTc3MzYtYTBlMC00YjUyLWFkNmUtYWQ4OTlhMzBjMTZmIiwicmlkIjoiMzczMTFiZmMtMjI2Mi00YzdlLTg4ZWEtMzMxNmJmYTU2MDZjIn0.oAxJKUB2i3G2GaWw7e0yLLq-_APQdv77H1KsHeIHIZ9MlQRwkLD6mve0tlMGN6RBPuFhvJ2skMzgc9y2Ks30CQ";
@@ -38,6 +39,7 @@ async function getPublicadores(grupoId?: number) {
 }
 
 export default function Publicadores() {
+  const router = useRouter()
   const [grupos, setGrupos] = useState<any[]>([]);
   const [publicadores, setPublicadores] = useState<any[]>([]);
   const [grupoSeleccionado, setGrupoSeleccionado] = useState<number | undefined>(undefined);
@@ -51,8 +53,25 @@ export default function Publicadores() {
   }, [grupoSeleccionado]);
 
   const handleEliminar = async (idUsuario: number) => {
-    // TODO: Implementar lógica de eliminación
-    console.log('Eliminar usuario:', idUsuario);
+    try {
+      const response = await fetch(`/api/usuario/${idUsuario}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Error al eliminar el usuario');
+      }
+
+      // Actualizar la lista de usuarios después de eliminar
+      setPublicadores(publicadores.filter(usuario => usuario.id_usuario !== idUsuario));
+      
+      // Mostrar mensaje de éxito
+      alert('Usuario eliminado exitosamente');
+    } catch (error) {
+      console.error('Error al eliminar usuario:', error);
+      alert(error instanceof Error ? error.message : 'Error al eliminar el usuario');
+    }
   };
 
   const handleMoverGrupo = async (idUsuario: number) => {
@@ -61,8 +80,7 @@ export default function Publicadores() {
   };
 
   const handleActualizar = async (idUsuario: number) => {
-    // TODO: Implementar lógica de actualización
-    console.log('Actualizar usuario:', idUsuario);
+    router.push(`/usuario/editar/${idUsuario}`)
   };
 
   return (

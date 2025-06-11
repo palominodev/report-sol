@@ -51,4 +51,37 @@ export async function PUT(
     const message = error instanceof Error ? error.message : 'Error desconocido';
     return NextResponse.json({ error: message }, { status: 500 });
   }
+}
+
+export async function DELETE(
+  request: Request,
+  { params }: RouteParams
+) {
+  try {
+    const { id } = await params;
+    const client = createClient({ url, authToken: token });
+
+    // Eliminar registros relacionados primero (debido a las restricciones de clave foránea)
+    await client.execute({
+      sql: 'DELETE FROM usuario_rol WHERE id_usuario = ?',
+      args: [id],
+    });
+
+    await client.execute({
+      sql: 'DELETE FROM grupo_usuario WHERE id_usuario = ?',
+      args: [id],
+    });
+
+    // Finalmente, eliminar el usuario
+    await client.execute({
+      sql: 'DELETE FROM usuario WHERE id_usuario = ?',
+      args: [id],
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error al eliminar usuario:', error);
+    const message = error instanceof Error ? error.message : 'Error desconocido';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 } 
