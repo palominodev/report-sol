@@ -35,11 +35,13 @@ export default async function Home() {
         <h1 className="text-2xl font-bold mb-4">Grupos</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {grupos.map((grupo: any) => (
-            <div key={grupo.id_grupo} className="p-4 border border-gray-200 rounded-lg shadow-sm bg-white">
-              <h2 className="text-xl font-semibold mb-2">{grupo.nombre_grupo}</h2>
-              <p className="text-gray-600">Encargado: {grupo.encargado || "Sin asignar"}</p>
-              <p className="text-gray-600">Auxiliar: {grupo.auxiliar || "Sin asignar"}</p>
-            </div>
+            <Link key={grupo.id_grupo} href={`grupo/${grupo.id_grupo}/`}>
+              <div className="p-4 border border-gray-200 rounded-lg shadow-sm bg-white">
+                <h2 className="text-xl font-semibold mb-2">{grupo.nombre_grupo}</h2>
+                <p className="text-gray-600">Encargado: {grupo.encargado || "Sin asignar"}</p>
+                <p className="text-gray-600">Auxiliar: {grupo.auxiliar || "Sin asignar"}</p>
+              </div>
+            </Link>
           ))}
         </div>
       </section>
