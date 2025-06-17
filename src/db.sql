@@ -64,6 +64,7 @@ CREATE TABLE informe (
   horas           INTEGER NOT NULL,
   cursos          INTEGER NOT NULL,
   año             INTEGER NOT NULL,
+  participacion   BOOLEAN NOT NULL,
   mes             TEXT    NOT NULL CHECK(mes IN (
                      'ENE','FEB','MAR','ABR','MAY','JUN',
                      'JUL','AGO','SEP','OCT','NOV','DIC'
