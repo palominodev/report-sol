@@ -11,6 +11,31 @@ interface Integrante {
   roles: string | null;
 }
 
+const rolEnGrupoColors: Record<string, string> = {
+  'encargado': 'bg-red-100 text-red-800',
+  'auxiliar': 'bg-yellow-100 text-yellow-800',
+  'miembro': 'bg-green-100 text-green-800'
+};
+
+const rolColors: Record<string, string> = {
+  'anciano': 'bg-purple-100 text-purple-800',
+  'siervo': 'bg-indigo-100 text-indigo-800',
+  'coordinador': 'bg-pink-100 text-pink-800',
+  'secretario': 'bg-orange-100 text-orange-800',
+  'publicador': 'bg-teal-100 text-teal-800',
+  'auxiliar': 'bg-yellow-100 text-yellow-800',
+  'regular': 'bg-blue-100 text-blue-800'
+};
+
+const getRolEnGrupoColor = (rol: string): string => {
+  return rolEnGrupoColors[rol] || 'bg-gray-100 text-gray-800';
+};
+
+const getRolColor = (rol: string): string => {
+  const rolNormalizado = rol.trim().toLowerCase();
+  return rolColors[rolNormalizado] || 'bg-gray-100 text-gray-800';
+};
+
 async function getIntegrantesGrupo(idGrupo: string): Promise<Integrante[]> {
   const client = createClient({ url, authToken: token });
   const result = await client.execute({
@@ -49,7 +74,14 @@ async function getNombreGrupo(idGrupo: string): Promise<string | undefined> {
   return result.rows[0]?.nombre as string | undefined;
 }
 
-export default async function Page({ params }: { params: { id_grupo: string } }) {
+interface PageProps {
+  params: Promise<{
+    id_grupo: string;
+  }>;
+}
+
+export default async function Page(props: PageProps) {
+  const params = await props.params;
   const integrantes = await getIntegrantesGrupo(params.id_grupo);
   const nombreGrupo = await getNombreGrupo(params.id_grupo);
 
@@ -65,11 +97,23 @@ export default async function Page({ params }: { params: { id_grupo: string } })
             <div className="flex justify-between items-center">
               <div>
                 <span className="font-medium">{integrante.nombre} {integrante.apellido}</span>
-                <span className="ml-2 text-sm text-gray-500">({integrante.roles || 'Sin roles'})</span>
               </div>
-              <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                {integrante.rol_en_grupo}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className={`px-3 py-1 rounded-full text-sm ${getRolEnGrupoColor(integrante.rol_en_grupo)}`}>
+                  {integrante.rol_en_grupo}
+                </span>
+                {integrante.roles ? (
+                  integrante.roles.split(',').map((rol, index) => (
+                    <span key={index} className={`px-3 py-1 rounded-full text-sm ${getRolColor(rol)}`}>
+                      {rol.trim()}
+                    </span>
+                  ))
+                ) : (
+                  <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm">
+                    Sin roles
+                  </span>
+                )}
+              </div>
             </div>
           </li>
         ))}
