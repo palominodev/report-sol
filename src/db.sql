@@ -61,7 +61,7 @@ CREATE UNIQUE INDEX idx_grupo_auxiliar
 CREATE TABLE informe (
   id_informe      INTEGER PRIMARY KEY AUTOINCREMENT,
   fecha_registro  TEXT    NOT NULL DEFAULT (CURRENT_TIMESTAMP),
-  horas           INTEGER NOT NULL,
+  horas           INTEGER NULL,
   cursos          INTEGER NOT NULL,
   año             INTEGER NOT NULL,
   participacion   BOOLEAN NOT NULL,

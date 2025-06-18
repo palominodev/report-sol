@@ -99,6 +99,7 @@ export default function ListaIntegrantes({ integrantes, nombreGrupo }: ListaInte
           id_usuario={selectedIntegrante.id_usuario}
           nombre={selectedIntegrante.nombre}
           apellido={selectedIntegrante.apellido}
+          roles={selectedIntegrante.roles ? selectedIntegrante.roles.split(',') : []}
           onClose={() => setSelectedIntegrante(null)}
           onSubmit={handleSubmitInforme}
         />

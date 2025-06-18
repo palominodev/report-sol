@@ -6,6 +6,7 @@ interface FormularioInformeProps {
   id_usuario: number;
   nombre: string;
   apellido: string;
+  roles: string[];
   onClose: () => void;
   onSubmit: (data: InformeData) => Promise<void>;
 }
@@ -23,7 +24,7 @@ const meses = [
   'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'
 ];
 
-export default function FormularioInforme({ id_usuario, nombre, apellido, onClose, onSubmit }: FormularioInformeProps) {
+export default function FormularioInforme({ id_usuario, nombre, apellido, roles, onClose, onSubmit }: FormularioInformeProps) {
   const [formData, setFormData] = useState<InformeData>({
     horas: 0,
     cursos: 0,
@@ -31,6 +32,8 @@ export default function FormularioInforme({ id_usuario, nombre, apellido, onClos
     mes: meses[new Date().getMonth()],
     participacion: true
   });
+
+  const esPublicador = roles.includes('publicador');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,19 +59,21 @@ export default function FormularioInforme({ id_usuario, nombre, apellido, onClos
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Horas
-            </label>
-            <input
-              type="number"
-              min="0"
-              defaultValue={formData.horas || 0}
-              onChange={(e) => setFormData({ ...formData, horas: parseInt(e.target.value) })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
+          {!esPublicador && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Horas
+              </label>
+              <input
+                type="number"
+                min="0"
+                defaultValue={formData.horas || 0}
+                onChange={(e) => setFormData({ ...formData, horas: parseInt(e.target.value) })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -89,7 +94,7 @@ export default function FormularioInforme({ id_usuario, nombre, apellido, onClos
               Año
             </label>
             <input
-			  disabled
+              disabled
               type="number"
               min="2000"
               max="2100"
