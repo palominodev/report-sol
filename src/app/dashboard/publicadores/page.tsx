@@ -4,6 +4,7 @@ import { createClient } from '@libsql/client';
 import Filtro from './Filtro';
 import MenuAcciones from './MenuAcciones';
 import { redirect, useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 const url = "libsql://reportsoldb-palominodev.aws-us-east-1.turso.io";
 const token = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NDk1OTg4NjksImlkIjoiYmQ3OTc3MzYtYTBlMC00YjUyLWFkNmUtYWQ4OTlhMzBjMTZmIiwicmlkIjoiMzczMTFiZmMtMjI2Mi00YzdlLTg4ZWEtMzMxNmJmYTU2MDZjIn0.oAxJKUB2i3G2GaWw7e0yLLq-_APQdv77H1KsHeIHIZ9MlQRwkLD6mve0tlMGN6RBPuFhvJ2skMzgc9y2Ks30CQ";
@@ -84,8 +85,16 @@ export default function Publicadores() {
   };
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Lista de Publicadores</h1>
+    <div className="container mx-auto p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Publicadores</h1>
+        <Link 
+          href={'/usuario/nuevo'}
+          className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+        >
+          Crear publicador
+        </Link>
+      </div>
       <Filtro
         grupos={grupos}
         grupoSeleccionado={grupoSeleccionado}

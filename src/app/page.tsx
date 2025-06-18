@@ -27,11 +27,6 @@ export default async function Home() {
   return (
     <main className="p-4">
       <section>
-        <Link href="/usuario/nuevo">
-          <button className="mb-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
-            Crear usuario
-          </button>
-        </Link>
         <h1 className="text-2xl font-bold mb-4">Grupos</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {grupos.map((grupo: any) => (
