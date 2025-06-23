@@ -2,14 +2,30 @@ type RolCongregacion = 'anciano' | 'siervo ministerial' | 'regular' | 'auxiliar'
 
 type RolGrupo = 'encargado' | 'miembro' | 'auxiliar'
 
+class UserId {
+	constructor(public readonly value: number){
+		if(value <= 0){
+			throw new Error('El id del usuario debe ser positivo')
+		}
+	}
+}
+
+class GrupoId {
+	constructor(public readonly value: number) {
+		if (value <= 0) {
+			throw new Error('El id de grupo debe ser positivo');
+		}
+	}
+}
+
 export class User {
 	constructor(
-		public readonly id: number,
+		public readonly id: UserId,
 		public nombre: string,
 		public apellido: string,
 		public rol_congregacion: RolCongregacion[],
 		public rol_grupo: RolGrupo,
-		public grupo: number
+		public grupo: GrupoId
 	) { }
 
 	cambiarNombre(nuevoNombre: string, nuevoApellido: string): void {
@@ -21,9 +37,9 @@ export class User {
 		console.log(`Nombre cambiado a ${nuevoNombre} ${nuevoApellido}`)
 	}
 
-	cambiarGrupo(nuevoGrupo: number): void {
-		this.grupo = nuevoGrupo
-		console.log(`${this.nombre} ${this.apellido} ahora pertenece al grupo ${nuevoGrupo}`)
+	cambiarGrupo(nuevoGrupo: GrupoId): void {
+		this.grupo = nuevoGrupo;
+		console.log(`${this.nombre} ${this.apellido} ahora pertenece al grupo ${nuevoGrupo.value}`);
 	}
 
 	actualizarRolCongregacion(nuevosRoles: RolCongregacion[]) {
