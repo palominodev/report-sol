@@ -125,150 +125,213 @@ export default function ListaInformes() {
 
   if (loading) {
     return (
-      <div className="p-6">
-        <div className="animate-pulse space-y-4">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-16 bg-gray-200 rounded-lg"></div>
-          ))}
-        </div>
+      <div className="space-y-4">
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="bg-white rounded-lg border border-gray-100 p-6">
+            <div className="animate-pulse">
+              <div className="flex items-center space-x-4 mb-4">
+                <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+                <div className="flex-1">
+                  <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
+                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="h-3 bg-gray-200 rounded"></div>
+                <div className="h-3 bg-gray-200 rounded"></div>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     );
   }
 
   return (
-    <div className="p-6">
-      <h2 className="text-xl font-bold mb-4">Últimos Informes</h2>
-      
-      <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Año
-          </label>
-          <select
-            value={filtros.año}
-            onChange={(e) => setFiltros({ ...filtros, año: parseInt(e.target.value) })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            {[...Array(5)].map((_, i) => {
-              const año = new Date().getFullYear() - i;
-              return (
-                <option key={año} value={año}>
-                  {año}
+    <div className="space-y-6">
+      {/* Filtros Section */}
+      <div className="bg-gray-50 rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4" style={{ fontFamily: 'SF Pro Display, Roboto, Arial, sans-serif' }}>
+          Filtros de Búsqueda
+        </h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+              Año
+            </label>
+            <select
+              value={filtros.año}
+              onChange={(e) => setFiltros({ ...filtros, año: parseInt(e.target.value) })}
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            >
+              {[...Array(5)].map((_, i) => {
+                const año = new Date().getFullYear() - i;
+                return (
+                  <option key={año} value={año}>
+                    {año}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+              Mes
+            </label>
+            <select
+              value={filtros.mes}
+              onChange={(e) => setFiltros({ ...filtros, mes: e.target.value })}
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            >
+              <option value="">Todos los meses</option>
+              {meses.map((mes) => (
+                <option key={mes} value={mes}>
+                  {mes}
                 </option>
-              );
-            })}
-          </select>
-        </div>
+              ))}
+            </select>
+          </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Mes
-          </label>
-          <select
-            value={filtros.mes}
-            onChange={(e) => setFiltros({ ...filtros, mes: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">Todos</option>
-            {meses.map((mes) => (
-              <option key={mes} value={mes}>
-                {mes}
-              </option>
-            ))}
-          </select>
-        </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+              Rol
+            </label>
+            <select
+              value={filtros.rol}
+              onChange={(e) => setFiltros({ ...filtros, rol: e.target.value })}
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            >
+              <option value="">Todos los roles</option>
+              {roles.map((rol) => (
+                <option key={rol.id} value={rol.id}>
+                  {rol.label}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Rol
-          </label>
-          <select
-            value={filtros.rol}
-            onChange={(e) => setFiltros({ ...filtros, rol: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">Todos</option>
-            {roles.map((rol) => (
-              <option key={rol.id} value={rol.id}>
-                {rol.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Grupo
-          </label>
-          <select
-            value={filtros.grupo}
-            onChange={(e) => setFiltros({ ...filtros, grupo: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">Todos</option>
-            {grupos.map((grupo) => (
-              <option key={grupo.id_grupo} value={grupo.id_grupo}>
-                {grupo.nombre}
-              </option>
-            ))}
-          </select>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+              Grupo
+            </label>
+            <select
+              value={filtros.grupo}
+              onChange={(e) => setFiltros({ ...filtros, grupo: e.target.value })}
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            >
+              <option value="">Todos los grupos</option>
+              {grupos.map((grupo) => (
+                <option key={grupo.id_grupo} value={grupo.id_grupo}>
+                  {grupo.nombre}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
+      {/* Informes List */}
       <div className="space-y-4">
         {informes.map((informe) => (
           <div
             key={informe.id_informe}
-            className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow"
+            className="bg-white rounded-lg border border-gray-100 p-6 hover:shadow-md transition-all duration-200"
           >
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="font-medium">
-                  {informe.nombre} {informe.apellido}
-                </h3>
-                <p className="text-sm text-gray-500">
-                  Fecha de registro: {new Date(informe.fecha_registro).toLocaleDateString('es-ES', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
-                </p>
-                <p className="text-sm text-gray-500">
-                  Grupo: {informe.nombre_grupo || 'Sin grupo'}
-                </p>
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center space-x-4">
+                {/* Avatar */}
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center">
+                  <span className="text-white font-semibold text-sm">
+                    {informe.nombre.charAt(0)}{informe.apellido.charAt(0)}
+                  </span>
+                </div>
+                
+                {/* User Info */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900" style={{ fontFamily: 'SF Pro Display, Roboto, Arial, sans-serif' }}>
+                    {informe.nombre} {informe.apellido}
+                  </h3>
+                  <p className="text-sm text-gray-600" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+                    Grupo: {informe.nombre_grupo || 'Sin grupo asignado'}
+                  </p>
+                  <p className="text-xs text-gray-500" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+                    Registrado: {new Date(informe.fecha_registro).toLocaleDateString('es-ES', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+              
+              {/* Status Badges */}
+              <div className="flex items-center space-x-2">
+                <span className="px-3 py-1 bg-blue-500 text-white rounded-full text-xs font-semibold uppercase tracking-wide">
                   {informe.mes} {informe.año}
                 </span>
                 {informe.participacion && (
-                  <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                  <span className="px-3 py-1 bg-green-500 text-white rounded-full text-xs font-semibold uppercase tracking-wide">
                     Participó
                   </span>
                 )}
               </div>
             </div>
-            <div className="mt-2 grid grid-cols-2 gap-4">
-              <div>
-                <span className="text-sm text-gray-500">Horas:</span>
-                <span className="ml-2 font-medium">{informe.horas}</span>
+
+            {/* Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div className="bg-blue-50 rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-blue-600">{informe.horas}</div>
+                <div className="text-sm text-gray-600 font-medium">Horas</div>
               </div>
-              <div>
-                <span className="text-sm text-gray-500">Cursos:</span>
-                <span className="ml-2 font-medium">{informe.cursos}</span>
+              <div className="bg-green-50 rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-green-600">{informe.cursos}</div>
+                <div className="text-sm text-gray-600 font-medium">Cursos</div>
+              </div>
+              <div className="bg-purple-50 rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-purple-600">
+                  {informe.participacion ? 'Sí' : 'No'}
+                </div>
+                <div className="text-sm text-gray-600 font-medium">Participación</div>
               </div>
             </div>
+
+            {/* Roles */}
             {informe.roles && (
-              <div className="mt-2">
-                <span className="text-sm text-gray-500">Roles: </span>
-                <span className="font-medium">{informe.roles}</span>
+              <div className="border-t border-gray-100 pt-4">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-semibold text-gray-700" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+                    Roles:
+                  </span>
+                  <div className="flex flex-wrap gap-1">
+                    {informe.roles.split(',').map((rol, index) => (
+                      <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
+                        {rol.trim()}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
           </div>
         ))}
       </div>
+
+      {/* Empty State */}
+      {informes.length === 0 && !loading && (
+        <div className="text-center py-12">
+          <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">No hay informes</h3>
+          <p className="text-gray-600">No se encontraron informes con los filtros seleccionados.</p>
+        </div>
+      )}
     </div>
   );
 } 
