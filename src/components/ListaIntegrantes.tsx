@@ -10,11 +10,14 @@ interface Integrante {
   apellido: string;
   rol_en_grupo: string;
   roles: string | null;
+  informe_enviado: boolean;
 }
 
 interface ListaIntegrantesProps {
   integrantes: Integrante[];
   nombreGrupo: string;
+  mes: string;
+  año: number;
 }
 
 const url = "libsql://reportsoldb-palominodev.aws-us-east-1.turso.io";
@@ -46,7 +49,7 @@ const getRolColor = (rol: string): string => {
   return rolColors[rolNormalizado] || 'bg-gray-500 text-white';
 };
 
-export default function ListaIntegrantes({ integrantes, nombreGrupo }: ListaIntegrantesProps) {
+export default function ListaIntegrantes({ integrantes, nombreGrupo, mes, año }: ListaIntegrantesProps) {
   const [selectedIntegrante, setSelectedIntegrante] = useState<Integrante | null>(null);
 
   const handleSubmitInforme = async (data: any) => {
@@ -108,6 +111,7 @@ export default function ListaIntegrantes({ integrantes, nombreGrupo }: ListaInte
             <h2 className="text-xl font-semibold text-gray-900" style={{ fontFamily: 'SF Pro Display, Roboto, Arial, sans-serif' }}>
               Miembros del Equipo
             </h2>
+            <p className="text-sm text-gray-500 mt-1">Estado de informe de {mes} {año}</p>
           </div>
           
           <ul className="divide-y divide-gray-100">
@@ -129,7 +133,11 @@ export default function ListaIntegrantes({ integrantes, nombreGrupo }: ListaInte
                     {/* Información del usuario */}
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors" style={{ fontFamily: 'SF Pro Display, Roboto, Arial, sans-serif' }}>
-                        {integrante.nombre} {integrante.apellido}
+                        {integrante.nombre} {integrante.apellido} {integrante.informe_enviado ? (
+                      <span className="px-3 py-1 bg-green-500 text-white rounded-full text-xs font-semibold uppercase tracking-wide">Enviado</span>
+                    ) : (
+                      <span className="px-3 py-1 bg-yellow-600 text-white rounded-full text-xs font-semibold uppercase tracking-wide">Pendiente</span>
+                    )}
                       </h3>
                       <p className="text-sm text-gray-500" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
                         ID: {integrante.id_usuario}
@@ -137,12 +145,15 @@ export default function ListaIntegrantes({ integrantes, nombreGrupo }: ListaInte
                     </div>
                   </div>
                   
-                  {/* Roles */}
+                  {/* Estado de informe */}
                   <div className="flex items-center space-x-2">
                     {/* Rol en grupo */}
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide ${getRolEnGrupoColor(integrante.rol_en_grupo)}`}>
                       {integrante.rol_en_grupo}
                     </span>
+                    
+                    {/* Estado informe */}
+                    
                     
                     {/* Roles adicionales */}
                     {integrante.roles ? (
