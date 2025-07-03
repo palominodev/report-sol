@@ -49,8 +49,50 @@ const getRolColor = (rol: string): string => {
   return rolColors[rolNormalizado] || 'bg-gray-500 text-white';
 };
 
+// Nuevo componente filtro
+function FiltroInformes({ estado, setEstado }: { estado: string; setEstado: (v: string) => void }) {
+  return (
+    <div className="mb-4 flex gap-2 items-center">
+      <label
+        className="font-semibold text-sm"
+        style={{
+          fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif',
+          color: '#333333',
+        }}
+      >
+        Filtrar por estado de informe:
+      </label>
+      <select
+        value={estado}
+        onChange={e => setEstado(e.target.value)}
+        className="focus:outline-none transition-all"
+        style={{
+          padding: '12px 16px',
+          border: '1px solid #E0E0E0',
+          borderRadius: '4px',
+          fontSize: '14px',
+          fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif',
+          color: '#333333',
+          backgroundColor: '#FFFFFF',
+        }}
+      >
+        <option value="todos">Todos</option>
+        <option value="enviados">Enviados</option>
+        <option value="pendientes">Pendientes</option>
+      </select>
+    </div>
+  );
+}
+
 export default function ListaIntegrantes({ integrantes, nombreGrupo, mes, año }: ListaIntegrantesProps) {
   const [selectedIntegrante, setSelectedIntegrante] = useState<Integrante | null>(null);
+  const [estadoFiltro, setEstadoFiltro] = useState<string>('todos');
+
+  const integrantesFiltrados = integrantes.filter(i => {
+    if (estadoFiltro === 'enviados') return i.informe_enviado;
+    if (estadoFiltro === 'pendientes') return !i.informe_enviado;
+    return true;
+  });
 
   const handleSubmitInforme = async (data: any) => {
     const client = createClient({ url, authToken: token });
@@ -68,6 +110,8 @@ export default function ListaIntegrantes({ integrantes, nombreGrupo, mes, año }
       <div className="max-w-4xl mx-auto">
         {/* Header Section */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+        {/* Filtro de informes */}
+        <FiltroInformes estado={estadoFiltro} setEstado={setEstadoFiltro} />
           <div className="flex items-center space-x-4 mb-4">
             <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -115,7 +159,7 @@ export default function ListaIntegrantes({ integrantes, nombreGrupo, mes, año }
           </div>
           
           <ul className="divide-y divide-gray-100">
-            {integrantes.map((integrante) => (
+            {integrantesFiltrados.map((integrante) => (
               <li 
                 key={integrante.id_usuario}
                 className="px-6 py-4 hover:bg-gray-50 transition-colors duration-150 cursor-pointer group"
