@@ -49,6 +49,65 @@ const getRolColor = (rol: string): string => {
   return rolColors[rolNormalizado] || 'bg-gray-500 text-white';
 };
 
+// Componente para mostrar mensaje de informe ya enviado
+function MensajeInformeEnviado({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-xl shadow-lg w-full max-w-md">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-[#F44336] to-[#D32F2F] rounded-t-xl p-6">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-[#F44336] bg-opacity-20 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-white" style={{ fontFamily: 'SF Pro Display, Roboto, Arial, sans-serif' }}>
+                  Informe Ya Enviado
+                </h2>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="w-8 h-8 bg-[#F44336] bg-opacity-20 rounded-lg flex items-center justify-center text-white hover:bg-opacity-30 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-6">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2" style={{ fontFamily: 'SF Pro Display, Roboto, Arial, sans-serif' }}>
+              Este informe ya fue enviado
+            </h3>
+            <p className="text-gray-600 mb-6" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+              Comuniquese con su encargado para que se pueda enviar un nuevo informe.
+            </p>
+            <button
+              onClick={onClose}
+              className="px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-[#F44336] to-[#D32F2F] rounded-lg hover:from-[#D32F2F] hover:to-[#F44336] transition-all shadow-sm"
+              style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}
+            >
+              Entendido
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Nuevo componente filtro
 function FiltroInformes({ estado, setEstado }: { estado: string; setEstado: (v: string) => void }) {
   return (
@@ -87,6 +146,7 @@ function FiltroInformes({ estado, setEstado }: { estado: string; setEstado: (v: 
 export default function ListaIntegrantes({ integrantes, nombreGrupo, mes, año }: ListaIntegrantesProps) {
   const [selectedIntegrante, setSelectedIntegrante] = useState<Integrante | null>(null);
   const [estadoFiltro, setEstadoFiltro] = useState<string>('todos');
+  const [showMensajeEnviado, setShowMensajeEnviado] = useState<boolean>(false);
 
   const integrantesFiltrados = integrantes.filter(i => {
     if (estadoFiltro === 'enviados') return i.informe_enviado;
@@ -94,15 +154,26 @@ export default function ListaIntegrantes({ integrantes, nombreGrupo, mes, año }
     return true;
   });
 
+  const handleIntegranteClick = (integrante: Integrante) => {
+    if (integrante.informe_enviado) {
+      setShowMensajeEnviado(true);
+    } else {
+      setSelectedIntegrante(integrante);
+    }
+  };
+
   const handleSubmitInforme = async (data: any) => {
     const client = createClient({ url, authToken: token });
     await client.execute({
       sql: `
-        INSERT INTO informe (horas, cursos, año, mes, participacion, id_usuario)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO informe (horas, cursos, año, mes, participacion, id_usuario, trabajo_como_auxiliar)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
       `,
-      args: [data.horas, data.cursos, data.año, data.mes, data.participacion, selectedIntegrante?.id_usuario]
+      args: [data.horas, data.cursos, data.año, data.mes, data.participacion, selectedIntegrante?.id_usuario, data.trabajo_como_auxiliar]
     });
+    
+    // Recargar la página después de enviar el informe
+    window.location.reload();
   };
 
   return (
@@ -162,8 +233,12 @@ export default function ListaIntegrantes({ integrantes, nombreGrupo, mes, año }
             {integrantesFiltrados.map((integrante) => (
               <li 
                 key={integrante.id_usuario}
-                className="px-6 py-4 hover:bg-gray-50 transition-colors duration-150 cursor-pointer group"
-                onClick={() => setSelectedIntegrante(integrante)}
+                className={`px-6 py-4 transition-colors duration-150 group ${
+                  integrante.informe_enviado 
+                    ? 'cursor-not-allowed opacity-75' 
+                    : 'hover:bg-gray-50 cursor-pointer'
+                }`}
+                onClick={() => handleIntegranteClick(integrante)}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
@@ -176,7 +251,11 @@ export default function ListaIntegrantes({ integrantes, nombreGrupo, mes, año }
                     
                     {/* Información del usuario */}
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors" style={{ fontFamily: 'SF Pro Display, Roboto, Arial, sans-serif' }}>
+                      <h3 className={`text-lg font-semibold transition-colors ${
+                        integrante.informe_enviado 
+                          ? 'text-gray-500' 
+                          : 'text-gray-900 group-hover:text-blue-600'
+                      }`} style={{ fontFamily: 'SF Pro Display, Roboto, Arial, sans-serif' }}>
                         {integrante.nombre} {integrante.apellido} {integrante.informe_enviado ? (
                       <span className="px-3 py-1 bg-green-500 text-white rounded-full text-xs font-semibold uppercase tracking-wide">Enviado</span>
                     ) : (
@@ -216,10 +295,12 @@ export default function ListaIntegrantes({ integrantes, nombreGrupo, mes, año }
                       </span>
                     )}
                     
-                    {/* Icono de flecha */}
-                    <svg className="w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
+                    {/* Icono de flecha - solo mostrar si no está enviado */}
+                    {!integrante.informe_enviado && (
+                      <svg className="w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    )}
                   </div>
                 </div>
               </li>
@@ -241,6 +322,7 @@ export default function ListaIntegrantes({ integrantes, nombreGrupo, mes, año }
         </div>
       </div>
 
+      {/* Modal de formulario de informe */}
       {selectedIntegrante && (
         <FormularioInforme
           id_usuario={selectedIntegrante.id_usuario}
@@ -250,6 +332,11 @@ export default function ListaIntegrantes({ integrantes, nombreGrupo, mes, año }
           onClose={() => setSelectedIntegrante(null)}
           onSubmit={handleSubmitInforme}
         />
+      )}
+
+      {/* Modal de mensaje de informe ya enviado */}
+      {showMensajeEnviado && (
+        <MensajeInformeEnviado onClose={() => setShowMensajeEnviado(false)} />
       )}
     </div>
   );
