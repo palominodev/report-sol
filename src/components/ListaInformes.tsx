@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@libsql/client';
+import EstadisticasInformes from './EstadisticasInformes';
+import InformeCard from './InformeCard';
 
 interface Informe {
   id_informe: number;
@@ -15,6 +17,7 @@ interface Informe {
   apellido: string;
   roles: string;
   nombre_grupo: string;
+  trabajo_como_auxiliar: boolean;
 }
 
 const url = "libsql://reportsoldb-palominodev.aws-us-east-1.turso.io";
@@ -96,8 +99,13 @@ export default function ListaInformes() {
       sql += ' GROUP BY i.id_informe, u.nombre, u.apellido, g.nombre';
       
       if (filtros.rol) {
-        sql += ' HAVING roles LIKE ?';
-        args.push(`%${filtros.rol}%`);
+        if (filtros.rol === 'auxiliar') {
+          sql += " HAVING (roles LIKE ? OR (roles LIKE '%publicador%' AND MAX(i.trabajo_como_auxiliar) = 1))";
+          args.push(`%${filtros.rol}%`);
+        } else {
+          sql += ' HAVING roles LIKE ?';
+          args.push(`%${filtros.rol}%`);
+        }
       }
 
       sql += ' ORDER BY i.fecha_registro DESC LIMIT 100';
@@ -115,7 +123,8 @@ export default function ListaInformes() {
         nombre: row.nombre as string,
         apellido: row.apellido as string,
         roles: row.roles as string,
-        nombre_grupo: row.nombre_grupo as string
+        nombre_grupo: row.nombre_grupo as string,
+        trabajo_como_auxiliar: Boolean(row.trabajo_como_auxiliar)
       })));
       setLoading(false);
     };
@@ -149,27 +158,7 @@ export default function ListaInformes() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-[#333333] mb-4" style={{ fontFamily: 'SF Pro Display, Roboto, Arial, sans-serif' }}>Estadísticas de los informes</h1>
-        <div className="flex gap-6 mt-4 mb-6">
-          <div className="bg-[#E8F4FD] rounded-[12px] p-4 text-center shadow-sm" style={{ minWidth: '160px' }}>
-            <div className="text-2xl font-bold text-[#4A90E2]" style={{ fontFamily: 'SF Pro Display, Roboto, Arial, sans-serif' }}>
-              {informes.reduce((acc, curr) => acc + (curr.horas || 0), 0)}
-            </div>
-            <div className="text-sm font-semibold text-[#666666] mt-1" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
-              Total de Horas
-            </div>
-          </div>
-          <div className="bg-[#E8F5E8] rounded-[12px] p-4 text-center shadow-sm" style={{ minWidth: '160px' }}>
-            <div className="text-2xl font-bold text-[#4CAF50]" style={{ fontFamily: 'SF Pro Display, Roboto, Arial, sans-serif' }}>
-              {informes.reduce((acc, curr) => acc + (curr.cursos || 0), 0)}
-            </div>
-            <div className="text-sm font-semibold text-[#666666] mt-1" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
-              Total de Cursos
-            </div>
-          </div>
-        </div>
-      </div>
+      <EstadisticasInformes informes={informes} />
       {/* Filtros Section */}
       <div className="bg-gray-50 rounded-lg p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4" style={{ fontFamily: 'SF Pro Display, Roboto, Arial, sans-serif' }}>
@@ -256,90 +245,7 @@ export default function ListaInformes() {
       {/* Informes List */}
       <div className="space-y-4">
         {informes.map((informe) => (
-          <div
-            key={informe.id_informe}
-            className="bg-white rounded-lg border border-gray-100 p-6 hover:shadow-md transition-all duration-200"
-          >
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center space-x-4">
-                {/* Avatar */}
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center">
-                  <span className="text-white font-semibold text-sm">
-                    {informe.nombre.charAt(0)}{informe.apellido.charAt(0)}
-                  </span>
-                </div>
-                
-                {/* User Info */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900" style={{ fontFamily: 'SF Pro Display, Roboto, Arial, sans-serif' }}>
-                    {informe.nombre} {informe.apellido}
-                  </h3>
-                  <p className="text-sm text-gray-600" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
-                    {informe.nombre_grupo || 'Sin grupo asignado'}
-                  </p>
-                  <p className="text-xs text-gray-500" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
-                    Registrado: {new Date(new Date(informe.fecha_registro).getTime() - (5 * 60 * 60 * 1000)).toLocaleDateString('es-PE', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      second: '2-digit',
-                      timeZone: 'America/Lima'
-                    })}
-                  </p>
-                </div>
-              </div>
-              
-              {/* Status Badges */}
-              <div className="flex items-center space-x-2">
-                <span className="px-3 py-1 bg-blue-500 text-white rounded-full text-xs font-semibold uppercase tracking-wide">
-                  {informe.mes} {informe.año}
-                </span>
-                {informe.participacion && (
-                  <span className="px-3 py-1 bg-green-500 text-white rounded-full text-xs font-semibold uppercase tracking-wide">
-                    Participó
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Metrics */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-              <div className="bg-blue-50 rounded-lg p-4 text-center">
-                <div className="text-2xl font-bold text-blue-600">{informe.horas}</div>
-                <div className="text-sm text-gray-600 font-medium">Horas</div>
-              </div>
-              <div className="bg-green-50 rounded-lg p-4 text-center">
-                <div className="text-2xl font-bold text-green-600">{informe.cursos}</div>
-                <div className="text-sm text-gray-600 font-medium">Cursos</div>
-              </div>
-              <div className="bg-purple-50 rounded-lg p-4 text-center">
-                <div className="text-2xl font-bold text-purple-600">
-                  {informe.participacion ? 'Sí' : 'No'}
-                </div>
-                <div className="text-sm text-gray-600 font-medium">Participación</div>
-              </div>
-            </div>
-
-            {/* Roles */}
-            {informe.roles && (
-              <div className="border-t border-gray-100 pt-4">
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm font-semibold text-gray-700" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
-                    Roles:
-                  </span>
-                  <div className="flex flex-wrap gap-1">
-                    {informe.roles.split(',').map((rol, index) => (
-                      <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
-                        {rol.trim()}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+          <InformeCard key={informe.id_informe} informe={informe} />
         ))}
       </div>
 
