@@ -30,7 +30,7 @@ export default function FormularioInforme({ id_usuario, nombre, apellido, roles,
     horas: 0,
     cursos: 0,
     año: new Date().getFullYear(),
-    mes: meses[new Date().getMonth()],
+    mes: meses[new Date().getMonth() - 1],
     participacion: true,
     trabajo_como_auxiliar: false
   });
@@ -151,7 +151,6 @@ export default function FormularioInforme({ id_usuario, nombre, apellido, roles,
                   defaultValue={formData.año || 0}
                   onChange={(e) => setFormData({ ...formData, año: parseInt(e.target.value) })}
                   className="w-full px-4 py-3 border border-[#E0E0E0] rounded-lg bg-[#F5F5F5] text-[#666666] cursor-not-allowed"
-                  required
                 />
               </div>
 
@@ -160,9 +159,10 @@ export default function FormularioInforme({ id_usuario, nombre, apellido, roles,
                   Mes
                 </label>
                 <select
+                  disabled
                   defaultValue={formData.mes}
                   onChange={(e) => setFormData({ ...formData, mes: e.target.value })}
-                  className="w-full px-4 py-3 border border-[#E0E0E0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 border border-[#E0E0E0] rounded-lg bg-[#F5F5F5] text-[#666666] cursor-not-allowed"
                 >
                   {meses.map((mes) => (
                     <option key={mes} value={mes}>

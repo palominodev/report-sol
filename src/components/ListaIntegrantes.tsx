@@ -192,9 +192,13 @@ export default function ListaIntegrantes({ integrantes, nombreGrupo, mes, año }
                   {/* Estado de informe */}
                   <div className="flex items-center space-x-2">
                     {/* Rol en grupo */}
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide ${getRolEnGrupoColor(integrante.rol_en_grupo)}`}>
-                      {integrante.rol_en_grupo}
-                    </span>
+                    {
+                      integrante.rol_en_grupo !== 'miembro' && (
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide ${getRolEnGrupoColor(integrante.rol_en_grupo)}`}>
+                          {integrante.rol_en_grupo}
+                        </span>
+                      )
+                    }
                     
                     {/* Estado informe */}
                     
