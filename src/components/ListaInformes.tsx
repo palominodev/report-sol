@@ -36,7 +36,7 @@ export default function ListaInformes() {
   const [loading, setLoading] = useState(true);
   const [filtros, setFiltros] = useState({
     año: new Date().getFullYear(),
-    mes: meses[new Date().getMonth()],
+    mes: meses[new Date().getMonth() - 1],
     rol: '',
     grupo: ''
   });
@@ -257,12 +257,14 @@ export default function ListaInformes() {
                     Grupo: {informe.nombre_grupo || 'Sin grupo asignado'}
                   </p>
                   <p className="text-xs text-gray-500" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
-                    Registrado: {new Date(informe.fecha_registro).toLocaleDateString('es-ES', {
+                    Registrado: {new Date(new Date(informe.fecha_registro).getTime() - (5 * 60 * 60 * 1000)).toLocaleDateString('es-PE', {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric',
                       hour: '2-digit',
-                      minute: '2-digit'
+                      minute: '2-digit',
+                      second: '2-digit',
+                      timeZone: 'America/Lima'
                     })}
                   </p>
                 </div>
