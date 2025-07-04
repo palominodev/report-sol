@@ -149,6 +149,27 @@ export default function ListaInformes() {
 
   return (
     <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-[#333333] mb-4" style={{ fontFamily: 'SF Pro Display, Roboto, Arial, sans-serif' }}>Estadísticas de los informes</h1>
+        <div className="flex gap-6 mt-4 mb-6">
+          <div className="bg-[#E8F4FD] rounded-[12px] p-4 text-center shadow-sm" style={{ minWidth: '160px' }}>
+            <div className="text-2xl font-bold text-[#4A90E2]" style={{ fontFamily: 'SF Pro Display, Roboto, Arial, sans-serif' }}>
+              {informes.reduce((acc, curr) => acc + (curr.horas || 0), 0)}
+            </div>
+            <div className="text-sm font-semibold text-[#666666] mt-1" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+              Total de Horas
+            </div>
+          </div>
+          <div className="bg-[#E8F5E8] rounded-[12px] p-4 text-center shadow-sm" style={{ minWidth: '160px' }}>
+            <div className="text-2xl font-bold text-[#4CAF50]" style={{ fontFamily: 'SF Pro Display, Roboto, Arial, sans-serif' }}>
+              {informes.reduce((acc, curr) => acc + (curr.cursos || 0), 0)}
+            </div>
+            <div className="text-sm font-semibold text-[#666666] mt-1" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+              Total de Cursos
+            </div>
+          </div>
+        </div>
+      </div>
       {/* Filtros Section */}
       <div className="bg-gray-50 rounded-lg p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4" style={{ fontFamily: 'SF Pro Display, Roboto, Arial, sans-serif' }}>
@@ -254,7 +275,7 @@ export default function ListaInformes() {
                     {informe.nombre} {informe.apellido}
                   </h3>
                   <p className="text-sm text-gray-600" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
-                    Grupo: {informe.nombre_grupo || 'Sin grupo asignado'}
+                    {informe.nombre_grupo || 'Sin grupo asignado'}
                   </p>
                   <p className="text-xs text-gray-500" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
                     Registrado: {new Date(new Date(informe.fecha_registro).getTime() - (5 * 60 * 60 * 1000)).toLocaleDateString('es-PE', {
