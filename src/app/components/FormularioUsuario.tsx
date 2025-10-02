@@ -94,7 +94,7 @@ export default function FormularioUsuario({
       // Redirigir después de un breve delay para mostrar el mensaje
       setTimeout(() => {
         router.push('/dashboard/publicadores');
-      }, 1500);
+      }, 1000);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al procesar la solicitud");
     }
