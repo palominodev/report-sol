@@ -106,7 +106,7 @@ export default function FormularioInforme({ id_usuario, nombre, apellido, roles,
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {!esPublicador || formData.trabajo_como_auxiliar && (
+            {(!esPublicador || formData.trabajo_como_auxiliar) && (
               <div>
                 <label className="block text-sm font-semibold text-[#333333] mb-2" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
                   Horas
