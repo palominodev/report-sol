@@ -166,10 +166,10 @@ export default function ListaIntegrantes({ integrantes, nombreGrupo, mes, año }
     const client = createClient({ url, authToken: token });
     await client.execute({
       sql: `
-        INSERT INTO informe (horas, cursos, año, mes, participacion, id_usuario, trabajo_como_auxiliar)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO informe (horas, cursos, año, mes, participacion, id_usuario, trabajo_como_auxiliar, notas)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `,
-      args: [data.horas, data.cursos, data.año, data.mes, data.participacion, selectedIntegrante?.id_usuario, data.trabajo_como_auxiliar]
+      args: [data.horas, data.cursos, data.año, data.mes, data.participacion, selectedIntegrante?.id_usuario, data.trabajo_como_auxiliar, data.notas]
     });
     
     // Recargar la página después de enviar el informe

@@ -18,6 +18,7 @@ interface Informe {
   roles: string;
   nombre_grupo: string;
   trabajo_como_auxiliar: boolean;
+  notas: string | null;
 }
 
 const url = "libsql://reportsoldb-palominodev.aws-us-east-1.turso.io";
@@ -124,7 +125,8 @@ export default function ListaInformes() {
         apellido: row.apellido as string,
         roles: row.roles as string,
         nombre_grupo: row.nombre_grupo as string,
-        trabajo_como_auxiliar: Boolean(row.trabajo_como_auxiliar)
+        trabajo_como_auxiliar: Boolean(row.trabajo_como_auxiliar),
+        notas: row.notas as string | null
       })));
       setLoading(false);
     };

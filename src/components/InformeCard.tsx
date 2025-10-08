@@ -13,6 +13,7 @@ interface Informe {
   roles: string;
   nombre_grupo: string;
   trabajo_como_auxiliar: boolean;
+  notas: string | null;
 }
 
 export default function InformeCard({ informe }: { informe: Informe }) {
@@ -84,6 +85,21 @@ export default function InformeCard({ informe }: { informe: Informe }) {
           <div className="text-sm text-gray-600 font-medium">Participación</div>
         </div>
       </div>
+
+      {/* Notas */}
+      {informe.notas && (
+        <div className="border-t border-gray-100 py-4">
+          <div className="flex items-center space-x-2">
+            <span className="text-sm font-semibold text-gray-700" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+              Notas:
+            </span>
+            <div className="flex flex-wrap gap-1">
+                {informe.notas}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Roles */}
       {informe.roles && (
         <div className="border-t border-gray-100 pt-4">
