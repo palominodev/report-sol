@@ -148,7 +148,7 @@ export default function FormularioInforme({ id_usuario, nombre, apellido, roles,
                 onChange={(e) => setFormData({ ...formData, notas: e.target.value })}
                 className="w-full px-4 py-3 border border-[#E0E0E0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent transition-all"
                 placeholder="Ingresa las notas"
-                required
+                
               />
             </div>
 
