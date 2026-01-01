@@ -38,9 +38,17 @@ const roles = [
 export default function ListaInformes() {
   const [informes, setInformes] = useState<Informe[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Calcular fecha inicial (mes anterior)
+  const fechaActual = new Date();
+  const mesActualIdx = fechaActual.getMonth();
+  const anioActual = fechaActual.getFullYear();
+  const mesInicial = mesActualIdx === 0 ? 'DIC' : meses[mesActualIdx - 1];
+  const anioInicial = mesActualIdx === 0 ? anioActual - 1 : anioActual;
+
   const [filtros, setFiltros] = useState({
-    año: new Date().getFullYear(),
-    mes: meses[new Date().getMonth() - 1],
+    año: anioInicial,
+    mes: mesInicial,
     rol: '',
     grupo: ''
   });

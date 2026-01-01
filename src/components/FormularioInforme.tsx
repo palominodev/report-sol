@@ -27,11 +27,20 @@ const meses = [
 ];
 
 export default function FormularioInforme({ id_usuario, nombre, apellido, roles, onClose, onSubmit }: FormularioInformeProps) {
+  // Calcular mes y año anterior para el informe
+  const fechaActual = new Date();
+  const mesActualIdx = fechaActual.getMonth();
+  const anioActual = fechaActual.getFullYear();
+  
+  // Si estamos en enero (0), el informe es de diciembre (11) del año anterior
+  const mesInformeIdx = mesActualIdx === 0 ? 11 : mesActualIdx - 1;
+  const anioInforme = mesActualIdx === 0 ? anioActual - 1 : anioActual;
+
   const [formData, setFormData] = useState<InformeData>({
     horas: 0,
     cursos: 0,
-    año: new Date().getFullYear(),
-    mes: meses[new Date().getMonth() - 1],
+    año: anioInforme,
+    mes: meses[mesInformeIdx],
     participacion: true,
     trabajo_como_auxiliar: false,
     notas: null
