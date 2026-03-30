@@ -6,7 +6,9 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db:push": "tsx scripts/db-push.ts",
+    "db:seed": "tsx scripts/seed.ts"
   },
   "dependencies": {
     "@libsql/client": "^0.15.9",
@@ -23,6 +25,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.3.8",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }
