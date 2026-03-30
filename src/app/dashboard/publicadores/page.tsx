@@ -18,19 +18,19 @@ async function getGrupos() {
 async function getPublicadores(grupoId?: number) {
   const client = createClient({ url, authToken: token });
   const query = `
-    SELECT 
-      u.id_usuario, 
-      u.nombre, 
-      u.apellido, 
-      GROUP_CONCAT(r.rol) as roles,
-      g.nombre as grupo
-    FROM usuario u
-    LEFT JOIN usuario_rol ur ON u.id_usuario = ur.id_usuario
-    LEFT JOIN rol r ON ur.id_rol = r.id_rol
-    LEFT JOIN grupo_usuario gu ON u.id_usuario = gu.id_usuario
-    LEFT JOIN grupo g ON gu.id_grupo = g.id_grupo
-    ${grupoId ? 'WHERE g.id_grupo = ?' : ''}
-    GROUP BY u.id_usuario, u.nombre, u.apellido, g.nombre
+  SELECT 
+  u.id_usuario, 
+  u.nombre, 
+  u.apellido, 
+  GROUP_CONCAT(r.rol) as roles,
+  g.nombre as grupo
+  FROM usuario u
+  LEFT JOIN usuario_rol ur ON u.id_usuario = ur.id_usuario
+  LEFT JOIN rol r ON ur.id_rol = r.id_rol
+  LEFT JOIN grupo_usuario gu ON u.id_usuario = gu.id_usuario
+  LEFT JOIN grupo g ON gu.id_grupo = g.id_grupo
+  ${grupoId ? 'WHERE g.id_grupo = ?' : ''}
+  GROUP BY u.id_usuario, u.nombre, u.apellido, g.nombre
   `;
   const result = await client.execute({
     sql: query,
@@ -66,7 +66,7 @@ export default function Publicadores() {
 
       // Actualizar la lista de usuarios después de eliminar
       setPublicadores(publicadores.filter(usuario => usuario.id_usuario !== idUsuario));
-      
+
       // Mostrar mensaje de éxito
       alert('Usuario eliminado exitosamente');
     } catch (error) {
@@ -105,8 +105,8 @@ export default function Publicadores() {
                 </p>
               </div>
             </div>
-            
-            <Link 
+
+            <Link
               href={'/usuario/nuevo'}
               className="inline-flex items-center justify-center px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-green-500 to-green-600 rounded-lg hover:from-green-600 hover:to-green-700 transition-all shadow-sm"
               style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}
@@ -134,7 +134,7 @@ export default function Publicadores() {
               </div>
             </div>
           </div>
-          
+
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <div className="flex items-center">
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -148,7 +148,7 @@ export default function Publicadores() {
               </div>
             </div>
           </div>
-          
+
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <div className="flex items-center">
               <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -220,7 +220,7 @@ export default function Publicadores() {
               {publicadores.length} publicador{publicadores.length !== 1 ? 'es' : ''} encontrado{publicadores.length !== 1 ? 's' : ''}
             </p>
           </div>
-          
+
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -241,7 +241,7 @@ export default function Publicadores() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-100">
                 {publicadores.map((pub: any) => (
-                  <tr key={pub.id_usuario} className="hover:bg-gray-50 transition-colors">
+                  <tr onClick={() => router.push(`/dashboard/publicadores/${pub.id_usuario}/stats`)} key={pub.id_usuario} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center">
@@ -292,7 +292,7 @@ export default function Publicadores() {
               </tbody>
             </table>
           </div>
-          
+
           {/* Empty State */}
           {publicadores.length === 0 && (
             <div className="text-center py-12">

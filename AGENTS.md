@@ -81,7 +81,15 @@ npm run lint
 
 # Build for production
 npm run build
+
+# Run seed
+npm run db:seed
+
+
+npm run db:push
+
 ```
+
 
 ---
 
