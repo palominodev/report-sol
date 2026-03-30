@@ -1,24 +1,11 @@
 import Link from "next/link";
-import { createClient } from '@libsql/client';
-
-const url = "libsql://reportsoldb-palominodev.aws-us-east-1.turso.io";
-const token = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NDk1OTg4NjksImlkIjoiYmQ3OTc3MzYtYTBlMC00YjUyLWFkNmUtYWQ4OTlhMzBjMTZmIiwicmlkIjoiMzczMTFiZmMtMjI2Mi00YzdlLTg4ZWEtMzMxNmJmYTU2MDZjIn0.oAxJKUB2i3G2GaWw7e0yLLq-_APQdv77H1KsHeIHIZ9MlQRwkLD6mve0tlMGN6RBPuFhvJ2skMzgc9y2Ks30CQ";
+import { GetGruposUseCase } from '@/core/application/use-cases/GetGruposUseCase';
+import { TursoGrupoRepository } from '@/infrastructure/persistence/turso-grupo.repository';
 
 async function getGrupos() {
-  const client = createClient({ url, authToken: token });
-  const result = await client.execute(`
-    SELECT 
-      g.id_grupo,
-      g.nombre as nombre_grupo,
-      enc.nombre || ' ' || enc.apellido as encargado,
-      aux.nombre || ' ' || aux.apellido as auxiliar
-    FROM grupo g
-    LEFT JOIN grupo_usuario gu_enc ON g.id_grupo = gu_enc.id_grupo AND gu_enc.rol_en_grupo = 'encargado'
-    LEFT JOIN usuario enc ON gu_enc.id_usuario = enc.id_usuario
-    LEFT JOIN grupo_usuario gu_aux ON g.id_grupo = gu_aux.id_grupo AND gu_aux.rol_en_grupo = 'auxiliar'
-    LEFT JOIN usuario aux ON gu_aux.id_usuario = aux.id_usuario
-  `);
-  return result.rows;
+  const grupoRepository = new TursoGrupoRepository();
+  const getGruposUseCase = new GetGruposUseCase(grupoRepository);
+  return getGruposUseCase.executeWithDetails();
 }
 
 export default async function Home() {
