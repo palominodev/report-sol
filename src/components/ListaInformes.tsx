@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@libsql/client';
 import EstadisticasInformes from './EstadisticasInformes';
 import InformeCard from './InformeCard';
@@ -38,6 +38,11 @@ const roles = [
 export default function ListaInformes() {
   const [informes, setInformes] = useState<Informe[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const refreshInformes = useCallback(() => {
+    setRefreshKey(k => k + 1);
+  }, []);
 
   // Calcular fecha inicial (mes anterior)
   const fechaActual = new Date();
@@ -140,7 +145,7 @@ export default function ListaInformes() {
     };
 
     fetchInformes();
-  }, [filtros]);
+  }, [filtros, refreshKey]);
 
   if (loading) {
     return (
@@ -255,7 +260,12 @@ export default function ListaInformes() {
       {/* Informes List */}
       <div className="space-y-4">
         {informes.map((informe) => (
-          <InformeCard key={informe.id_informe} informe={informe} />
+          <InformeCard 
+            key={informe.id_informe} 
+            informe={informe} 
+            onUpdate={refreshInformes}
+            onDelete={refreshInformes}
+          />
         ))}
       </div>
 

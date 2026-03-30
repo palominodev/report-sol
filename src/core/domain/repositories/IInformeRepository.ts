@@ -1,5 +1,12 @@
 import { InformeRow } from '@/core/domain/PublisherStats';
 
+export interface InformeUpdateData {
+  horas: number | null;
+  cursos: number;
+  participacion: boolean;
+  trabajo_como_auxiliar: boolean;
+}
+
 export interface IInformeRepository {
   /**
    * Retrieves all reports for a given user, ordered by year and month (ascending).
@@ -21,4 +28,14 @@ export interface IInformeRepository {
     grupo: string;
     roles: string[];
   } | null>;
+
+  /**
+   * Updates an existing informe by ID.
+   */
+  update(idInforme: number, data: InformeUpdateData): Promise<void>;
+
+  /**
+   * Deletes an informe by ID.
+   */
+  delete(idInforme: number): Promise<void>;
 }

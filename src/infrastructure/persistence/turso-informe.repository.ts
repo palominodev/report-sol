@@ -1,5 +1,5 @@
 import { getDatabaseClient } from './database.client';
-import { IInformeRepository } from '@/core/domain/repositories/IInformeRepository';
+import { IInformeRepository, InformeUpdateData } from '@/core/domain/repositories/IInformeRepository';
 import { InformeRow, Mes } from '@/core/domain/PublisherStats';
 
 export class TursoInformeRepository implements IInformeRepository {
@@ -73,5 +73,31 @@ export class TursoInformeRepository implements IInformeRepository {
       grupo: row.grupo as string,
       roles,
     };
+  }
+
+  async update(idInforme: number, data: InformeUpdateData): Promise<void> {
+    const client = getDatabaseClient();
+
+    await client.execute({
+      sql: `UPDATE informe 
+            SET horas = ?, cursos = ?, participacion = ?, trabajo_como_auxiliar = ?
+            WHERE id_informe = ?`,
+      args: [
+        data.horas,
+        data.cursos,
+        data.participacion ? 1 : 0,
+        data.trabajo_como_auxiliar ? 1 : 0,
+        idInforme,
+      ],
+    });
+  }
+
+  async delete(idInforme: number): Promise<void> {
+    const client = getDatabaseClient();
+
+    await client.execute({
+      sql: 'DELETE FROM informe WHERE id_informe = ?',
+      args: [idInforme],
+    });
   }
 }
