@@ -100,4 +100,94 @@ export class TursoInformeRepository implements IInformeRepository {
       args: [idInforme],
     });
   }
+
+  async findAllWithUsers(): Promise<InformeRow[]> {
+    const client = getDatabaseClient();
+
+    const result = await client.execute({
+      sql: `SELECT i.*, u.nombre, u.apellido, g.nombre as grupo_nombre
+            FROM informe i
+            JOIN usuario u ON i.id_usuario = u.id_usuario
+            LEFT JOIN grupo_usuario gu ON u.id_usuario = gu.id_usuario
+            LEFT JOIN grupo g ON gu.id_grupo = g.id_grupo
+            ORDER BY i.año DESC, i.mes DESC`,
+    });
+
+    return result.rows.map((row) => ({
+      id_informe: row.id_informe as number,
+      fecha_registro: row.fecha_registro as string,
+      horas: row.horas as number | null,
+      cursos: row.cursos as number,
+      año: row.año as number,
+      participacion: Boolean(row.participacion),
+      trabajo_como_auxiliar: Boolean(row.trabajo_como_auxiliar),
+      mes: row.mes as Mes,
+      id_usuario: row.id_usuario as number,
+      nombre: row.nombre as string,
+      apellido: row.apellido as string,
+      grupo_nombre: row.grupo_nombre as string,
+    }));
+  }
+
+  async findAllWithUsersFilter(año: number | null, mes: string | null, rol: string | null, grupo: number | null): Promise<InformeRow[]> {
+    const client = getDatabaseClient();
+
+    let sql = `
+      SELECT i.*, u.nombre, u.apellido, g.nombre as grupo_nombre,
+             GROUP_CONCAT(DISTINCT r.rol) as roles
+      FROM informe i
+      JOIN usuario u ON i.id_usuario = u.id_usuario
+      LEFT JOIN usuario_rol ur ON u.id_usuario = ur.id_usuario
+      LEFT JOIN rol r ON ur.id_rol = r.id_rol
+      LEFT JOIN grupo_usuario gu ON u.id_usuario = gu.id_usuario
+      LEFT JOIN grupo g ON gu.id_grupo = g.id_grupo
+      WHERE 1=1
+    `;
+    const args: any[] = [];
+
+    if (año) {
+      sql += ' AND i.año = ?';
+      args.push(año);
+    }
+
+    if (mes) {
+      sql += ' AND i.mes = ?';
+      args.push(mes);
+    }
+
+    if (grupo) {
+      sql += ' AND g.id_grupo = ?';
+      args.push(grupo);
+    }
+
+    sql += ' GROUP BY i.id_informe, u.id_usuario';
+
+    if (rol) {
+      if (rol === 'auxiliar') {
+        sql += ' HAVING (roles LIKE ? OR (roles LIKE \'%publicador%\' AND MAX(i.trabajo_como_auxiliar) = 1))';
+      } else {
+        sql += ' HAVING roles LIKE ?';
+      }
+      args.push(`%${rol}%`);
+    }
+
+    sql += ' ORDER BY i.año DESC, i.mes DESC';
+
+    const result = await client.execute({ sql, args });
+
+    return result.rows.map((row) => ({
+      id_informe: row.id_informe as number,
+      fecha_registro: row.fecha_registro as string,
+      horas: row.horas as number | null,
+      cursos: row.cursos as number,
+      año: row.año as number,
+      participacion: Boolean(row.participacion),
+      trabajo_como_auxiliar: Boolean(row.trabajo_como_auxiliar),
+      mes: row.mes as Mes,
+      id_usuario: row.id_usuario as number,
+      nombre: row.nombre as string,
+      apellido: row.apellido as string,
+      grupo_nombre: row.grupo_nombre as string,
+    }));
+  }
 }

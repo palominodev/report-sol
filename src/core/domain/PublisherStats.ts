@@ -20,6 +20,9 @@ export interface InformeRow {
   trabajo_como_auxiliar: boolean;
   mes: Mes;
   id_usuario: number;
+  nombre?: string;
+  apellido?: string;
+  grupo_nombre?: string;
 }
 
 /** A single month entry in the publisher's history */

@@ -1,7 +1,54 @@
+'use client';
+import { useState, useEffect } from 'react';
 import ListaInformes from '../../components/ListaInformes';
 import Link from 'next/link';
 
+interface Filtros {
+  año: number;
+  mes: string;
+  rol: string;
+  grupo: string;
+}
+
+const meses = [
+  'ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN',
+  'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'
+];
+
 export default function DashboardPage() {
+  const [filtros, setFiltros] = useState<Filtros>({
+    año: new Date().getFullYear(),
+    mes: '',
+    rol: '',
+    grupo: ''
+  });
+
+  const handleDownload = async () => {
+    try {
+      const params = new URLSearchParams();
+      if (filtros.año) params.set('año', filtros.año.toString());
+      if (filtros.mes) params.set('mes', filtros.mes);
+      if (filtros.rol) params.set('rol', filtros.rol);
+      if (filtros.grupo) params.set('grupo', filtros.grupo);
+
+      const response = await fetch(`/api/informe/export?${params.toString()}`);
+      if (!response.ok) throw new Error('Error al descargar');
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const mesLabel = filtros.mes ? `_${filtros.mes}` : '';
+      a.download = `informe_actividades_${filtros.año}${mesLabel}_${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+    } catch (error) {
+      console.error('Error al descargar:', error);
+      alert('Error al descargar el informe');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto p-6">
@@ -23,9 +70,9 @@ export default function DashboardPage() {
                 </p>
               </div>
             </div>
-            
+
             <div className="flex flex-col sm:flex-row gap-3">
-              <Link 
+              <Link
                 href={'/dashboard/publicadores'}
                 className="inline-flex items-center justify-center px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all shadow-sm"
                 style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}
@@ -35,7 +82,7 @@ export default function DashboardPage() {
                 </svg>
                 Lista de Grupos
               </Link>
-              <Link 
+              <Link
                 href={'/usuario/nuevo'}
                 className="inline-flex items-center justify-center px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-green-500 to-green-600 rounded-lg hover:from-green-600 hover:to-green-700 transition-all shadow-sm"
                 style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}
@@ -58,9 +105,61 @@ export default function DashboardPage() {
             <p className="text-gray-600 text-sm mt-1" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
               Visualiza y gestiona los informes de actividad de los publicadores
             </p>
+            
+            {/* Filtros y botón de descarga */}
+            <div className="flex flex-wrap items-end gap-4 mt-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+                  Año
+                </label>
+                <select
+                  value={filtros.año}
+                  onChange={(e) => setFiltros({ ...filtros, año: parseInt(e.target.value) })}
+                  className="px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {[...Array(5)].map((_, i) => {
+                    const año = new Date().getFullYear() - i;
+                    return (
+                      <option key={año} value={año}>
+                        {año}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+                  Mes
+                </label>
+                <select
+                  value={filtros.mes}
+                  onChange={(e) => setFiltros({ ...filtros, mes: e.target.value })}
+                  className="px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Todos los meses</option>
+                  {meses.map((mes) => (
+                    <option key={mes} value={mes}>
+                      {mes}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <button
+                onClick={handleDownload}
+                className="inline-flex items-center justify-center px-6 py-2 text-sm font-semibold text-white bg-gradient-to-r from-green-500 to-green-600 rounded-lg hover:from-green-600 hover:to-green-700 transition-all shadow-sm"
+                style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Descargar Informe
+              </button>
+            </div>
           </div>
           <div className="p-6">
-            <ListaInformes />
+            <ListaInformes filtros={filtros} onFiltrosChange={setFiltros} />
           </div>
         </div>
       </div>

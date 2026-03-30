@@ -21,6 +21,18 @@ interface Informe {
   notas: string | null;
 }
 
+interface Filtros {
+  año: number;
+  mes: string;
+  rol: string;
+  grupo: string;
+}
+
+interface ListaInformesProps {
+  filtros: Filtros;
+  onFiltrosChange: (filtros: Filtros) => void;
+}
+
 const url = "libsql://reportsoldb-palominodev.aws-us-east-1.turso.io";
 const token = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NDk1OTg4NjksImlkIjoiYmQ3OTc3MzYtYTBlMC00YjUyLWFkNmUtYWQ4OTlhMzBjMTZmIiwicmlkIjoiMzczMTFiZmMtMjI2Mi00YzdlLTg4ZWEtMzMxNmJmYTU2MDZjIn0.oAxJKUB2i3G2GaWw7e0yLLq-_APQdv77H1KsHeIHIZ9MlQRwkLD6mve0tlMGN6RBPuFhvJ2skMzgc9y2Ks30CQ";
 
@@ -35,7 +47,7 @@ const roles = [
   { id: 'regular', label: 'Regular' }
 ];
 
-export default function ListaInformes() {
+export default function ListaInformes({ filtros, onFiltrosChange }: ListaInformesProps) {
   const [informes, setInformes] = useState<Informe[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -44,19 +56,6 @@ export default function ListaInformes() {
     setRefreshKey(k => k + 1);
   }, []);
 
-  // Calcular fecha inicial (mes anterior)
-  const fechaActual = new Date();
-  const mesActualIdx = fechaActual.getMonth();
-  const anioActual = fechaActual.getFullYear();
-  const mesInicial = mesActualIdx === 0 ? 'DIC' : meses[mesActualIdx - 1];
-  const anioInicial = mesActualIdx === 0 ? anioActual - 1 : anioActual;
-
-  const [filtros, setFiltros] = useState({
-    año: anioInicial,
-    mes: mesInicial,
-    rol: '',
-    grupo: ''
-  });
   const [grupos, setGrupos] = useState<{ id_grupo: number; nombre: string }[]>([]);
 
   useEffect(() => {
@@ -187,7 +186,7 @@ export default function ListaInformes() {
             </label>
             <select
               value={filtros.año}
-              onChange={(e) => setFiltros({ ...filtros, año: parseInt(e.target.value) })}
+              onChange={(e) => onFiltrosChange({ ...filtros, año: parseInt(e.target.value) })}
               className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             >
               {[...Array(5)].map((_, i) => {
@@ -207,7 +206,7 @@ export default function ListaInformes() {
             </label>
             <select
               value={filtros.mes}
-              onChange={(e) => setFiltros({ ...filtros, mes: e.target.value })}
+              onChange={(e) => onFiltrosChange({ ...filtros, mes: e.target.value })}
               className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             >
               <option value="">Todos los meses</option>
@@ -225,7 +224,7 @@ export default function ListaInformes() {
             </label>
             <select
               value={filtros.rol}
-              onChange={(e) => setFiltros({ ...filtros, rol: e.target.value })}
+              onChange={(e) => onFiltrosChange({ ...filtros, rol: e.target.value })}
               className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             >
               <option value="">Todos los roles</option>
@@ -243,7 +242,7 @@ export default function ListaInformes() {
             </label>
             <select
               value={filtros.grupo}
-              onChange={(e) => setFiltros({ ...filtros, grupo: e.target.value })}
+              onChange={(e) => onFiltrosChange({ ...filtros, grupo: e.target.value })}
               className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             >
               <option value="">Todos los grupos</option>

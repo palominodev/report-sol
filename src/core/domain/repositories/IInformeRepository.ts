@@ -38,4 +38,14 @@ export interface IInformeRepository {
    * Deletes an informe by ID.
    */
   delete(idInforme: number): Promise<void>;
+
+  /**
+   * Retrieves all informes with user info for export.
+   */
+  findAllWithUsers(): Promise<InformeRow[]>;
+
+  /**
+   * Retrieves all informes with user info filtered for export.
+   */
+  findAllWithUsersFilter(año: number | null, mes: string | null, rol: string | null, grupo: number | null): Promise<InformeRow[]>;
 }
