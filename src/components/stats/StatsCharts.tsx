@@ -13,6 +13,7 @@ import {
   ResponsiveContainer,
   Area,
   AreaChart,
+  LabelList,
 } from 'recharts';
 import type { MonthEntry } from '@/core/domain/PublisherStats';
 
@@ -30,8 +31,8 @@ interface ChartDataPoint {
 function transformData(history: MonthEntry[]): ChartDataPoint[] {
   return history.map((entry) => ({
     periodo: `${entry.mes} ${entry.año}`,
-    horas: entry.horas ?? 0,
-    cursos: entry.cursos,
+    horas: Number(entry.horas) || 0,
+    cursos: Number(entry.cursos) || 0,
     participacion: entry.participacion ? 1 : 0,
   }));
 }
@@ -94,7 +95,9 @@ function HoursChart({ data }: { data: ChartDataPoint[] }) {
             fill="url(#horasGradient)"
             dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4, stroke: '#fff' }}
             activeDot={{ r: 6, strokeWidth: 2, stroke: '#fff' }}
-          />
+          >
+            <LabelList dataKey="horas" position="top" offset={10} style={{ fill: '#64748b', fontSize: 11, fontWeight: 500 }} />
+          </Area>
         </AreaChart>
       </ResponsiveContainer>
     </div>
@@ -130,7 +133,9 @@ function CoursesChart({ data }: { data: ChartDataPoint[] }) {
             fill="#10b981"
             radius={[6, 6, 0, 0]}
             maxBarSize={40}
-          />
+          >
+            <LabelList dataKey="cursos" position="top" offset={10} style={{ fill: '#64748b', fontSize: 11, fontWeight: 500 }} />
+          </Bar>
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -170,7 +175,9 @@ function ComparisonChart({ data }: { data: ChartDataPoint[] }) {
             strokeWidth={2.5}
             dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4, stroke: '#fff' }}
             activeDot={{ r: 6, strokeWidth: 2, stroke: '#fff' }}
-          />
+          >
+            <LabelList dataKey="horas" position="top" offset={10} style={{ fill: '#3b82f6', fontSize: 11, fontWeight: 500 }} />
+          </Line>
           <Line
             type="monotone"
             dataKey="cursos"
@@ -179,7 +186,9 @@ function ComparisonChart({ data }: { data: ChartDataPoint[] }) {
             strokeWidth={2.5}
             dot={{ fill: '#10b981', strokeWidth: 2, r: 4, stroke: '#fff' }}
             activeDot={{ r: 6, strokeWidth: 2, stroke: '#fff' }}
-          />
+          >
+            <LabelList dataKey="cursos" position="top" offset={10} style={{ fill: '#10b981', fontSize: 11, fontWeight: 500 }} />
+          </Line>
         </LineChart>
       </ResponsiveContainer>
     </div>
