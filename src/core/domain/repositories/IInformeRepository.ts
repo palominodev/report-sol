@@ -7,6 +7,17 @@ export interface InformeUpdateData {
   trabajo_como_auxiliar: boolean;
 }
 
+export interface InformeCreateData {
+  horas: number | null;
+  cursos: number;
+  año: number;
+  mes: string;
+  participacion: boolean;
+  id_usuario: number;
+  trabajo_como_auxiliar: boolean;
+  notas: string | null;
+}
+
 export interface IInformeRepository {
   /**
    * Retrieves all reports for a given user, ordered by year and month (ascending).
@@ -28,6 +39,11 @@ export interface IInformeRepository {
     grupo: string;
     roles: string[];
   } | null>;
+
+  /**
+   * Creates a new informe. Throws an error if an informe for this user, month, and year already exists.
+   */
+  create(data: InformeCreateData): Promise<void>;
 
   /**
    * Updates an existing informe by ID.

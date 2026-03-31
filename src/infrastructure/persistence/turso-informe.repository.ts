@@ -1,5 +1,5 @@
 import { getDatabaseClient } from './database.client';
-import { IInformeRepository, InformeUpdateData } from '@/core/domain/repositories/IInformeRepository';
+import { IInformeRepository, InformeUpdateData, InformeCreateData } from '@/core/domain/repositories/IInformeRepository';
 import { InformeRow, Mes } from '@/core/domain/PublisherStats';
 
 export class TursoInformeRepository implements IInformeRepository {
@@ -73,6 +73,35 @@ export class TursoInformeRepository implements IInformeRepository {
       grupo: row.grupo as string,
       roles,
     };
+  }
+
+  async create(data: InformeCreateData): Promise<void> {
+    const client = getDatabaseClient();
+
+    // Check if the report already exists for this user, month, and year
+    const checkResult = await client.execute({
+      sql: 'SELECT id_informe FROM informe WHERE id_usuario = ? AND mes = ? AND año = ?',
+      args: [data.id_usuario, data.mes, data.año],
+    });
+
+    if (checkResult.rows.length > 0) {
+      throw new Error('Ya existe un informe para este publicador en el mes indicado.');
+    }
+
+    await client.execute({
+      sql: `INSERT INTO informe (horas, cursos, año, mes, participacion, id_usuario, trabajo_como_auxiliar, notas)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      args: [
+        data.horas,
+        data.cursos,
+        data.año,
+        data.mes,
+        data.participacion ? 1 : 0,
+        data.id_usuario,
+        data.trabajo_como_auxiliar ? 1 : 0,
+        data.notas,
+      ],
+    });
   }
 
   async update(idInforme: number, data: InformeUpdateData): Promise<void> {

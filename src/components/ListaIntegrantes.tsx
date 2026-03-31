@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { createClient } from '@libsql/client';
 import FormularioInforme from './FormularioInforme';
 
 interface Integrante {
@@ -19,9 +18,6 @@ interface ListaIntegrantesProps {
   mes: string;
   año: number;
 }
-
-const url = "libsql://reportsoldb-palominodev.aws-us-east-1.turso.io";
-const token = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NDk1OTg4NjksImlkIjoiYmQ3OTc3MzYtYTBlMC00YjUyLWFkNmUtYWQ4OTlhMzBjMTZmIiwicmlkIjoiMzczMTFiZmMtMjI2Mi00YzdlLTg4ZWEtMzMxNmJmYTU2MDZjIn0.oAxJKUB2i3G2GaWw7e0yLLq-_APQdv77H1KsHeIHIZ9MlQRwkLD6mve0tlMGN6RBPuFhvJ2skMzgc9y2Ks30CQ";
 
 // Colores actualizados según el design system
 const rolEnGrupoColors: Record<string, string> = {
@@ -163,17 +159,29 @@ export default function ListaIntegrantes({ integrantes, nombreGrupo, mes, año }
   };
 
   const handleSubmitInforme = async (data: any) => {
-    const client = createClient({ url, authToken: token });
-    await client.execute({
-      sql: `
-        INSERT INTO informe (horas, cursos, año, mes, participacion, id_usuario, trabajo_como_auxiliar, notas)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `,
-      args: [data.horas, data.cursos, data.año, data.mes, data.participacion, selectedIntegrante?.id_usuario, data.trabajo_como_auxiliar, data.notas]
-    });
-    
-    // Recargar la página después de enviar el informe
-    window.location.reload();
+    try {
+      const response = await fetch('/api/informe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...data,
+          id_usuario: selectedIntegrante?.id_usuario,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Error al guardar el informe');
+      }
+
+      // Recargar la página después de enviar el informe
+      window.location.reload();
+    } catch (error: any) {
+      alert(error.message);
+    }
   };
 
   return (
