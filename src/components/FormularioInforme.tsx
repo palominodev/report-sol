@@ -71,15 +71,15 @@ export default function FormularioInforme({ id_usuario, nombre, apellido, roles,
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-[#4A90E2] bg-opacity-20 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg aria-hidden="true" className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
               <div>
-                <h2 className="text-xl font-bold text-white" style={{ fontFamily: 'SF Pro Display, Roboto, Arial, sans-serif' }}>
+                <h2 className="text-xl font-bold text-white text-balance">
                   Registrar Informe
                 </h2>
-                <p className="text-blue-100 text-sm" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+                <p className="text-blue-100 text-sm">
                   {nombre} {apellido}
                 </p>
               </div>
@@ -88,7 +88,7 @@ export default function FormularioInforme({ id_usuario, nombre, apellido, roles,
               onClick={onClose}
               className="w-8 h-8 bg-[#F44336] bg-opacity-20 rounded-lg flex items-center justify-center text-white hover:bg-opacity-30 transition-colors"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg aria-hidden="true" className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
@@ -106,10 +106,10 @@ export default function FormularioInforme({ id_usuario, nombre, apellido, roles,
                 </span>
               </div>
               <div>
-                <h3 className="font-semibold text-[#333333]" style={{ fontFamily: 'SF Pro Display, Roboto, Arial, sans-serif' }}>
+                <h3 className="font-semibold text-[#333333] text-balance">
                   {nombre} {apellido}
                 </h3>
-                <p className="text-sm text-[#666666]" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+                <p className="text-sm text-[#666666]">
                   ID: {id_usuario}
                 </p>
                 {roles.length > 0 && (
@@ -128,7 +128,7 @@ export default function FormularioInforme({ id_usuario, nombre, apellido, roles,
           <form onSubmit={handleSubmit} className="space-y-6">
             {(!esPublicador || formData.trabajo_como_auxiliar) && (
               <div>
-                <label className="block text-sm font-semibold text-[#333333] mb-2" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+                <label className="block text-sm font-semibold text-[#333333] mb-2">
                   Horas
                 </label>
                 <input
@@ -144,7 +144,7 @@ export default function FormularioInforme({ id_usuario, nombre, apellido, roles,
             )}
 
             <div>
-              <label className="block text-sm font-semibold text-[#333333] mb-2" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+              <label className="block text-sm font-semibold text-[#333333] mb-2">
                 Cursos
               </label>
               <input
@@ -158,7 +158,7 @@ export default function FormularioInforme({ id_usuario, nombre, apellido, roles,
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-[#333333] mb-2" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+              <label className="block text-sm font-semibold text-[#333333] mb-2">
                 Notas
               </label>
               <textarea
@@ -172,7 +172,7 @@ export default function FormularioInforme({ id_usuario, nombre, apellido, roles,
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-[#333333] mb-2" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+                <label className="block text-sm font-semibold text-[#333333] mb-2">
                   Año
                 </label>
                 <input
@@ -187,7 +187,7 @@ export default function FormularioInforme({ id_usuario, nombre, apellido, roles,
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-[#333333] mb-2" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+                <label className="block text-sm font-semibold text-[#333333] mb-2">
                   Mes
                 </label>
                 <select
@@ -215,10 +215,10 @@ export default function FormularioInforme({ id_usuario, nombre, apellido, roles,
                   className="h-5 w-5 border-[#E0E0E0] rounded transition-colors mt-0.5 mr-3 checked:bg-[#4A90E2] checked:border-[#4A90E2] focus:ring-[#4A90E2] focus:ring-2"
                 />
                 <div>
-                  <span className="block text-sm font-medium text-[#333333]" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+                  <span className="block text-sm font-medium text-[#333333]">
                     Participación en el mes
                   </span>
-                  <p className="text-xs text-[#666666] mt-1" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+                  <p className="text-xs text-[#666666] mt-1">
                     Marca esta casilla si el miembro participó durante el mes seleccionado
                   </p>
                 </div>
@@ -237,10 +237,10 @@ export default function FormularioInforme({ id_usuario, nombre, apellido, roles,
                     className="h-5 w-5 border-[#E0E0E0] rounded transition-colors mt-0.5 mr-3 checked:bg-[#4CAF50] checked:border-[#4CAF50] focus:ring-[#4CAF50] focus:ring-2"
                   />
                   <div>
-                    <span className="block text-sm font-medium text-[#333333]" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+                    <span className="block text-sm font-medium text-[#333333]">
                       Trabajó como Precursor Auxiliar
                     </span>
-                    <p className="text-xs text-[#666666] mt-1" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+                    <p className="text-xs text-[#666666] mt-1">
                       Marca esta casilla si el publicador trabajó como precursor auxiliar durante el mes seleccionado
                     </p>
                   </div>
@@ -255,7 +255,6 @@ export default function FormularioInforme({ id_usuario, nombre, apellido, roles,
                 onClick={onClose}
                 disabled={isSubmitting}
                 className={`px-6 py-3 text-sm font-semibold text-[#4A90E2] bg-white border border-[#4A90E2] rounded-lg transition-all ${isSubmitting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#E8F4FD]'}`}
-                style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}
               >
                 Cancelar
               </button>
@@ -263,15 +262,14 @@ export default function FormularioInforme({ id_usuario, nombre, apellido, roles,
                 type="submit"
                 disabled={isSubmitting}
                 className={`px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-[#4A90E2] to-[#2E5BBA] rounded-lg shadow-sm transition-all flex items-center justify-center min-w-[150px] ${isSubmitting ? 'opacity-70 cursor-not-allowed' : 'hover:from-[#2E5BBA] hover:to-[#4A90E2]'}`}
-                style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}
               >
                 {isSubmitting ? (
                   <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <svg aria-hidden="true" className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Guardando...
+                    Guardando…
                   </>
                 ) : (
                   'Guardar Informe'

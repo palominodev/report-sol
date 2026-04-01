@@ -25,7 +25,7 @@ export default async function PublisherStatsPage({ params }: PageProps) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">ID Inválido</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2 text-balance">ID Inválido</h1>
           <p className="text-gray-600">El ID del publicador proporcionado no es válido.</p>
           <Link href="/dashboard/publicadores" className="text-blue-600 hover:underline mt-4 inline-block">
             ← Volver a publicadores
@@ -46,7 +46,7 @@ export default async function PublisherStatsPage({ params }: PageProps) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Publicador no encontrado</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2 text-balance">Publicador no encontrado</h1>
           <p className="text-gray-600">
             {error instanceof Error ? error.message : 'Ocurrió un error al cargar las estadísticas.'}
           </p>
@@ -69,7 +69,7 @@ export default async function PublisherStatsPage({ params }: PageProps) {
           href="/dashboard/publicadores"
           className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors mb-6"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg aria-hidden="true" className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
           Volver a Publicadores
@@ -85,7 +85,7 @@ export default async function PublisherStatsPage({ params }: PageProps) {
                 </span>
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">
+                <h1 className="text-2xl font-bold text-gray-900 text-balance">
                   {stats.nombre} {stats.apellido}
                 </h1>
                 <p className="text-sm text-gray-500 mt-0.5">
@@ -160,7 +160,7 @@ export default async function PublisherStatsPage({ params }: PageProps) {
         {/* Pioneer Months Detail */}
         {stats.pioneerMonths.length > 0 && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 text-balance">
               Registro de Precursorado
             </h2>
             <div className="flex flex-wrap gap-2">
@@ -183,7 +183,7 @@ export default async function PublisherStatsPage({ params }: PageProps) {
         {/* History Table */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-gray-900 text-balance">
               Historial de Participación
             </h2>
             <p className="text-sm text-gray-500 mt-0.5">

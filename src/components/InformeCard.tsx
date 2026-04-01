@@ -99,13 +99,13 @@ export default function InformeCard({ informe, onUpdate, onDelete }: InformeCard
               </span>
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900" style={{ fontFamily: 'SF Pro Display, Roboto, Arial, sans-serif' }}>
+              <h3 className="text-lg font-semibold text-gray-900 text-balance">
                 {informe.nombre} {informe.apellido}
               </h3>
-              <p className="text-sm text-gray-600" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+              <p className="text-sm text-gray-600">
                 {informe.nombre_grupo || 'Sin grupo asignado'}
               </p>
-              <p className="text-xs text-gray-500" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+              <p className="text-xs text-gray-500">
                 Registrado: {new Date(new Date(informe.fecha_registro).getTime() - (5 * 60 * 60 * 1000)).toLocaleDateString('es-PE', {
                   year: 'numeric',
                   month: 'long',
@@ -155,7 +155,7 @@ export default function InformeCard({ informe, onUpdate, onDelete }: InformeCard
         {informe.notas && (
           <div className="border-t border-gray-100 py-4">
             <div className="flex items-center space-x-2">
-              <span className="text-sm font-semibold text-gray-700" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+              <span className="text-sm font-semibold text-gray-700">
                 Notas:
               </span>
               <div className="flex flex-wrap gap-1">
@@ -168,7 +168,7 @@ export default function InformeCard({ informe, onUpdate, onDelete }: InformeCard
         {informe.roles && (
           <div className="border-t border-gray-100 pt-4">
             <div className="flex items-center space-x-2">
-              <span className="text-sm font-semibold text-gray-700" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+              <span className="text-sm font-semibold text-gray-700">
                 Roles:
               </span>
               <div className="flex flex-wrap gap-1">
@@ -187,7 +187,7 @@ export default function InformeCard({ informe, onUpdate, onDelete }: InformeCard
             onClick={() => setShowEditModal(true)}
             className="inline-flex items-center px-4 py-2 text-sm font-semibold text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
           >
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg aria-hidden="true" className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
             Editar
@@ -196,7 +196,7 @@ export default function InformeCard({ informe, onUpdate, onDelete }: InformeCard
             onClick={() => setShowDeleteConfirm(true)}
             className="inline-flex items-center px-4 py-2 text-sm font-semibold text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
           >
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg aria-hidden="true" className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
             Eliminar
@@ -262,15 +262,15 @@ function EditInformeModal({
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-[#4A90E2] bg-opacity-20 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg aria-hidden="true" className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
               </div>
               <div>
-                <h2 className="text-xl font-bold text-white" style={{ fontFamily: 'SF Pro Display, Roboto, Arial, sans-serif' }}>
+                <h2 className="text-xl font-bold text-white text-balance">
                   Editar Informe
                 </h2>
-                <p className="text-blue-100 text-sm" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+                <p className="text-blue-100 text-sm">
                   {informe.nombre} {informe.apellido} - {informe.mes} {informe.año}
                 </p>
               </div>
@@ -280,7 +280,7 @@ function EditInformeModal({
               disabled={isSubmitting}
               className="w-8 h-8 bg-[#F44336] bg-opacity-20 rounded-lg flex items-center justify-center text-white hover:bg-opacity-30 transition-colors disabled:opacity-50"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg aria-hidden="true" className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
@@ -297,7 +297,7 @@ function EditInformeModal({
           <form onSubmit={handleSubmit} className="space-y-6">
             {(!esPublicador || formData.trabajo_como_auxiliar) && (
               <div>
-                <label className="block text-sm font-semibold text-[#333333] mb-2" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+                <label className="block text-sm font-semibold text-[#333333] mb-2">
                   Horas
                 </label>
                 <input
@@ -313,7 +313,7 @@ function EditInformeModal({
             )}
 
             <div>
-              <label className="block text-sm font-semibold text-[#333333] mb-2" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+              <label className="block text-sm font-semibold text-[#333333] mb-2">
                 Cursos
               </label>
               <input
@@ -329,7 +329,7 @@ function EditInformeModal({
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-[#333333] mb-2" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+                <label className="block text-sm font-semibold text-[#333333] mb-2">
                   Año
                 </label>
                 <input
@@ -341,7 +341,7 @@ function EditInformeModal({
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-[#333333] mb-2" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+                <label className="block text-sm font-semibold text-[#333333] mb-2">
                   Mes
                 </label>
                 <select
@@ -368,10 +368,10 @@ function EditInformeModal({
                   className="h-5 w-5 border-[#E0E0E0] rounded transition-colors mt-0.5 mr-3 checked:bg-[#4A90E2] checked:border-[#4A90E2] focus:ring-[#4A90E2] focus:ring-2"
                 />
                 <div>
-                  <span className="block text-sm font-medium text-[#333333]" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+                  <span className="block text-sm font-medium text-[#333333]">
                     Participación en el mes
                   </span>
-                  <p className="text-xs text-[#666666] mt-1" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+                  <p className="text-xs text-[#666666] mt-1">
                     Marca esta casilla si el miembro participó durante el mes seleccionado
                   </p>
                 </div>
@@ -389,10 +389,10 @@ function EditInformeModal({
                     className="h-5 w-5 border-[#E0E0E0] rounded transition-colors mt-0.5 mr-3 checked:bg-[#4CAF50] checked:border-[#4CAF50] focus:ring-[#4CAF50] focus:ring-2"
                   />
                   <div>
-                    <span className="block text-sm font-medium text-[#333333]" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+                    <span className="block text-sm font-medium text-[#333333]">
                       Trabajó como Precursor Auxiliar
                     </span>
-                    <p className="text-xs text-[#666666] mt-1" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+                    <p className="text-xs text-[#666666] mt-1">
                       Marca esta casilla si el publicador trabajó como precursor auxiliar durante el mes seleccionado
                     </p>
                   </div>
@@ -406,7 +406,6 @@ function EditInformeModal({
                 onClick={onClose}
                 disabled={isSubmitting}
                 className="px-6 py-3 text-sm font-semibold text-[#4A90E2] bg-white border border-[#4A90E2] rounded-lg hover:bg-[#E8F4FD] transition-all disabled:opacity-50"
-                style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}
               >
                 Cancelar
               </button>
@@ -414,9 +413,8 @@ function EditInformeModal({
                 type="submit"
                 disabled={isSubmitting}
                 className="px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-[#4A90E2] to-[#2E5BBA] rounded-lg hover:from-[#2E5BBA] hover:to-[#4A90E2] transition-all shadow-sm disabled:opacity-50"
-                style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}
               >
-                {isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
+                {isSubmitting ? 'Guardando…' : 'Guardar Cambios'}
               </button>
             </div>
           </form>
@@ -447,15 +445,15 @@ function DeleteConfirmModal({
         <div className="bg-gradient-to-r from-[#F44336] to-[#D32F2F] rounded-t-xl p-6">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-[#F44336] bg-opacity-20 rounded-lg flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg aria-hidden="true" className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white" style={{ fontFamily: 'SF Pro Display, Roboto, Arial, sans-serif' }}>
+              <h2 className="text-xl font-bold text-white text-balance">
                 Eliminar Informe
               </h2>
-              <p className="text-red-100 text-sm" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+              <p className="text-red-100 text-sm">
                 Esta acción no se puede deshacer
               </p>
             </div>
@@ -469,7 +467,7 @@ function DeleteConfirmModal({
             </div>
           )}
 
-          <p className="text-gray-700 mb-6" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+          <p className="text-gray-700 mb-6">
             ¿Estás seguro de que deseas eliminar el informe de{' '}
             <span className="font-semibold">{nombre}</span> del mes de{' '}
             <span className="font-semibold">{mes}</span>?
@@ -480,7 +478,6 @@ function DeleteConfirmModal({
               onClick={onClose}
               disabled={isSubmitting}
               className="px-6 py-3 text-sm font-semibold text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all disabled:opacity-50"
-              style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}
             >
               Cancelar
             </button>
@@ -488,9 +485,8 @@ function DeleteConfirmModal({
               onClick={onConfirm}
               disabled={isSubmitting}
               className="px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-[#F44336] to-[#D32F2F] rounded-lg hover:from-[#D32F2F] hover:to-[#F44336] transition-all shadow-sm disabled:opacity-50"
-              style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}
             >
-              {isSubmitting ? 'Eliminando...' : 'Eliminar'}
+              {isSubmitting ? 'Eliminando…' : 'Eliminar'}
             </button>
           </div>
         </div>

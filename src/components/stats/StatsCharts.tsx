@@ -61,7 +61,7 @@ function CustomTooltip({ active, payload, label }: any) {
 function HoursChart({ data }: { data: ChartDataPoint[] }) {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-      <h3 className="text-base font-semibold text-gray-900 mb-1">
+      <h3 className="text-base font-semibold text-gray-900 mb-1 text-balance">
         Horas por Mes
       </h3>
       <p className="text-xs text-gray-500 mb-4">Evolución de horas reportadas</p>
@@ -107,7 +107,7 @@ function HoursChart({ data }: { data: ChartDataPoint[] }) {
 function CoursesChart({ data }: { data: ChartDataPoint[] }) {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-      <h3 className="text-base font-semibold text-gray-900 mb-1">
+      <h3 className="text-base font-semibold text-gray-900 mb-1 text-balance">
         Cursos por Mes
       </h3>
       <p className="text-xs text-gray-500 mb-4">Cursos bíblicos dirigidos</p>
@@ -145,7 +145,7 @@ function CoursesChart({ data }: { data: ChartDataPoint[] }) {
 function ComparisonChart({ data }: { data: ChartDataPoint[] }) {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-      <h3 className="text-base font-semibold text-gray-900 mb-1">
+      <h3 className="text-base font-semibold text-gray-900 mb-1 text-balance">
         Comparación Mensual
       </h3>
       <p className="text-xs text-gray-500 mb-4">Horas vs. Cursos a lo largo del tiempo</p>

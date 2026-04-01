@@ -55,12 +55,12 @@ function MensajeInformeEnviado({ onClose }: { onClose: () => void }) {
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-[#F44336] bg-opacity-20 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg aria-hidden="true" className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
                 </svg>
               </div>
               <div>
-                <h2 className="text-xl font-bold text-white" style={{ fontFamily: 'SF Pro Display, Roboto, Arial, sans-serif' }}>
+                <h2 className="text-xl font-bold text-white text-balance">
                   Informe Ya Enviado
                 </h2>
               </div>
@@ -69,7 +69,7 @@ function MensajeInformeEnviado({ onClose }: { onClose: () => void }) {
               onClick={onClose}
               className="w-8 h-8 bg-[#F44336] bg-opacity-20 rounded-lg flex items-center justify-center text-white hover:bg-opacity-30 transition-colors"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg aria-hidden="true" className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
@@ -80,20 +80,19 @@ function MensajeInformeEnviado({ onClose }: { onClose: () => void }) {
         <div className="p-6">
           <div className="text-center">
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg aria-hidden="true" className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2" style={{ fontFamily: 'SF Pro Display, Roboto, Arial, sans-serif' }}>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2 text-balance">
               Este informe ya fue enviado
             </h3>
-            <p className="text-gray-600 mb-6" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+            <p className="text-gray-600 mb-6">
               Comuniquese con su encargado para que se pueda enviar un nuevo informe.
             </p>
             <button
               onClick={onClose}
               className="px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-[#F44336] to-[#D32F2F] rounded-lg hover:from-[#D32F2F] hover:to-[#F44336] transition-all shadow-sm"
-              style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}
             >
               Entendido
             </button>
@@ -193,15 +192,15 @@ export default function ListaIntegrantes({ integrantes, nombreGrupo, mes, año }
         <FiltroInformes estado={estadoFiltro} setEstado={setEstadoFiltro} />
           <div className="flex items-center space-x-4 mb-4">
             <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg aria-hidden="true" className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
               </svg>
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-1" style={{ fontFamily: 'SF Pro Display, Roboto, Arial, sans-serif' }}>
+              <h1 className="text-3xl font-bold text-gray-900 mb-1 text-balance">
                 Integrantes del Grupo
               </h1>
-              <p className="text-gray-600 text-lg" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+              <p className="text-gray-600 text-lg">
                 {nombreGrupo}
               </p>
             </div>
@@ -231,7 +230,7 @@ export default function ListaIntegrantes({ integrantes, nombreGrupo, mes, año }
         {/* Lista de Integrantes */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="text-xl font-semibold text-gray-900" style={{ fontFamily: 'SF Pro Display, Roboto, Arial, sans-serif' }}>
+            <h2 className="text-xl font-semibold text-gray-900 text-balance">
               Miembros del Equipo
             </h2>
             <p className="text-sm text-gray-500 mt-1">Estado de informe de {mes} {año}</p>
@@ -263,14 +262,14 @@ export default function ListaIntegrantes({ integrantes, nombreGrupo, mes, año }
                         integrante.informe_enviado 
                           ? 'text-gray-500' 
                           : 'text-gray-900 group-hover:text-blue-600'
-                      }`} style={{ fontFamily: 'SF Pro Display, Roboto, Arial, sans-serif' }}>
+                      }`}>
                         {integrante.nombre} {integrante.apellido} {integrante.informe_enviado ? (
                       <span className="px-3 py-1 bg-green-500 text-white rounded-full text-xs font-semibold uppercase tracking-wide">Enviado</span>
                     ) : (
                       <span className="px-3 py-1 bg-yellow-600 text-white rounded-full text-xs font-semibold uppercase tracking-wide">Pendiente</span>
                     )}
                       </h3>
-                      <p className="text-sm text-gray-500" style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}>
+                      <p className="text-sm text-gray-500">
                         ID: {integrante.id_usuario}
                       </p>
                     </div>
@@ -305,7 +304,7 @@ export default function ListaIntegrantes({ integrantes, nombreGrupo, mes, año }
                     
                     {/* Icono de flecha - solo mostrar si no está enviado */}
                     {!integrante.informe_enviado && (
-                      <svg className="w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg aria-hidden="true" className="w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
                     )}
@@ -319,11 +318,11 @@ export default function ListaIntegrantes({ integrantes, nombreGrupo, mes, año }
           {integrantes.length === 0 && (
             <div className="text-center py-12">
               <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg aria-hidden="true" className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No hay integrantes</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2 text-balance">No hay integrantes</h3>
               <p className="text-gray-600">Este grupo aún no tiene miembros asignados.</p>
             </div>
           )}

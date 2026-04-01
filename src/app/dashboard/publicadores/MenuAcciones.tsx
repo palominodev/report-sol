@@ -33,13 +33,12 @@ export default function MenuAcciones({ idUsuario, onEliminar, onMoverGrupo, onAc
       <button
         onClick={() => setMenuAbierto(!menuAbierto)}
         className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all"
-        style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}
       >
-        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg aria-hidden="true" className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
         </svg>
         Acciones
-        <svg className={`w-4 h-4 ml-2 transition-transform ${menuAbierto ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg aria-hidden="true" className={`w-4 h-4 ml-2 transition-transform ${menuAbierto ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
@@ -49,7 +48,7 @@ export default function MenuAcciones({ idUsuario, onEliminar, onMoverGrupo, onAc
           <div className="py-2">
             {/* Header */}
             <div className="px-4 py-2 bg-gray-50 border-b border-gray-100">
-              <h3 className="text-sm font-semibold text-gray-900" style={{ fontFamily: 'SF Pro Display, Roboto, Arial, sans-serif' }}>
+              <h3 className="text-sm font-semibold text-gray-900 text-balance">
                 Acciones Disponibles
               </h3>
             </div>
@@ -59,9 +58,8 @@ export default function MenuAcciones({ idUsuario, onEliminar, onMoverGrupo, onAc
               <button
                 onClick={() => handleAccion(() => onActualizar(idUsuario))}
                 className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
-                style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}
               >
-                <svg className="w-4 h-4 mr-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg aria-hidden="true" className="w-4 h-4 mr-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
                 <div className="text-left">
@@ -73,9 +71,8 @@ export default function MenuAcciones({ idUsuario, onEliminar, onMoverGrupo, onAc
               <button
                 onClick={() => handleAccion(() => onMoverGrupo(idUsuario))}
                 className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-700 transition-colors"
-                style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}
               >
-                <svg className="w-4 h-4 mr-3 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg aria-hidden="true" className="w-4 h-4 mr-3 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                 </svg>
                 <div className="text-left">
@@ -89,9 +86,8 @@ export default function MenuAcciones({ idUsuario, onEliminar, onMoverGrupo, onAc
               <button
                 onClick={() => handleAccion(() => onEliminar(idUsuario))}
                 className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 transition-colors"
-                style={{ fontFamily: 'SF Pro Text, Roboto, Arial, sans-serif' }}
               >
-                <svg className="w-4 h-4 mr-3 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg aria-hidden="true" className="w-4 h-4 mr-3 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
                 <div className="text-left">
