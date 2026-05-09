@@ -108,4 +108,31 @@ export class TursoUserRepository implements IUserRepository {
       args: [groupId, userId, role],
     });
   }
+
+  async findAllWithDetails(grupoId?: number): Promise<Record<string, unknown>[]> {
+    const client = getDatabaseClient();
+
+    const query = `
+      SELECT 
+        u.id_usuario, 
+        u.nombre, 
+        u.apellido, 
+        GROUP_CONCAT(r.rol) as roles,
+        g.nombre as grupo
+      FROM usuario u
+      LEFT JOIN usuario_rol ur ON u.id_usuario = ur.id_usuario
+      LEFT JOIN rol r ON ur.id_rol = r.id_rol
+      LEFT JOIN grupo_usuario gu ON u.id_usuario = gu.id_usuario
+      LEFT JOIN grupo g ON gu.id_grupo = g.id_grupo
+      ${grupoId ? 'WHERE g.id_grupo = ?' : ''}
+      GROUP BY u.id_usuario, u.nombre, u.apellido, g.nombre
+    `;
+
+    const result = await client.execute({
+      sql: query,
+      args: grupoId ? [grupoId] : [],
+    });
+
+    return result.rows;
+  }
 }

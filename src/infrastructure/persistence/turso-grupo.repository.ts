@@ -47,4 +47,35 @@ export class TursoGrupoRepository implements IGrupoRepository {
 
     return result.rows;
   }
+
+  async create(nombre: string): Promise<Grupo> {
+    const client = getDatabaseClient();
+
+    const result = await client.execute({
+      sql: 'INSERT INTO grupo (nombre) VALUES (?) RETURNING *',
+      args: [nombre],
+    });
+
+    return result.rows[0] as unknown as Grupo;
+  }
+
+  async delete(id: number): Promise<void> {
+    const client = getDatabaseClient();
+
+    await client.execute({
+      sql: 'DELETE FROM grupo WHERE id_grupo = ?',
+      args: [id],
+    });
+  }
+
+  async countMembers(id: number): Promise<number> {
+    const client = getDatabaseClient();
+
+    const result = await client.execute({
+      sql: 'SELECT COUNT(*) as total FROM grupo_usuario WHERE id_grupo = ?',
+      args: [id],
+    });
+
+    return Number(result.rows[0]?.total ?? 0);
+  }
 }

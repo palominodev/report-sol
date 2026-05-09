@@ -1,56 +1,44 @@
 'use client'
 import { useState, useEffect } from 'react';
-import { createClient } from '@libsql/client';
 import Filtro from './Filtro';
 import MenuAcciones from './MenuAcciones';
+import GestionGruposModal from './GestionGruposModal';
 import { redirect, useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-const url = "libsql://reportsoldb-palominodev.aws-us-east-1.turso.io";
-const token = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NDk1OTg4NjksImlkIjoiYmQ3OTc3MzYtYTBlMC00YjUyLWFkNmUtYWQ4OTlhMzBjMTZmIiwicmlkIjoiMzczMTFiZmMtMjI2Mi00YzdlLTg4ZWEtMzMxNmJmYTU2MDZjIn0.oAxJKUB2i3G2GaWw7e0yLLq-_APQdv77H1KsHeIHIZ9MlQRwkLD6mve0tlMGN6RBPuFhvJ2skMzgc9y2Ks30CQ";
-
-async function getGrupos() {
-  const client = createClient({ url, authToken: token });
-  const result = await client.execute('SELECT id_grupo, nombre FROM grupo');
-  return result.rows;
+interface Grupo {
+  id_grupo: number;
+  nombre: string;
 }
 
-async function getPublicadores(grupoId?: number) {
-  const client = createClient({ url, authToken: token });
-  const query = `
-  SELECT 
-  u.id_usuario, 
-  u.nombre, 
-  u.apellido, 
-  GROUP_CONCAT(r.rol) as roles,
-  g.nombre as grupo
-  FROM usuario u
-  LEFT JOIN usuario_rol ur ON u.id_usuario = ur.id_usuario
-  LEFT JOIN rol r ON ur.id_rol = r.id_rol
-  LEFT JOIN grupo_usuario gu ON u.id_usuario = gu.id_usuario
-  LEFT JOIN grupo g ON gu.id_grupo = g.id_grupo
-  ${grupoId ? 'WHERE g.id_grupo = ?' : ''}
-  GROUP BY u.id_usuario, u.nombre, u.apellido, g.nombre
-  `;
-  const result = await client.execute({
-    sql: query,
-    args: grupoId ? [grupoId] : [],
-  });
-  return result.rows;
+interface Publicador {
+  id_usuario: number;
+  nombre: string;
+  apellido: string;
+  roles: string | null;
+  grupo: string | null;
 }
 
 export default function Publicadores() {
   const router = useRouter()
-  const [grupos, setGrupos] = useState<any[]>([]);
-  const [publicadores, setPublicadores] = useState<any[]>([]);
+  const [grupos, setGrupos] = useState<Grupo[]>([]);
+  const [publicadores, setPublicadores] = useState<Publicador[]>([]);
   const [grupoSeleccionado, setGrupoSeleccionado] = useState<number | undefined>(undefined);
+  const [modalGruposAbierto, setModalGruposAbierto] = useState(false);
 
   useEffect(() => {
-    getGrupos().then(setGrupos);
+    fetch('/api/grupos')
+      .then(res => res.json())
+      .then(setGrupos)
+      .catch(console.error);
   }, []);
 
   useEffect(() => {
-    getPublicadores(grupoSeleccionado).then(setPublicadores);
+    const params = grupoSeleccionado ? `?grupoId=${grupoSeleccionado}` : '';
+    fetch(`/api/usuario${params}`)
+      .then(res => res.json())
+      .then(setPublicadores)
+      .catch(console.error);
   }, [grupoSeleccionado]);
 
   const handleEliminar = async (idUsuario: number) => {
@@ -85,7 +73,8 @@ export default function Publicadores() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <>
+      <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto p-6">
         {/* Header Section */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
@@ -106,15 +95,26 @@ export default function Publicadores() {
               </div>
             </div>
 
-            <Link
-              href={'/usuario/nuevo'}
-              className="inline-flex items-center justify-center px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-green-500 to-green-600 rounded-lg hover:from-green-600 hover:to-green-700 transition-all shadow-sm"
-            >
-              <svg aria-hidden="true" className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              Crear Publicador
-            </Link>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setModalGruposAbierto(true)}
+                className="inline-flex items-center justify-center px-5 py-3 text-sm font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition-all"
+              >
+                <svg aria-hidden="true" className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Gestionar Grupos
+              </button>
+              <Link
+                href={'/usuario/nuevo'}
+                className="inline-flex items-center justify-center px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-green-500 to-green-600 rounded-lg hover:from-green-600 hover:to-green-700 transition-all shadow-sm"
+              >
+                <svg aria-hidden="true" className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Crear Publicador
+              </Link>
+            </div>
           </div>
         </div>
 
@@ -278,7 +278,7 @@ export default function Publicadores() {
                         {pub.grupo || 'Sin grupo'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                       <MenuAcciones
                         idUsuario={pub.id_usuario}
                         onEliminar={handleEliminar}
@@ -307,5 +307,23 @@ export default function Publicadores() {
         </div>
       </div>
     </div>
+
+      {modalGruposAbierto && (
+        <GestionGruposModal
+          onClose={() => setModalGruposAbierto(false)}
+          onGruposChanged={() => {
+            fetch('/api/grupos')
+              .then(res => res.json())
+              .then(setGrupos)
+              .catch(console.error);
+            const params = grupoSeleccionado ? `?grupoId=${grupoSeleccionado}` : '';
+            fetch(`/api/usuario${params}`)
+              .then(res => res.json())
+              .then(setPublicadores)
+              .catch(console.error);
+          }}
+        />
+      )}
+    </>
   );
 } 
