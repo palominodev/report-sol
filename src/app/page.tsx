@@ -1,12 +1,6 @@
 import Link from "next/link";
-import { GetGruposUseCase } from '@/core/application/use-cases/GetGruposUseCase';
-import { TursoGrupoRepository } from '@/infrastructure/persistence/turso-grupo.repository';
-
-async function getGrupos() {
-  const grupoRepository = new TursoGrupoRepository();
-  const getGruposUseCase = new GetGruposUseCase(grupoRepository);
-  return getGruposUseCase.executeWithDetails();
-}
+import { getGrupos } from '@/lib/getGrupos';
+import { GrupoDetails } from '@/core/domain/repositories/IGrupoRepository';
 
 export default async function Home() {
   const grupos = await getGrupos();
@@ -29,7 +23,7 @@ export default async function Home() {
         {/* Grupos Grid */}
         <section>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {grupos.map((grupo: any) => (
+            {grupos.map((grupo: GrupoDetails) => (
               <Link key={grupo.id_grupo} href={`grupo/${grupo.id_grupo}/`} className="group">
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 h-full transition duration-200 hover:shadow-md hover:border-blue-200 hover:scale-[1.02] group-hover:shadow-lg">
                   {/* Card Header */}

@@ -1,0 +1,61 @@
+schema: spec-driven
+
+context: |
+  Tech stack: Next.js 15.3.8 (App Router), React 19.0.1, Tailwind CSS v4, TypeScript
+  Architecture: Hexagonal (Ports & Adapters, Domain & Application layers)
+  Testing: No test runner configured
+  Style: ESLint (next/core-web-vitals, next/typescript)
+
+testing:
+  strict_tdd: false
+  capabilities:
+    runner:
+      framework: null
+      command: null
+    layers:
+      unit:
+        available: false
+        tool: null
+      integration:
+        available: false
+        tool: null
+      e2e:
+        available: false
+        tool: null
+    coverage:
+      available: false
+      command: null
+    quality:
+      linter:
+        available: true
+        command: "npm run lint"
+      type_checker:
+        available: true
+        command: "npx tsc --noEmit"
+      formatter:
+        available: false
+        command: null
+
+rules:
+  proposal:
+    - Include rollback plan for database schema changes
+  specs:
+    - Use Given/When/Then for scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+  design:
+    - Detail the Hexagonal Architecture boundaries (Domain, Application, Infrastructure)
+    - Document schema updates and Turso/libsql query details
+  tasks:
+    - Group by phase, use hierarchical numbering
+    - Keep tasks completable in one session
+  apply:
+    - Follow existing repository patterns and Hexagonal structure
+    - Run linter and type-check commands during apply
+    tdd: false
+    test_command: ""
+  verify:
+    test_command: ""
+    build_command: "npm run build"
+    coverage_threshold: 0
+  archive:
+    - Warn before merging destructive deltas

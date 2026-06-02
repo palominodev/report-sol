@@ -1,4 +1,4 @@
-import { IGrupoRepository } from '@/core/domain/repositories/IGrupoRepository';
+import { IGrupoRepository, GrupoDetails } from '@/core/domain/repositories/IGrupoRepository';
 import { Grupo } from '@/domain/entities/Grupo';
 
 export class GetGruposUseCase {
@@ -8,7 +8,7 @@ export class GetGruposUseCase {
     return this.grupoRepository.findAll();
   }
 
-  async executeWithDetails(): Promise<Record<string, unknown>[]> {
+  async executeWithDetails(): Promise<GrupoDetails[]> {
     return this.grupoRepository.findAllWithDetails();
   }
 }

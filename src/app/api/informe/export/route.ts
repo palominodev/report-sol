@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as XLSX from 'xlsx';
-import { TursoInformeRepository } from '@/infrastructure/persistence/turso-informe.repository';
+import { getInformeRepository } from '@/infrastructure/config/di';
+import { GetInformesUseCase } from '@/core/application/use-cases/GetInformesUseCase';
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,8 +11,14 @@ export async function GET(request: NextRequest) {
     const rol = searchParams.get('rol');
     const grupo = searchParams.get('grupo');
 
-    const informeRepository = new TursoInformeRepository();
-    const informes = await informeRepository.findAllWithUsersFilter(año ? parseInt(año) : null, mes, rol, grupo ? parseInt(grupo) : null);
+    const repo = getInformeRepository();
+    const getInformesUseCase = new GetInformesUseCase(repo);
+    const informes = await getInformesUseCase.execute({
+      año: año ? parseInt(año) : null,
+      mes,
+      rol,
+      grupo: grupo ? parseInt(grupo) : null,
+    });
 
     const data = informes.map((informe) => ({
       Nombre: informe.nombre || '',

@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { UpdateUserUseCase } from '@/core/application/use-cases/UpdateUserUseCase';
 import { DeleteUserUseCase } from '@/core/application/use-cases/DeleteUserUseCase';
-import { TursoUserRepository } from '@/infrastructure/persistence/turso-user.repository';
+import { getUserRepository } from '@/infrastructure/config/di';
+import { ValidationError } from '@/core/domain/errors/ValidationError';
 
 interface RouteParams {
   params: Promise<{
@@ -16,7 +17,7 @@ export async function PUT(
   try {
     const data = await request.json();
     const { id } = await params;
-    const userRepository = new TursoUserRepository();
+    const userRepository = getUserRepository();
     const updateUserUseCase = new UpdateUserUseCase(userRepository);
 
     await updateUserUseCase.execute(Number(id), data);
@@ -24,8 +25,10 @@ export async function PUT(
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error al actualizar usuario:', error);
-    const message = error instanceof Error ? error.message : 'Error desconocido';
-    return NextResponse.json({ error: message }, { status: 500 });
+    if (error instanceof ValidationError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    return NextResponse.json({ error: 'Error interno del servidor al actualizar usuario' }, { status: 500 });
   }
 }
 
@@ -35,7 +38,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const userRepository = new TursoUserRepository();
+    const userRepository = getUserRepository();
     const deleteUserUseCase = new DeleteUserUseCase(userRepository);
 
     await deleteUserUseCase.execute(Number(id));
@@ -43,7 +46,9 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error al eliminar usuario:', error);
-    const message = error instanceof Error ? error.message : 'Error desconocido';
-    return NextResponse.json({ error: message }, { status: 500 });
+    if (error instanceof ValidationError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    return NextResponse.json({ error: 'Error interno del servidor al eliminar usuario' }, { status: 500 });
   }
 }

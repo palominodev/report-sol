@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { TursoInformeRepository } from '@/infrastructure/persistence/turso-informe.repository';
+import { getInformeRepository } from '@/infrastructure/config/di';
 import { GetPublisherStatsUseCase } from '@/core/application/use-cases/GetPublisherStatsUseCase';
 import StatusBadge from '@/components/stats/StatusBadge';
 import StatCard from '@/components/stats/StatCard';
@@ -36,7 +36,7 @@ export default async function PublisherStatsPage({ params }: PageProps) {
   }
 
   // Dependency injection: wire infrastructure → use case
-  const informeRepository = new TursoInformeRepository();
+  const informeRepository = getInformeRepository();
   const getStatsUseCase = new GetPublisherStatsUseCase(informeRepository);
 
   let stats;

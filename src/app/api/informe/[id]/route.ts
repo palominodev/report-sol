@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { UpdateInformeUseCase } from '@/core/application/use-cases/UpdateInformeUseCase';
 import { DeleteInformeUseCase } from '@/core/application/use-cases/DeleteInformeUseCase';
-import { TursoInformeRepository } from '@/infrastructure/persistence/turso-informe.repository';
+import { getInformeRepository } from '@/infrastructure/config/di';
+import { ValidationError } from '@/core/domain/errors/ValidationError';
 
 interface RouteParams {
   params: Promise<{
@@ -16,7 +17,7 @@ export async function PATCH(
   try {
     const data = await request.json();
     const { id } = await params;
-    const informeRepository = new TursoInformeRepository();
+    const informeRepository = getInformeRepository();
     const updateInformeUseCase = new UpdateInformeUseCase(informeRepository);
 
     await updateInformeUseCase.execute(Number(id), {
@@ -29,8 +30,10 @@ export async function PATCH(
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error al actualizar informe:', error);
-    const message = error instanceof Error ? error.message : 'Error desconocido';
-    return NextResponse.json({ error: message }, { status: 500 });
+    if (error instanceof ValidationError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    return NextResponse.json({ error: 'Error interno del servidor al actualizar informe' }, { status: 500 });
   }
 }
 
@@ -40,7 +43,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const informeRepository = new TursoInformeRepository();
+    const informeRepository = getInformeRepository();
     const deleteInformeUseCase = new DeleteInformeUseCase(informeRepository);
 
     await deleteInformeUseCase.execute(Number(id));
@@ -48,7 +51,9 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error al eliminar informe:', error);
-    const message = error instanceof Error ? error.message : 'Error desconocido';
-    return NextResponse.json({ error: message }, { status: 500 });
+    if (error instanceof ValidationError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    return NextResponse.json({ error: 'Error interno del servidor al eliminar informe' }, { status: 500 });
   }
 }

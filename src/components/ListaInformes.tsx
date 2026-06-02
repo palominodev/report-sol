@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { createClient } from '@libsql/client';
 import EstadisticasInformes from './EstadisticasInformes';
 import InformeCard from './InformeCard';
 
@@ -33,9 +32,6 @@ interface ListaInformesProps {
   onFiltrosChange: (filtros: Filtros) => void;
 }
 
-const url = "libsql://reportsoldb-palominodev.aws-us-east-1.turso.io";
-const token = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NDk1OTg4NjksImlkIjoiYmQ3OTc3MzYtYTBlMC00YjUyLWFkNmUtYWQ4OTlhMzBjMTZmIiwicmlkIjoiMzczMTFiZmMtMjI2Mi00YzdlLTg4ZWEtMzMxNmJmYTU2MDZjIn0.oAxJKUB2i3G2GaWw7e0yLLq-_APQdv77H1KsHeIHIZ9MlQRwkLD6mve0tlMGN6RBPuFhvJ2skMzgc9y2Ks30CQ";
-
 const meses = [
   'ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN',
   'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'
@@ -60,12 +56,17 @@ export default function ListaInformes({ filtros, onFiltrosChange }: ListaInforme
 
   useEffect(() => {
     const fetchGrupos = async () => {
-      const client = createClient({ url, authToken: token });
-      const result = await client.execute('SELECT id_grupo, nombre FROM grupo');
-      setGrupos(result.rows.map(row => ({
-        id_grupo: row.id_grupo as number,
-        nombre: row.nombre as string
-      })));
+      try {
+        const res = await fetch('/api/grupos');
+        if (!res.ok) throw new Error('Failed to fetch groups');
+        const data = await res.json();
+        setGrupos(data.map((row: any) => ({
+          id_grupo: row.id_grupo,
+          nombre: row.nombre_grupo || row.nombre
+        })));
+      } catch (error) {
+        console.error('Error fetching groups:', error);
+      }
     };
 
     fetchGrupos();
@@ -74,73 +75,36 @@ export default function ListaInformes({ filtros, onFiltrosChange }: ListaInforme
   useEffect(() => {
     const fetchInformes = async () => {
       setLoading(true);
-      const client = createClient({ url, authToken: token });
-      
-      let sql = `
-        SELECT 
-          i.*,
-          u.nombre,
-          u.apellido,
-          GROUP_CONCAT(r.rol) as roles,
-          g.nombre as nombre_grupo
-        FROM informe i
-        JOIN usuario u ON i.id_usuario = u.id_usuario
-        LEFT JOIN usuario_rol ur ON u.id_usuario = ur.id_usuario
-        LEFT JOIN rol r ON ur.id_rol = r.id_rol
-        LEFT JOIN grupo_usuario gu ON u.id_usuario = gu.id_usuario
-        LEFT JOIN grupo g ON gu.id_grupo = g.id_grupo
-        WHERE 1=1
-      `;
-      
-      const args: any[] = [];
+      try {
+        const queryParams = new URLSearchParams();
+        if (filtros.año) queryParams.append('año', filtros.año.toString());
+        if (filtros.mes) queryParams.append('mes', filtros.mes);
+        if (filtros.rol) queryParams.append('rol', filtros.rol);
+        if (filtros.grupo) queryParams.append('grupo', filtros.grupo);
 
-      if (filtros.año) {
-        sql += ' AND i.año = ?';
-        args.push(filtros.año);
+        const res = await fetch(`/api/informe?${queryParams.toString()}`);
+        if (!res.ok) throw new Error('Error fetching informes');
+        const data = await res.json();
+        setInformes(data.map((row: any) => ({
+          id_informe: row.id_informe,
+          fecha_registro: row.fecha_registro,
+          horas: row.horas,
+          cursos: row.cursos,
+          año: row.año,
+          mes: row.mes,
+          participacion: Boolean(row.participacion),
+          nombre: row.nombre,
+          apellido: row.apellido,
+          roles: row.roles || '',
+          nombre_grupo: row.grupo_nombre || 'Sin grupo',
+          trabajo_como_auxiliar: Boolean(row.trabajo_como_auxiliar),
+          notas: row.notas
+        })));
+      } catch (error) {
+        console.error('Error fetching reports:', error);
+      } finally {
+        setLoading(false);
       }
-
-      if (filtros.mes) {
-        sql += ' AND i.mes = ?';
-        args.push(filtros.mes);
-      }
-
-      if (filtros.grupo) {
-        sql += ' AND g.id_grupo = ?';
-        args.push(filtros.grupo);
-      }
-
-      sql += ' GROUP BY i.id_informe, u.nombre, u.apellido, g.nombre';
-      
-      if (filtros.rol) {
-        if (filtros.rol === 'auxiliar') {
-          sql += " HAVING (roles LIKE ? OR (roles LIKE '%publicador%' AND MAX(i.trabajo_como_auxiliar) = 1))";
-          args.push(`%${filtros.rol}%`);
-        } else {
-          sql += ' HAVING roles LIKE ?';
-          args.push(`%${filtros.rol}%`);
-        }
-      }
-
-      sql += ' ORDER BY i.fecha_registro DESC LIMIT 100';
-
-      const result = await client.execute({ sql, args });
-
-      setInformes(result.rows.map(row => ({
-        id_informe: row.id_informe as number,
-        fecha_registro: row.fecha_registro as string,
-        horas: row.horas as number,
-        cursos: row.cursos as number,
-        año: row.año as number,
-        mes: row.mes as string,
-        participacion: Boolean(row.participacion),
-        nombre: row.nombre as string,
-        apellido: row.apellido as string,
-        roles: row.roles as string,
-        nombre_grupo: row.nombre_grupo as string,
-        trabajo_como_auxiliar: Boolean(row.trabajo_como_auxiliar),
-        notas: row.notas as string | null
-      })));
-      setLoading(false);
     };
 
     fetchInformes();

@@ -1,4 +1,4 @@
-import { InformeRow } from '@/core/domain/PublisherStats';
+import { InformeRow, ExportableInformeRow } from '@/core/domain/PublisherStats';
 
 export interface InformeUpdateData {
   horas: number | null;
@@ -43,7 +43,7 @@ export interface IInformeRepository {
   /**
    * Creates a new informe. Throws an error if an informe for this user, month, and year already exists.
    */
-  create(data: InformeCreateData): Promise<void>;
+  create(data: InformeCreateData): Promise<InformeRow>;
 
   /**
    * Updates an existing informe by ID.
@@ -58,10 +58,10 @@ export interface IInformeRepository {
   /**
    * Retrieves all informes with user info for export.
    */
-  findAllWithUsers(): Promise<InformeRow[]>;
+  findAllWithUsers(): Promise<ExportableInformeRow[]>;
 
   /**
    * Retrieves all informes with user info filtered for export.
    */
-  findAllWithUsersFilter(año: number | null, mes: string | null, rol: string | null, grupo: number | null): Promise<InformeRow[]>;
+  findAllWithUsersFilter(año: number | null, mes: string | null, rol: string | null, grupo: number | null): Promise<ExportableInformeRow[]>;
 }

@@ -20,9 +20,15 @@ export interface InformeRow {
   trabajo_como_auxiliar: boolean;
   mes: Mes;
   id_usuario: number;
-  nombre?: string;
-  apellido?: string;
-  grupo_nombre?: string;
+  notas: string | null;
+}
+
+/** Report row with user and group details joined, used for lists and exports */
+export interface ExportableInformeRow extends InformeRow {
+  nombre: string;
+  apellido: string;
+  grupo_nombre: string;
+  roles?: string;
 }
 
 /** A single month entry in the publisher's history */

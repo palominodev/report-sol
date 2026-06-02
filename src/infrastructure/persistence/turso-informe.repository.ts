@@ -1,6 +1,7 @@
 import { getDatabaseClient } from './database.client';
 import { IInformeRepository, InformeUpdateData, InformeCreateData } from '@/core/domain/repositories/IInformeRepository';
-import { InformeRow, Mes } from '@/core/domain/PublisherStats';
+import { InformeRow, ExportableInformeRow, Mes } from '@/core/domain/PublisherStats';
+import { ValidationError } from '@/core/domain/errors/ValidationError';
 
 export class TursoInformeRepository implements IInformeRepository {
   async findByUsuarioId(idUsuario: number, año?: number): Promise<InformeRow[]> {
@@ -24,6 +25,7 @@ export class TursoInformeRepository implements IInformeRepository {
       trabajo_como_auxiliar: Boolean(row.trabajo_como_auxiliar),
       mes: row.mes as Mes,
       id_usuario: row.id_usuario as number,
+      notas: row.notas as string | null,
     }));
   }
 
@@ -75,7 +77,7 @@ export class TursoInformeRepository implements IInformeRepository {
     };
   }
 
-  async create(data: InformeCreateData): Promise<void> {
+  async create(data: InformeCreateData): Promise<InformeRow> {
     const client = getDatabaseClient();
 
     // Check if the report already exists for this user, month, and year
@@ -85,7 +87,7 @@ export class TursoInformeRepository implements IInformeRepository {
     });
 
     if (checkResult.rows.length > 0) {
-      throw new Error('Ya existe un informe para este publicador en el mes indicado.');
+      throw new ValidationError('Ya existe un informe para este publicador en el mes indicado.');
     }
 
     await client.execute({
@@ -102,6 +104,31 @@ export class TursoInformeRepository implements IInformeRepository {
         data.notas,
       ],
     });
+
+    // Fetch the newly created record
+    const createdResult = await client.execute({
+      sql: 'SELECT * FROM informe WHERE id_usuario = ? AND mes = ? AND año = ?',
+      args: [data.id_usuario, data.mes, data.año],
+    });
+
+    if (createdResult.rows.length === 0) {
+      throw new Error('Error al obtener el informe recién creado.');
+    }
+
+    const row = createdResult.rows[0];
+
+    return {
+      id_informe: row.id_informe as number,
+      fecha_registro: row.fecha_registro as string,
+      horas: row.horas as number | null,
+      cursos: row.cursos as number,
+      año: row.año as number,
+      participacion: Boolean(row.participacion),
+      trabajo_como_auxiliar: Boolean(row.trabajo_como_auxiliar),
+      mes: row.mes as Mes,
+      id_usuario: row.id_usuario as number,
+      notas: row.notas as string | null,
+    };
   }
 
   async update(idInforme: number, data: InformeUpdateData): Promise<void> {
@@ -130,7 +157,7 @@ export class TursoInformeRepository implements IInformeRepository {
     });
   }
 
-  async findAllWithUsers(): Promise<InformeRow[]> {
+  async findAllWithUsers(): Promise<ExportableInformeRow[]> {
     const client = getDatabaseClient();
 
     const result = await client.execute({
@@ -155,10 +182,11 @@ export class TursoInformeRepository implements IInformeRepository {
       nombre: row.nombre as string,
       apellido: row.apellido as string,
       grupo_nombre: row.grupo_nombre as string,
+      notas: row.notas as string | null,
     }));
   }
 
-  async findAllWithUsersFilter(año: number | null, mes: string | null, rol: string | null, grupo: number | null): Promise<InformeRow[]> {
+  async findAllWithUsersFilter(año: number | null, mes: string | null, rol: string | null, grupo: number | null): Promise<ExportableInformeRow[]> {
     const client = getDatabaseClient();
 
     let sql = `
@@ -174,30 +202,31 @@ export class TursoInformeRepository implements IInformeRepository {
     `;
     const args: any[] = [];
 
-    if (año) {
+    if (año !== null && año !== undefined) {
       sql += ' AND i.año = ?';
       args.push(año);
     }
 
-    if (mes) {
+    if (mes !== null && mes !== undefined && mes !== '') {
       sql += ' AND i.mes = ?';
       args.push(mes);
     }
 
-    if (grupo) {
+    if (grupo !== null && grupo !== undefined) {
       sql += ' AND g.id_grupo = ?';
       args.push(grupo);
     }
 
-    sql += ' GROUP BY i.id_informe, u.id_usuario';
+    sql += ' GROUP BY i.id_informe, u.id_usuario, i.trabajo_como_auxiliar';
 
-    if (rol) {
+    if (rol !== null && rol !== undefined && rol !== '') {
       if (rol === 'auxiliar') {
-        sql += ' HAVING (roles LIKE ? OR (roles LIKE \'%publicador%\' AND MAX(i.trabajo_como_auxiliar) = 1))';
+        sql += ' HAVING (roles LIKE ? OR (roles LIKE ? AND i.trabajo_como_auxiliar = 1))';
+        args.push('%auxiliar%', '%publicador%');
       } else {
         sql += ' HAVING roles LIKE ?';
+        args.push(`%${rol}%`);
       }
-      args.push(`%${rol}%`);
     }
 
     sql += ' ORDER BY i.año DESC, i.mes DESC';
@@ -217,6 +246,8 @@ export class TursoInformeRepository implements IInformeRepository {
       nombre: row.nombre as string,
       apellido: row.apellido as string,
       grupo_nombre: row.grupo_nombre as string,
+      roles: row.roles as string | undefined,
+      notas: (row.notas as string | null) ?? null,
     }));
   }
 }

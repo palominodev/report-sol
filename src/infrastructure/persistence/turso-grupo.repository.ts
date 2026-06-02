@@ -1,5 +1,5 @@
 import { getDatabaseClient } from './database.client';
-import { IGrupoRepository } from '@/core/domain/repositories/IGrupoRepository';
+import { IGrupoRepository, GrupoDetails } from '@/core/domain/repositories/IGrupoRepository';
 import { Grupo } from '@/domain/entities/Grupo';
 
 export class TursoGrupoRepository implements IGrupoRepository {
@@ -29,7 +29,7 @@ export class TursoGrupoRepository implements IGrupoRepository {
     return result.rows[0] as unknown as Grupo;
   }
 
-  async findAllWithDetails(): Promise<Record<string, unknown>[]> {
+  async findAllWithDetails(): Promise<GrupoDetails[]> {
     const client = getDatabaseClient();
 
     const result = await client.execute(`
@@ -45,7 +45,12 @@ export class TursoGrupoRepository implements IGrupoRepository {
       LEFT JOIN usuario aux ON gu_aux.id_usuario = aux.id_usuario
     `);
 
-    return result.rows;
+    return result.rows.map((row) => ({
+      id_grupo: row.id_grupo as number,
+      nombre_grupo: row.nombre_grupo as string,
+      encargado: row.encargado as string | null,
+      auxiliar: row.auxiliar as string | null,
+    }));
   }
 
   async create(nombre: string): Promise<Grupo> {

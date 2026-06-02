@@ -1,8 +1,8 @@
 import { GetGruposUseCase } from '@/core/application/use-cases/GetGruposUseCase';
-import { TursoGrupoRepository } from '@/infrastructure/persistence/turso-grupo.repository';
+import { getGrupoRepository } from '@/infrastructure/config/di';
 
 export async function getGrupos() {
-  const grupoRepository = new TursoGrupoRepository();
+  const grupoRepository = getGrupoRepository();
   const getGruposUseCase = new GetGruposUseCase(grupoRepository);
   return getGruposUseCase.executeWithDetails();
 }
