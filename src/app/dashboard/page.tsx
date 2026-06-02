@@ -1,7 +1,9 @@
 'use client';
 import { useState, useEffect } from 'react';
-import ListaInformes from '../../components/ListaInformes';
+import ListaInformes from '@/components/ListaInformes';
 import Link from 'next/link';
+import DashboardKPIs from '@/components/dashboard/DashboardKPIs';
+import type { DashboardStats } from '@/core/domain/dashboard/DashboardStats';
 
 interface Filtros {
   año: number;
@@ -22,6 +24,40 @@ export default function DashboardPage() {
     rol: '',
     grupo: ''
   });
+
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [statsError, setStatsError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setStatsLoading(true);
+    setStatsError(null);
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        const params = new URLSearchParams();
+        params.set('año', filtros.año.toString());
+        if (filtros.mes) params.set('mes', filtros.mes);
+        if (filtros.rol) params.set('rol', filtros.rol);
+        if (filtros.grupo) params.set('grupo', filtros.grupo);
+
+        const response = await fetch(`/api/dashboard/stats?${params.toString()}`);
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Error ${response.status}`);
+        }
+        const data = await response.json();
+        setStats(data);
+      } catch (err) {
+        setStatsError(err instanceof Error ? err.message : 'Error al cargar estadísticas');
+        setStats(null);
+      } finally {
+        setStatsLoading(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [filtros]);
 
   const handleDownload = async () => {
     try {
@@ -93,6 +129,12 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+
+        {/* KPI Cards */}
+        <DashboardKPIs stats={stats} loading={statsLoading} error={statsError} />
+
+        {/* Charts Placeholder */}
+        <div id="dashboard-charts-placeholder" className="mb-6" />
 
         {/* Content Section */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
