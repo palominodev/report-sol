@@ -10,3 +10,4 @@ export * from './GetInformesUseCase';
 export * from './UpdateInformeUseCase';
 export * from './DeleteInformeUseCase';
 export * from './GetPublisherStatsUseCase';
+export * from './GetDashboardStatsUseCase';
