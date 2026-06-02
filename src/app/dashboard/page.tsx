@@ -1,8 +1,10 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import ListaInformes from '@/components/ListaInformes';
 import Link from 'next/link';
 import DashboardKPIs from '@/components/dashboard/DashboardKPIs';
+import DashboardCharts from '@/components/dashboard/DashboardCharts';
+import DashboardChartsSkeleton from '@/components/dashboard/DashboardChartsSkeleton';
 import type { DashboardStats } from '@/core/domain/dashboard/DashboardStats';
 
 interface Filtros {
@@ -133,8 +135,10 @@ export default function DashboardPage() {
         {/* KPI Cards */}
         <DashboardKPIs stats={stats} loading={statsLoading} error={statsError} />
 
-        {/* Charts Placeholder */}
-        <div id="dashboard-charts-placeholder" className="mb-6" />
+        {/* Charts */}
+        <Suspense fallback={<DashboardChartsSkeleton />}>
+          <DashboardCharts stats={stats} />
+        </Suspense>
 
         {/* Content Section */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
