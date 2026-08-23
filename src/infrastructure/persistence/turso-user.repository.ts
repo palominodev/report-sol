@@ -149,8 +149,19 @@ export class TursoUserRepository implements IUserRepository {
   }
 
   async findAllAssignable(): Promise<AssignablePerson[]> {
-    // Slice 2 implements the assignable-persons query against the `usuario` table.
-    throw new Error('findAllAssignable not implemented yet (slice 2)');
+    const client = getDatabaseClient();
+    const result = await client.execute({
+      sql: 'SELECT id_usuario, nombre, apellido, genero FROM usuario',
+    });
+    return result.rows.map((row) => {
+      const r = row as Record<string, unknown>;
+      return new AssignablePerson(
+        Number(r.id_usuario),
+        r.nombre as string,
+        r.apellido as string,
+        (r.genero as 'masculino' | 'femenino' | null) ?? null
+      );
+    });
   }
 
   async findAllWithDetails(grupoId?: number): Promise<Record<string, unknown>[]> {
