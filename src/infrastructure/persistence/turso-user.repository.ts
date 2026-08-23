@@ -6,6 +6,7 @@ import {
   UserDetails,
 } from '@/core/domain/repositories/IUserRepository';
 import { User } from '@/domain/entities/User';
+import { AssignablePerson } from '@/domain/entities/presentation/AssignablePerson';
 
 export class TursoUserRepository implements IUserRepository {
   async create(data: CreateUserDTO): Promise<{ id_usuario: number }> {
@@ -145,6 +146,11 @@ export class TursoUserRepository implements IUserRepository {
       sql: 'INSERT INTO grupo_usuario (id_grupo, id_usuario, rol_en_grupo) VALUES (?, ?, ?)',
       args: [groupId, userId, role],
     });
+  }
+
+  async findAllAssignable(): Promise<AssignablePerson[]> {
+    // Slice 2 implements the assignable-persons query against the `usuario` table.
+    throw new Error('findAllAssignable not implemented yet (slice 2)');
   }
 
   async findAllWithDetails(grupoId?: number): Promise<Record<string, unknown>[]> {

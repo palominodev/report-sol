@@ -13,6 +13,7 @@ describe('User Role Exclusivity and Validation', () => {
     update: vi.fn().mockResolvedValue(undefined),
     delete: vi.fn().mockResolvedValue(undefined),
     assignToGroup: vi.fn().mockResolvedValue(undefined),
+    findAllAssignable: vi.fn().mockResolvedValue([]),
   };
 
   describe('CreateUserUseCase', () => {

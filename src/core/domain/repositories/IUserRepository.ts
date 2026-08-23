@@ -1,4 +1,5 @@
 import { User } from '@/domain/entities/User';
+import { AssignablePerson } from '@/domain/entities/presentation/AssignablePerson';
 
 export interface CreateUserDTO {
   nombre: string;
@@ -33,4 +34,5 @@ export interface IUserRepository {
   update(id: number, data: UpdateUserDTO): Promise<void>;
   delete(id: number): Promise<void>;
   assignToGroup(userId: number, groupId: number, role: string): Promise<void>;
+  findAllAssignable(): Promise<AssignablePerson[]>;
 }
