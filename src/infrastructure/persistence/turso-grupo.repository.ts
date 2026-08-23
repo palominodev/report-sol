@@ -1,5 +1,5 @@
 import { getDatabaseClient } from './database.client';
-import { IGrupoRepository, GrupoDetails } from '@/core/domain/repositories/IGrupoRepository';
+import { IGrupoRepository, GrupoDetails, GrupoMemberReportStatus } from '@/core/domain/repositories/IGrupoRepository';
 import { Grupo } from '@/domain/entities/Grupo';
 
 export class TursoGrupoRepository implements IGrupoRepository {
@@ -27,6 +27,57 @@ export class TursoGrupoRepository implements IGrupoRepository {
     }
 
     return result.rows[0] as unknown as Grupo;
+  }
+
+  async findNombreById(id: number): Promise<string | null> {
+    const client = getDatabaseClient();
+
+    const result = await client.execute({
+      sql: 'SELECT nombre FROM grupo WHERE id_grupo = ?',
+      args: [id],
+    });
+
+    return (result.rows[0]?.nombre as string | undefined) ?? null;
+  }
+
+  async findMembersWithReportStatus(
+    idGrupo: number,
+    mes: string,
+    año: number
+  ): Promise<GrupoMemberReportStatus[]> {
+    const client = getDatabaseClient();
+
+    const result = await client.execute({
+      sql: `
+        SELECT 
+          u.id_usuario,
+          u.nombre,
+          u.apellido,
+          gu.rol_en_grupo,
+          GROUP_CONCAT(r.rol) as roles,
+          CASE WHEN i.id_informe IS NOT NULL THEN 1 ELSE 0 END as informe_enviado
+        FROM grupo_usuario gu
+        JOIN usuario u ON gu.id_usuario = u.id_usuario
+        LEFT JOIN usuario_rol ur ON u.id_usuario = ur.id_usuario
+        LEFT JOIN rol r ON ur.id_rol = r.id_rol
+        LEFT JOIN informe i 
+          ON i.id_usuario = u.id_usuario 
+          AND i.mes = ? 
+          AND i.año = ?
+        WHERE gu.id_grupo = ?
+        GROUP BY u.id_usuario, u.nombre, u.apellido, gu.rol_en_grupo
+      `,
+      args: [mes, año, idGrupo],
+    });
+
+    return result.rows.map((row) => ({
+      id_usuario: row.id_usuario as number,
+      nombre: row.nombre as string,
+      apellido: row.apellido as string,
+      rol_en_grupo: row.rol_en_grupo as string,
+      roles: (row.roles as string | null) ?? null,
+      informe_enviado: Boolean(row.informe_enviado),
+    }));
   }
 
   async findAllWithDetails(): Promise<GrupoDetails[]> {

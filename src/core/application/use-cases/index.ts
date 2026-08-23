@@ -4,6 +4,7 @@ export * from './DeleteUserUseCase';
 export * from './GetUsersUseCase';
 export * from './CreateGrupoUseCase';
 export * from './GetGruposUseCase';
+export * from './GetGrupoDetailUseCase';
 export * from './DeleteGrupoUseCase';
 export * from './CreateInformeUseCase';
 export * from './GetInformesUseCase';

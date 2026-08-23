@@ -3,6 +3,7 @@ import {
   IUserRepository,
   CreateUserDTO,
   UpdateUserDTO,
+  UserDetails,
 } from '@/core/domain/repositories/IUserRepository';
 import { User } from '@/domain/entities/User';
 
@@ -53,6 +54,43 @@ export class TursoUserRepository implements IUserRepository {
       'miembro' as any,
       { value: 0 } as any
     );
+  }
+
+  async findByIdWithDetails(id: number): Promise<UserDetails | null> {
+    const client = getDatabaseClient();
+
+    const result = await client.execute({
+      sql: `
+        SELECT 
+          u.id_usuario,
+          u.nombre,
+          u.apellido,
+          gu.id_grupo,
+          gu.rol_en_grupo,
+          GROUP_CONCAT(r.rol) as roles
+        FROM usuario u
+        LEFT JOIN grupo_usuario gu ON u.id_usuario = gu.id_usuario
+        LEFT JOIN usuario_rol ur ON u.id_usuario = ur.id_usuario
+        LEFT JOIN rol r ON ur.id_rol = r.id_rol
+        WHERE u.id_usuario = ?
+        GROUP BY u.id_usuario, u.nombre, u.apellido, gu.id_grupo, gu.rol_en_grupo
+      `,
+      args: [id],
+    });
+
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    const row = result.rows[0];
+    return {
+      id_usuario: row.id_usuario as number,
+      nombre: row.nombre as string,
+      apellido: row.apellido as string,
+      id_grupo: row.id_grupo == null ? null : Number(row.id_grupo),
+      rol_en_grupo: (row.rol_en_grupo as string | null) ?? null,
+      roles: (row.roles as string | null) ?? null,
+    };
   }
 
   async update(id: number, data: UpdateUserDTO): Promise<void> {
