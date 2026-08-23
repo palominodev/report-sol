@@ -7,6 +7,7 @@ export interface IAssignmentsRepository {
   findWeekById(id: number): Promise<MeetingWeek | null>;
   listWeeks(): Promise<MeetingWeek[]>;
   findPartsByWeek(id_week: number): Promise<PresentationPart[]>;
+  findPartById(id: number): Promise<PresentationPart | null>;
   findAssignmentsByWeek(id_week: number): Promise<Assignment[]>;
   findRecentAssignments(opts: { desde: string }): Promise<Assignment[]>;
   upsertAssignment(a: Omit<Assignment, 'id_asignacion'>): Promise<Assignment>;
