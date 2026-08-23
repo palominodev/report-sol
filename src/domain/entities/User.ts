@@ -1,5 +1,23 @@
 import { ValidationError } from '@/core/domain/errors/ValidationError';
 
+export const GENERO_VALUES = ['masculino', 'femenino'] as const;
+
+/**
+ * Normalizes and validates a usuario genero value.
+ * Returns the trimmed lowercase value, or null when undefined/empty
+ * (backfill allowed — user stays ineligible until set).
+ */
+export function normalizeGenero(genero?: string | null): 'masculino' | 'femenino' | null {
+  if (genero === undefined || genero === null || genero.trim() === '') {
+    return null;
+  }
+  const normalized = genero.trim().toLowerCase();
+  if (!(GENERO_VALUES as readonly string[]).includes(normalized)) {
+    throw new ValidationError(`El género debe ser "masculino" o "femenino". Se recibió: ${genero}`);
+  }
+  return normalized as 'masculino' | 'femenino';
+}
+
 export const PREACHING_ROLES = ['publicador', 'auxiliar', 'regular'] as const;
 export type PreachingRole = (typeof PREACHING_ROLES)[number];
 

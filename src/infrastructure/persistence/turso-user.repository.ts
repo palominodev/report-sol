@@ -13,8 +13,8 @@ export class TursoUserRepository implements IUserRepository {
     const client = getDatabaseClient();
 
     const result = await client.execute({
-      sql: 'INSERT INTO usuario (nombre, apellido) VALUES (?, ?) RETURNING id_usuario',
-      args: [data.nombre, data.apellido],
+      sql: 'INSERT INTO usuario (nombre, apellido, genero) VALUES (?, ?, ?) RETURNING id_usuario',
+      args: [data.nombre, data.apellido, data.genero ?? null],
     });
 
     const id_usuario = result.rows[0].id_usuario;
@@ -66,6 +66,7 @@ export class TursoUserRepository implements IUserRepository {
           u.id_usuario,
           u.nombre,
           u.apellido,
+          u.genero,
           gu.id_grupo,
           gu.rol_en_grupo,
           GROUP_CONCAT(r.rol) as roles
@@ -91,6 +92,7 @@ export class TursoUserRepository implements IUserRepository {
       id_grupo: row.id_grupo == null ? null : Number(row.id_grupo),
       rol_en_grupo: (row.rol_en_grupo as string | null) ?? null,
       roles: (row.roles as string | null) ?? null,
+      genero: (row.genero as 'masculino' | 'femenino' | null) ?? null,
     };
   }
 
@@ -98,8 +100,8 @@ export class TursoUserRepository implements IUserRepository {
     const client = getDatabaseClient();
 
     await client.execute({
-      sql: 'UPDATE usuario SET nombre = ?, apellido = ? WHERE id_usuario = ?',
-      args: [data.nombre, data.apellido, id],
+      sql: 'UPDATE usuario SET nombre = ?, apellido = ?, genero = ? WHERE id_usuario = ?',
+      args: [data.nombre, data.apellido, data.genero ?? null, id],
     });
 
     await client.execute({
@@ -172,6 +174,7 @@ export class TursoUserRepository implements IUserRepository {
         u.id_usuario, 
         u.nombre, 
         u.apellido, 
+        u.genero,
         GROUP_CONCAT(r.rol) as roles,
         g.nombre as grupo
       FROM usuario u

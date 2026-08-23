@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { PREACHING_ROLES, APPOINTMENT_ROLES, PreachingRole, AppointmentRole } from '@/domain/entities/User';
+import { PREACHING_ROLES, APPOINTMENT_ROLES, PreachingRole, AppointmentRole, GENERO_VALUES } from '@/domain/entities/User';
 
 interface Grupo {
   id_grupo: number;
@@ -16,6 +16,7 @@ interface Usuario {
   id_grupo: string;
   roles: string[];
   rol_en_grupo: string;
+  genero?: string | null;
 }
 
 interface FormularioUsuarioProps {
@@ -57,6 +58,7 @@ export default function FormularioUsuario({
   const [rolPredicacion, setRolPredicacion] = useState<PreachingRole>('publicador');
   const [nombramientos, setNombramientos] = useState<AppointmentRole[]>([]);
   const [rolEnGrupo, setRolEnGrupo] = useState(usuarioInicial?.rol_en_grupo || 'miembro');
+  const [genero, setGenero] = useState(usuarioInicial?.genero || '');
 
   const [mensaje, setMensaje] = useState('');
   const [error, setError] = useState('');
@@ -68,6 +70,7 @@ export default function FormularioUsuario({
       setApellido(usuarioInicial.apellido);
       setIdGrupo(usuarioInicial.id_grupo);
       setRolEnGrupo(usuarioInicial.rol_en_grupo || 'miembro');
+      setGenero(usuarioInicial.genero || '');
 
       // Distribute initial roles into preaching vs appointments
       const rawRoles = usuarioInicial.roles || [];
@@ -131,6 +134,16 @@ export default function FormularioUsuario({
       return;
     }
 
+    if (!esEdicion && !genero) {
+      setError('El género es requerido para el nuevo publicador.');
+      return;
+    }
+
+    if (genero && !(GENERO_VALUES as readonly string[]).includes(genero)) {
+      setError('El género debe ser "masculino" o "femenino".');
+      return;
+    }
+
     // Combine preaching role + appointments
     const payloadRoles = [rolPredicacion, ...nombramientos];
 
@@ -149,6 +162,7 @@ export default function FormularioUsuario({
           id_grupo: Number(idGrupo),
           roles: payloadRoles,
           rol_en_grupo: rolEnGrupo,
+          genero: genero || null,
         }),
       });
 
@@ -165,6 +179,7 @@ export default function FormularioUsuario({
         setRolPredicacion('publicador');
         setNombramientos([]);
         setRolEnGrupo('miembro');
+        setGenero('');
       }
 
       setMensaje(esEdicion ? 'Usuario actualizado exitosamente' : 'Usuario creado exitosamente');
@@ -233,6 +248,31 @@ export default function FormularioUsuario({
                     placeholder="Ingresa el apellido"
                     required
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Género {!esEdicion && <span className="text-red-500">*</span>}
+                  </label>
+                  <select
+                    className={`w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                      esEdicion && !usuarioInicial?.genero ? 'border-amber-300 bg-amber-50' : ''
+                    } ${esEdicion ? 'cursor-pointer' : ''}`}
+                    value={genero}
+                    onChange={(e) => setGenero(e.target.value)}
+                    required={!esEdicion}
+                  >
+                    <option value="">{esEdicion ? 'Sin especificar' : 'Selecciona el género'}</option>
+                    {GENERO_VALUES.map((value) => (
+                      <option key={value} value={value}>
+                        {value.charAt(0).toUpperCase() + value.slice(1)}
+                      </option>
+                    ))}
+                  </select>
+                  {esEdicion && !usuarioInicial?.genero && (
+                    <p className="mt-1 text-xs text-amber-700">
+                      Género pendiente de definir. Completa este campo para que el publicador pueda ser asignado.
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

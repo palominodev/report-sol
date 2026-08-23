@@ -1,5 +1,6 @@
 import { User } from '@/domain/entities/User';
 import { AssignablePerson } from '@/domain/entities/presentation/AssignablePerson';
+import { Genero } from '@/domain/entities/presentation/enums';
 
 export interface CreateUserDTO {
   nombre: string;
@@ -7,6 +8,7 @@ export interface CreateUserDTO {
   id_grupo: number;
   roles: string[];
   rol_en_grupo: string;
+  genero?: Genero | null;
 }
 
 export interface UpdateUserDTO {
@@ -15,6 +17,7 @@ export interface UpdateUserDTO {
   id_grupo: number;
   roles: string[];
   rol_en_grupo: string;
+  genero?: Genero | null;
 }
 
 export interface UserDetails {
@@ -24,6 +27,7 @@ export interface UserDetails {
   id_grupo: number | null;
   rol_en_grupo: string | null;
   roles: string | null;
+  genero: Genero | null;
 }
 
 export interface IUserRepository {

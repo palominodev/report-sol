@@ -1,6 +1,6 @@
 import { IUserRepository, UpdateUserDTO } from '@/core/domain/repositories/IUserRepository';
 import { ValidationError } from '@/core/domain/errors/ValidationError';
-import { validateAndNormalizeRoles } from '@/domain/entities/User';
+import { validateAndNormalizeRoles, normalizeGenero } from '@/domain/entities/User';
 
 export class UpdateUserUseCase {
   constructor(private userRepository: IUserRepository) {}
@@ -19,6 +19,7 @@ export class UpdateUserUseCase {
     }
 
     const normalizedRoles = validateAndNormalizeRoles(data.roles || []);
+    const genero = normalizeGenero(data.genero);
 
     await this.userRepository.update(id, {
       ...data,
@@ -27,6 +28,7 @@ export class UpdateUserUseCase {
       id_grupo: Number(data.id_grupo),
       roles: normalizedRoles,
       rol_en_grupo: data.rol_en_grupo || 'miembro',
+      genero,
     });
   }
 }

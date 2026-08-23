@@ -1,6 +1,6 @@
 import { IUserRepository, CreateUserDTO } from '@/core/domain/repositories/IUserRepository';
 import { ValidationError } from '@/core/domain/errors/ValidationError';
-import { validateAndNormalizeRoles } from '@/domain/entities/User';
+import { validateAndNormalizeRoles, normalizeGenero } from '@/domain/entities/User';
 
 export class CreateUserUseCase {
   constructor(private userRepository: IUserRepository) {}
@@ -15,6 +15,7 @@ export class CreateUserUseCase {
     }
 
     const normalizedRoles = validateAndNormalizeRoles(data.roles || []);
+    const genero = normalizeGenero(data.genero);
 
     return this.userRepository.create({
       ...data,
@@ -23,6 +24,7 @@ export class CreateUserUseCase {
       id_grupo: Number(data.id_grupo),
       roles: normalizedRoles,
       rol_en_grupo: data.rol_en_grupo || 'miembro',
+      genero,
     });
   }
 }
