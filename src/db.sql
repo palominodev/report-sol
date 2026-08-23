@@ -66,6 +66,7 @@ CREATE TABLE informe (
   id_usuario INTEGER NOT NULL,
   FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE CASCADE ON UPDATE CASCADE
 );
+CREATE UNIQUE INDEX idx_informe_usuario_periodo ON informe(id_usuario, año, mes);
 INSERT INTO rol(rol)
 VALUES ('publicador'),
   ('auxiliar'),

@@ -78,6 +78,8 @@ Este es un sistema web desarrollado con Next.js para la gestión de informes de 
 
 ## Instalación
 
+> Este proyecto usa **pnpm** como gestor de paquetes. Instalalo con `curl -fsSL https://get.pnpm.io/install.sh | sh -`.
+
 1. Clonar el repositorio:
 ```bash
 git clone [url-del-repositorio]
@@ -85,7 +87,7 @@ git clone [url-del-repositorio]
 
 2. Instalar dependencias:
 ```bash
-npm install
+pnpm install
 ```
 
 3. Configurar variables de entorno:
@@ -95,7 +97,7 @@ cp .env.example .env.local
 
 4. Iniciar el servidor de desarrollo:
 ```bash
-npm run dev
+pnpm dev
 ```
 
 ## Estructura del Proyecto

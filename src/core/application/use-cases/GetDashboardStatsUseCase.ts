@@ -216,12 +216,12 @@ export class GetDashboardStatsUseCase {
   }
 
   /**
-   * Categorizes unique publishers into regular / auxiliar / mixto
+   * Categorizes unique publishers into regular / auxiliar / publicador
    * based on their assigned roles from the repository.
    *
-   * - regular: roles include 'regular' but not 'auxiliar'
-   * - auxiliar: roles include 'auxiliar' but not 'regular'
-   * - mixto: both, neither, or only 'publicador'
+   * - regular: roles include 'regular'
+   * - auxiliar: roles include 'auxiliar' (and not 'regular')
+   * - publicador: all other publishers
    */
   private calculateParticipationBreakdown(
     rows: ExportableInformeRow[]
@@ -242,28 +242,28 @@ export class GetDashboardStatsUseCase {
 
     let regularCount = 0;
     let auxiliarCount = 0;
-    let mixtoCount = 0;
+    let publicadorCount = 0;
 
     for (const user of userMap.values()) {
       const roles = user.roles.toLowerCase();
       const hasRegular = roles.includes('regular');
       const hasAuxiliar = roles.includes('auxiliar');
 
-      if (hasRegular && !hasAuxiliar) {
+      if (hasRegular) {
         regularCount++;
-      } else if (hasAuxiliar && !hasRegular) {
+      } else if (hasAuxiliar) {
         auxiliarCount++;
       } else {
-        mixtoCount++;
+        publicadorCount++;
       }
     }
 
-    const total = regularCount + auxiliarCount + mixtoCount;
+    const total = regularCount + auxiliarCount + publicadorCount;
     if (total === 0) {
       return [
         { tipo: 'regular', cantidad: 0, porcentaje: 0 },
         { tipo: 'auxiliar', cantidad: 0, porcentaje: 0 },
-        { tipo: 'mixto', cantidad: 0, porcentaje: 0 },
+        { tipo: 'publicador', cantidad: 0, porcentaje: 0 },
       ];
     }
 
@@ -279,9 +279,9 @@ export class GetDashboardStatsUseCase {
         porcentaje: Math.round((auxiliarCount / total) * 100 * 10) / 10,
       },
       {
-        tipo: 'mixto',
-        cantidad: mixtoCount,
-        porcentaje: Math.round((mixtoCount / total) * 100 * 10) / 10,
+        tipo: 'publicador',
+        cantidad: publicadorCount,
+        porcentaje: Math.round((publicadorCount / total) * 100 * 10) / 10,
       },
     ];
   }

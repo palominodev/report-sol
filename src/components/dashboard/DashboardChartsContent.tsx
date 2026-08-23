@@ -41,7 +41,7 @@ const GROUP_COLORS = [
 const PARTICIPATION_COLORS: Record<string, string> = {
   regular: '#10b981',
   auxiliar: '#f59e0b',
-  mixto: '#3b82f6',
+  publicador: '#3b82f6',
 };
 
 function MonthlyTooltip({ active, payload, label }: any) {

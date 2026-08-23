@@ -33,7 +33,7 @@ export interface GroupComparison {
 
 /** Participation breakdown for pie/donut chart */
 export interface ParticipationBreakdown {
-  tipo: 'regular' | 'auxiliar' | 'mixto';
+  tipo: 'regular' | 'auxiliar' | 'publicador';
   cantidad: number;
   porcentaje: number;
 }

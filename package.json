@@ -2,6 +2,7 @@
   "name": "report_sol",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@11.23.0",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",

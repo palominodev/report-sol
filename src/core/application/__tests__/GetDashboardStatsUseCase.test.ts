@@ -95,7 +95,7 @@ describe('GetDashboardStatsUseCase', () => {
       expect(result.participationBreakdown).toHaveLength(3);
       expect(result.participationBreakdown.find((p) => p.tipo === 'regular')!.cantidad).toBe(1);
       expect(result.participationBreakdown.find((p) => p.tipo === 'auxiliar')!.cantidad).toBe(1);
-      expect(result.participationBreakdown.find((p) => p.tipo === 'mixto')!.cantidad).toBe(1);
+      expect(result.participationBreakdown.find((p) => p.tipo === 'publicador')!.cantidad).toBe(1);
     });
 
     it('should return all zeros and empty arrays for empty input', async () => {

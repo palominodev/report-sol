@@ -45,7 +45,7 @@ async function main() {
   console.log(`  - Grupo-Usuario: ${grupoUsuarioCount.rows[0]?.c || 0}`);
   console.log(`  - Informes: ${informesCount.rows[0]?.c || 0}`);
   console.log('\n⚠️  ESTO ELIMINARÁ TODOS LOS DATOS DE PRODUCCIÓN');
-  console.log('Ejecuta este script con: npm run db:cleanup');
+  console.log('Ejecuta este script con: pnpm db:cleanup');
 }
 
 main();

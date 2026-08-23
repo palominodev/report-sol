@@ -71,22 +71,22 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 
 ```bash
 # Install dependencies
-npm install
+pnpm install
 
 # Run development server
-npm run dev
+pnpm dev
 
 # Run linting
-npm run lint
+pnpm lint
 
 # Build for production
-npm run build
+pnpm build
 
 # Run seed
-npm run db:seed
+pnpm db:seed
 
 # Push database changes
-npm run db:push
+pnpm db:push
 
 ```
 
@@ -101,7 +101,7 @@ Follow conventional-commit style: `<type>(scope): <description>`
 
 Before finalizing changes:
 1. Ensure the Hexagonal Architecture boundaries are respected.
-2. Run `npm run lint` to catch stylistic or type issues.
+2. Run `pnpm lint` to catch stylistic or type issues.
 3. Validate database changes against `sqlite-database-expert` guidelines.
 
 ---
