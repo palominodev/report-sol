@@ -29,47 +29,15 @@ interface Filtros {
 
 interface ListaInformesProps {
   filtros: Filtros;
-  onFiltrosChange: (filtros: Filtros) => void;
 }
 
-const meses = [
-  'ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN',
-  'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'
-];
-
-const roles = [
-  { id: 'publicador', label: 'Publicador' },
-  { id: 'auxiliar', label: 'Auxiliar' },
-  { id: 'regular', label: 'Regular' }
-];
-
-export default function ListaInformes({ filtros, onFiltrosChange }: ListaInformesProps) {
+export default function ListaInformes({ filtros }: ListaInformesProps) {
   const [informes, setInformes] = useState<Informe[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const refreshInformes = useCallback(() => {
     setRefreshKey(k => k + 1);
-  }, []);
-
-  const [grupos, setGrupos] = useState<{ id_grupo: number; nombre: string }[]>([]);
-
-  useEffect(() => {
-    const fetchGrupos = async () => {
-      try {
-        const res = await fetch('/api/grupos');
-        if (!res.ok) throw new Error('Failed to fetch groups');
-        const data = await res.json();
-        setGrupos(data.map((row: any) => ({
-          id_grupo: row.id_grupo,
-          nombre: row.nombre_grupo || row.nombre
-        })));
-      } catch (error) {
-        console.error('Error fetching groups:', error);
-      }
-    };
-
-    fetchGrupos();
   }, []);
 
   useEffect(() => {
@@ -137,88 +105,6 @@ export default function ListaInformes({ filtros, onFiltrosChange }: ListaInforme
   return (
     <div className="space-y-6">
       <EstadisticasInformes informes={informes} />
-      {/* Filtros Section */}
-      <div className="bg-gray-50 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4 text-balance">
-          Filtros de Búsqueda
-        </h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Año
-            </label>
-            <select
-              value={filtros.año}
-              onChange={(e) => onFiltrosChange({ ...filtros, año: parseInt(e.target.value) })}
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-            >
-              {[...Array(5)].map((_, i) => {
-                const año = new Date().getFullYear() - i;
-                return (
-                  <option key={año} value={año}>
-                    {año}
-                  </option>
-                );
-              })}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Mes
-            </label>
-            <select
-              value={filtros.mes}
-              onChange={(e) => onFiltrosChange({ ...filtros, mes: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-            >
-              <option value="">Todos los meses</option>
-              {meses.map((mes) => (
-                <option key={mes} value={mes}>
-                  {mes}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Rol
-            </label>
-            <select
-              value={filtros.rol}
-              onChange={(e) => onFiltrosChange({ ...filtros, rol: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-            >
-              <option value="">Todos los roles</option>
-              {roles.map((rol) => (
-                <option key={rol.id} value={rol.id}>
-                  {rol.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Grupo
-            </label>
-            <select
-              value={filtros.grupo}
-              onChange={(e) => onFiltrosChange({ ...filtros, grupo: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-            >
-              <option value="">Todos los grupos</option>
-              {grupos.map((grupo) => (
-                <option key={grupo.id_grupo} value={grupo.id_grupo}>
-                  {grupo.nombre}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
 
       {/* Informes List */}
       <div className="space-y-4">

@@ -25,14 +25,19 @@ export class GetDashboardStatsUseCase {
     const grupo = filters.grupo ?? null;
 
     // Fetch current period and previous period (same filters, previous year)
-    // for year-over-year KPI trend comparison
-    const [currentRows, previousRows] = await Promise.all([
+    // for year-over-year KPI trend comparison.
+    // The monthly trend chart must always show the full year regardless of
+    // the selected month, so fetch whole-year rows when a month filter is set.
+    const [currentRows, previousRows, yearlyRows] = await Promise.all([
       this.informeRepository.findAllWithUsersFilter(año, mes, rol, grupo),
       this.informeRepository.findAllWithUsersFilter(año - 1, mes, rol, grupo),
+      mes
+        ? this.informeRepository.findAllWithUsersFilter(año, null, rol, grupo)
+        : Promise.resolve([] as ExportableInformeRow[]),
     ]);
 
     const kpis = this.calculateKpis(currentRows, previousRows);
-    const monthlyTrends = this.calculateMonthlyTrends(currentRows);
+    const monthlyTrends = this.calculateMonthlyTrends(mes ? yearlyRows : currentRows);
     const groupComparisons = this.calculateGroupComparisons(currentRows);
     const participationBreakdown = this.calculateParticipationBreakdown(currentRows);
 
