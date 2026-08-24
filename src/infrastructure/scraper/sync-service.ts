@@ -150,26 +150,27 @@ export async function checkGuideUpdate(options?: GuideCheckOptions): Promise<Gui
   }
 
   const landing = await loadLatestIssueLanding(options?.customFetch);
-  const latestPublished = landing.issue || null;
+  const latestPublished = landing.weekUrls.length > 0 ? landing.issue || null : null;
 
   await client.execute({
     sql: `INSERT INTO presentation_sync_state (id, latest_loaded_issue, latest_known_published, last_checked_at)
           VALUES (1, ?, ?, CURRENT_TIMESTAMP)
           ON CONFLICT(id) DO UPDATE SET
-            latest_known_published = excluded.latest_known_published,
+            latest_known_published = COALESCE(excluded.latest_known_published, presentation_sync_state.latest_known_published),
             last_checked_at = excluded.last_checked_at`,
     args: [latestLoaded, latestPublished],
   });
 
   const updatedState = await client.execute({
-    sql: 'SELECT last_checked_at FROM presentation_sync_state WHERE id = 1',
+    sql: 'SELECT latest_known_published, last_checked_at FROM presentation_sync_state WHERE id = 1',
   });
+  const effectivePublished = (updatedState.rows[0]?.latest_known_published as string) ?? latestPublished;
   const lastCheckedAt = (updatedState.rows[0]?.last_checked_at as string) ?? new Date().toISOString();
 
   return {
     hasNewer: Boolean(latestPublished && latestPublished !== latestLoaded),
     latestLoaded,
-    latestPublished,
+    latestPublished: effectivePublished,
     lastCheckedAt,
   };
 }

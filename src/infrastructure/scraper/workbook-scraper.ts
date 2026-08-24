@@ -16,6 +16,7 @@ import {
   parseSourceRef,
   extractIssue,
   extractDates,
+  buildIssueLandingUrl,
 } from './selectors';
 
 export interface ParsedPart {
@@ -264,7 +265,18 @@ export async function loadLatestIssueLanding(
   const fetcher = fetchFn || fetchWorkbookPage;
   const html = await fetcher();
   const issue = parseIssueFromLanding(html);
-  const weekUrls = parseWeekUrlsFromLanding(html);
+  let weekUrls = parseWeekUrlsFromLanding(html);
+
+  if (issue && weekUrls.length === 0) {
+    try {
+      const issueUrl = buildIssueLandingUrl(issue);
+      const issueHtml = await fetcher(issueUrl);
+      weekUrls = parseWeekUrlsFromLanding(issueHtml);
+    } catch {
+      // Ignored for future or unreleased issues
+    }
+  }
+
   return { issue, weekUrls };
 }
 

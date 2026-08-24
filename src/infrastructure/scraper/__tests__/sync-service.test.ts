@@ -223,5 +223,21 @@ describe('sync-service', () => {
       expect(result.latestLoaded).toBe('2026-07');
       expect(result.latestPublished).toBe('2026-09');
     });
+
+    it('does not mark hasNewer=true when issue metadata exists but has 0 week articles in TOC', async () => {
+      await inMemoryDb.execute({
+        sql: `INSERT INTO presentation_sync_state (id, latest_loaded_issue, latest_known_published, last_checked_at)
+              VALUES (1, '2026-09', '2026-09', '2026-08-20 00:00:00')`,
+      });
+
+      // Metadata mentions 2026-11, but TOC has 0 articles
+      const placeholderLandingHtml = `<html><body class="iss-202611"><a class="jsChooseSiteLanguage" href="/choose?issue=2026-11"></a><div class="toc"></div></body></html>`;
+      const customFetch = vi.fn(async () => placeholderLandingHtml);
+
+      const result = await checkGuideUpdate({ force: true, customFetch });
+
+      expect(result.hasNewer).toBe(false);
+      expect(result.latestLoaded).toBe('2026-09');
+    });
   });
 });
