@@ -1,16 +1,33 @@
 import Link from 'next/link';
 import { getWeeks } from '@/lib/presentation/weeks';
+import { checkGuideUpdate, getSyncState } from '@/infrastructure/scraper/sync-service';
 import WeekEstadoBadge from './WeekEstadoBadge';
+import SyncGuideBanner from './SyncGuideBanner';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AsignacionesPage() {
-  const weeks = await getWeeks();
+  const [weeks, syncState] = await Promise.all([
+    getWeeks(),
+    checkGuideUpdate().catch(async () => {
+      const state = await getSyncState().catch(() => ({
+        latestLoaded: null,
+        latestPublished: null,
+        lastCheckedAt: null,
+      }));
+      return {
+        hasNewer: false,
+        latestLoaded: state.latestLoaded,
+        latestPublished: state.latestPublished,
+        lastCheckedAt: state.lastCheckedAt,
+      };
+    }),
+  ]);
 
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6">
-        <header className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <header className="rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="text-2xl font-bold text-slate-900">Asignaciones de la reunión</h1>
@@ -35,7 +52,9 @@ export default async function AsignacionesPage() {
           </div>
         </header>
 
-        <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <SyncGuideBanner initialState={syncState} />
+
+        <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
           <div className="border-b border-slate-200 px-6 py-4">
             <h2 className="text-lg font-semibold text-slate-900">Semanas</h2>
             <p className="mt-0.5 text-sm text-slate-600">

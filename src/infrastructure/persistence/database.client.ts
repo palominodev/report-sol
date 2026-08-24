@@ -9,7 +9,7 @@ export function getDatabaseClient(): DatabaseClient {
     const url = process.env.TURSO_URL;
     const token = process.env.TURSO_TOKEN;
 
-    if (!url || !token) {
+    if (!url || (!url.startsWith('file:') && !token)) {
       throw new Error('TURSO_URL and TURSO_TOKEN must be defined in environment variables');
     }
 
@@ -19,7 +19,12 @@ export function getDatabaseClient(): DatabaseClient {
   return client;
 }
 
+export function setDatabaseClient(customClient: DatabaseClient | null): void {
+  client = customClient;
+}
+
 export async function executeQuery(sql: string, args?: (string | number | null | Uint8Array)[]) {
   const client = getDatabaseClient();
   return client.execute({ sql, args });
 }
+
