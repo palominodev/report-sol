@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { AssignmentMatcher } from '../AssignmentMatcher';
 import { RuleRegistry } from '../RuleRegistry';
 import { NoRepeatPairWithin6MonthsRule } from '../NoRepeatPairWithin6MonthsRule';
+import { PresenterEligibilityRule } from '../rules/PresenterEligibilityRule';
+import { PairPolicyRule } from '../rules/PairPolicyRule';
 import { MatchingRule, HistoryView } from '../types';
 import { AssignablePerson } from '@/domain/entities/presentation/AssignablePerson';
 import { PresentationPart } from '@/domain/entities/presentation/PresentationPart';
@@ -33,6 +35,8 @@ function historyOf(map: Record<number, number[]>): HistoryView {
 function buildMatcher(): { matcher: AssignmentMatcher } {
   const registry = new RuleRegistry();
   registry.register(new NoRepeatPairWithin6MonthsRule());
+  registry.register(new PresenterEligibilityRule());
+  registry.register(new PairPolicyRule());
   return { matcher: new AssignmentMatcher(registry) };
 }
 
@@ -177,8 +181,9 @@ describe('AssignmentMatcher', () => {
   });
 
   it('treats soft-only rules as fully allowed (isAllowed defaults to true)', () => {
-    // Registry contains only R5, which defines no gate: every candidate passes.
-    const persons = [person(1, 'masculino'), person(2, 'femenino', null, 7)];
+    // Registry has no custom gate; the pair-policy rule still sees a legal
+    // same-familia mixed pair, and R5 only penalizes the recent pair.
+    const persons = [person(1, 'masculino', null, 7), person(2, 'femenino', null, 7)];
     const parts = [part(10, 100, 1, true)];
     const history = historyOf({ 1: [2] }); // recent pair would be penalized, not blocked
     const { matcher } = buildMatcher();
