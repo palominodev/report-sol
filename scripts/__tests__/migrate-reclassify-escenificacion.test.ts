@@ -51,7 +51,7 @@ describe('migrate-reclassify-escenificacion', () => {
 
     expect(updated).toBe(1);
     const rows = await client.execute('SELECT tipo FROM presentation_part WHERE id_part = ?', [idPart]);
-    expect((rows.rows[0] as { tipo: string }).tipo).toBe('escenificacion');
+    expect((rows.rows[0] as unknown as { tipo: string }).tipo).toBe('escenificacion');
   });
 
   it('leaves other discurso parts untouched', async () => {
