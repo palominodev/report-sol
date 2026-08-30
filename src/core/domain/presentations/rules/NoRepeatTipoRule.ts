@@ -15,7 +15,7 @@ export class NoRepeatTipoRule implements MatchingRule {
     return !ctx.history.tipoHistoryWithin6mo(ctx.person.id_usuario).has(ctx.part.tipo);
   }
 
-  score(): number {
+  score(_ctx: ScoringContext): number {
     return 0;
   }
 }

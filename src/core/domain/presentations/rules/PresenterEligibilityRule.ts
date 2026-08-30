@@ -29,7 +29,7 @@ export class PresenterEligibilityRule implements MatchingRule {
     return true;
   }
 
-  score(): number {
+  score(_ctx: ScoringContext): number {
     return 0;
   }
 }
