@@ -31,17 +31,26 @@ export interface ScoringContext {
   role: AssignmentRole;
   weekState: AssignmentEngineState;
   history: HistoryView;
+  /** Every assignable person by id, for resolving already-committed co-persons. */
+  personsById: ReadonlyMap<number, AssignablePerson>;
 }
 
-/** A pluggable soft rule that contributes a score delta for a candidate. */
+/**
+ * A pluggable matching rule. `isAllowed` is the HARD eligibility gate
+ * (optional: a rule that only defines `score` is automatically allowed);
+ * `score` contributes a soft ranking delta.
+ */
 export interface MatchingRule {
   readonly id: string;
+  isAllowed?(ctx: ScoringContext): boolean;
   score(ctx: ScoringContext): number;
 }
 
 export interface UnassignedSlot {
   part: PresentationPart;
   role: AssignmentRole;
+  /** Diagnostic: why no candidate could fill this slot. */
+  reason: string;
 }
 
 export interface AssignmentResult {
