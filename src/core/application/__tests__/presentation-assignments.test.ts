@@ -6,6 +6,8 @@ import { OverrideAssignmentUseCase } from '../use-cases/presentation/OverrideAss
 import { ConfirmWeekAssignmentsUseCase } from '../use-cases/presentation/ConfirmWeekAssignmentsUseCase';
 import { IAssignmentsRepository } from '@/core/domain/presentations/IAssignmentsRepository';
 import { IUserRepository } from '@/core/domain/repositories/IUserRepository';
+import { RuleRegistry } from '@/core/domain/presentations/RuleRegistry';
+import { NoRepeatPairWithin6MonthsRule } from '@/core/domain/presentations/NoRepeatPairWithin6MonthsRule';
 import { NotFoundError } from '@/core/domain/errors/NotFoundError';
 import { ConflictError } from '@/core/domain/errors/ConflictError';
 import { UnprocessableError } from '@/core/domain/errors/UnprocessableError';
@@ -20,6 +22,13 @@ import { Genero } from '@/domain/entities/presentation/enums';
 const today = new Date().toISOString();
 const SIX_MONTHS_AGO = new Date();
 SIX_MONTHS_AGO.setMonth(SIX_MONTHS_AGO.getMonth() - 6);
+
+/** Mirrors pre-2.8 use-case wiring: R5 only, as the tests were written. */
+function defaultRegistry(): RuleRegistry {
+  const registry = new RuleRegistry();
+  registry.register(new NoRepeatPairWithin6MonthsRule());
+  return registry;
+}
 
 function person(id: number, genero: Genero | null = 'masculino'): AssignablePerson {
   return new AssignablePerson(id, `Nombre${id}`, `Apellido${id}`, genero, null, null);
@@ -111,12 +120,12 @@ describe('Presentation Assignments — Use Cases (Slice 2)', () => {
       (assignRepo.findAssignmentsByWeek as ReturnType<typeof vi.fn>).mockResolvedValue(manual);
       (assignRepo.findRecentAssignments as ReturnType<typeof vi.fn>).mockResolvedValue([]);
       (userRepo.findAllAssignable as ReturnType<typeof vi.fn>).mockResolvedValue(persons);
-      return new GenerateWeekAssignmentsUseCase(userRepo, assignRepo);
+      return new GenerateWeekAssignmentsUseCase(userRepo, assignRepo, defaultRegistry());
     };
 
     it('404 when the week does not exist', async () => {
       (assignRepo.findWeekById as ReturnType<typeof vi.fn>).mockResolvedValue(null);
-      const uc = new GenerateWeekAssignmentsUseCase(userRepo, assignRepo);
+      const uc = new GenerateWeekAssignmentsUseCase(userRepo, assignRepo, defaultRegistry());
       await expect(uc.execute({ id_week: 999 })).rejects.toThrow(NotFoundError);
     });
 
