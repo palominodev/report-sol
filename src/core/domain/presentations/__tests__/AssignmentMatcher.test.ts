@@ -4,6 +4,7 @@ import { RuleRegistry } from '../RuleRegistry';
 import { NoRepeatPairWithin6MonthsRule } from '../NoRepeatPairWithin6MonthsRule';
 import { PresenterEligibilityRule } from '../rules/PresenterEligibilityRule';
 import { PairPolicyRule } from '../rules/PairPolicyRule';
+import { NoRepeatTipoRule } from '../rules/NoRepeatTipoRule';
 import { MatchingRule, HistoryView } from '../types';
 import { AssignablePerson } from '@/domain/entities/presentation/AssignablePerson';
 import { PresentationPart } from '@/domain/entities/presentation/PresentationPart';
@@ -37,6 +38,7 @@ function buildMatcher(): { matcher: AssignmentMatcher } {
   registry.register(new NoRepeatPairWithin6MonthsRule());
   registry.register(new PresenterEligibilityRule());
   registry.register(new PairPolicyRule());
+  registry.register(new NoRepeatTipoRule());
   return { matcher: new AssignmentMatcher(registry) };
 }
 
