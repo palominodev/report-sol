@@ -20,7 +20,7 @@ import {
 
 describe('Part-type arity consistency', () => {
   it('que_diria is a one-person part (absent from TWO_PERSON_PART_TYPES)', () => {
-    expect(TWO_PERSON_PART_TYPES.includes('que_diria')).toBe(false);
+    expect((TWO_PERSON_PART_TYPES as readonly string[]).includes('que_diria')).toBe(false);
   });
 
   it('escenificacion is a two-person part (present in TWO_PERSON_PART_TYPES)', () => {

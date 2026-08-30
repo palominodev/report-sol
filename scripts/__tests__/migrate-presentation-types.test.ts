@@ -72,7 +72,7 @@ async function partCheckSql(client: DatabaseClient): Promise<string> {
     sql: "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'presentation_part'",
     args: [],
   });
-  return (result.rows[0] as { sql: string }).sql;
+  return (result.rows[0] as unknown as { sql: string }).sql;
 }
 
 async function seedPartWithAssignment(client: DatabaseClient): Promise<number> {
@@ -120,12 +120,12 @@ describe('migrate-presentation-types', () => {
 
     const parts = await client.execute('SELECT id_part, tipo FROM presentation_part');
     expect(parts.rows).toHaveLength(1);
-    expect((parts.rows[0] as { id_part: number; tipo: string }).id_part).toBe(idPart);
-    expect((parts.rows[0] as { tipo: string }).tipo).toBe('discurso');
+    expect((parts.rows[0] as unknown as { id_part: number; tipo: string }).id_part).toBe(idPart);
+    expect((parts.rows[0] as unknown as { tipo: string }).tipo).toBe('discurso');
 
     // Child rows survived the DROP/RENAME with foreign keys disabled.
     const assignments = await client.execute('SELECT COUNT(*) AS count FROM presentation_assignment');
-    expect(Number((assignments.rows[0] as { count: number }).count)).toBe(1);
+    expect(Number((assignments.rows[0] as unknown as { count: number }).count)).toBe(1);
   });
 
   it('is a no-op on the second run (idempotent)', async () => {

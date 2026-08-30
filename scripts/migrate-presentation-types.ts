@@ -52,7 +52,7 @@ async function alreadyWidened(client: PresentationTypesMigrationClient): Promise
   if (result.rows.length === 0) {
     throw new Error('Tabla presentation_part no encontrada: la migración requiere el esquema previo');
   }
-  const sql = (result.rows[0] as { sql: string }).sql;
+  const sql = (result.rows[0] as unknown as { sql: string }).sql;
   return NEW_TIPOS_IN_CHECK.every((token) => sql.includes(token));
 }
 
@@ -78,8 +78,8 @@ export async function rebuildPresentationPartCheck(
 
     const sourceCount = await client.execute('SELECT COUNT(*) AS count FROM presentation_part');
     const copiedCount = await client.execute('SELECT COUNT(*) AS count FROM presentation_part_new');
-    const source = Number((sourceCount.rows[0] as { count: number }).count);
-    const copied = Number((copiedCount.rows[0] as { count: number }).count);
+    const source = Number((sourceCount.rows[0] as unknown as { count: number }).count);
+    const copied = Number((copiedCount.rows[0] as unknown as { count: number }).count);
     if (source !== copied) {
       throw new Error(`Copia de datos incompleta: ${source} filas originales, ${copied} copiadas`);
     }

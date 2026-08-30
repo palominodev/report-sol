@@ -61,6 +61,6 @@ describe('migrate-familia', () => {
 
     const rows = await client.execute('SELECT id_usuario, nombre FROM usuario');
     expect(rows.rows).toHaveLength(1);
-    expect((rows.rows[0] as { nombre: string }).nombre).toBe('Sandro');
+    expect((rows.rows[0] as unknown as { nombre: string }).nombre).toBe('Sandro');
   });
 });
