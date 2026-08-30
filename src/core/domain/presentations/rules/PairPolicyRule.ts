@@ -34,7 +34,7 @@ export class PairPolicyRule implements MatchingRule {
     return ourFamilia !== null && ourFamilia === other.familia_id; // mixed_iff_same_familia
   }
 
-  score(): number {
+  score(_ctx: ScoringContext): number {
     return 0;
   }
 }
