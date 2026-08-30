@@ -144,6 +144,15 @@ export default function DashboardPage() {
 
             <nav aria-label="Acciones rápidas" className="flex flex-col gap-2 sm:flex-row">
               <Link
+                href={'/asignaciones'}
+                className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 hover:text-slate-900 motion-reduce:transition-none focus:outline-none focus-visible:border-blue-800 focus-visible:ring-2 focus-visible:ring-blue-800/30"
+              >
+                <svg aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Asignaciones
+              </Link>
+              <Link
                 href={'/dashboard/publicadores'}
                 className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 hover:text-slate-900 motion-reduce:transition-none focus:outline-none focus-visible:border-blue-800 focus-visible:ring-2 focus-visible:ring-blue-800/30"
               >
