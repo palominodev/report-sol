@@ -9,7 +9,7 @@ import { SourceRef } from '@/domain/entities/presentation/SourceRef';
 import { Genero } from '@/domain/entities/presentation/enums';
 
 function person(id: number, genero: Genero | null): AssignablePerson {
-  return new AssignablePerson(id, `Nombre${id}`, `Apellido${id}`, genero);
+  return new AssignablePerson(id, `Nombre${id}`, `Apellido${id}`, genero, null, null);
 }
 
 function part(id: number, idWeek: number, orden: number, requiresCompanero = true): PresentationPart {
@@ -18,7 +18,11 @@ function part(id: number, idWeek: number, orden: number, requiresCompanero = tru
 }
 
 function historyOf(map: Record<number, number[]>): HistoryView {
-  return { pairedWithWithin6mo: (id) => new Set(map[id] ?? []) };
+  return {
+    pairedWithWithin6mo: (id) => new Set(map[id] ?? []),
+    tipoHistoryWithin6mo: () => new Set(),
+    rolHistoryWithin6mo: () => new Set(),
+  };
 }
 
 function buildMatcher(): { matcher: AssignmentMatcher } {

@@ -4,6 +4,8 @@ export const PRESENTATION_TYPES = [
   'haga_revisitas',
   'haga_discipulos',
   'discurso',
+  'escenificacion',
+  'que_diria',
 ] as const;
 export type PresentationType = (typeof PRESENTATION_TYPES)[number];
 
@@ -33,5 +35,6 @@ export const TWO_PERSON_PART_TYPES = [
   'empiece_conversaciones',
   'haga_revisitas',
   'haga_discipulos',
+  'escenificacion',
 ] as const;
 export type TwoPersonPartType = (typeof TWO_PERSON_PART_TYPES)[number];

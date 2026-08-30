@@ -6,7 +6,7 @@ import { PresentationPart } from '@/domain/entities/presentation/PresentationPar
 import { SourceRef } from '@/domain/entities/presentation/SourceRef';
 
 function person(id: number): AssignablePerson {
-  return new AssignablePerson(id, `N${id}`, `A${id}`, 'masculino');
+  return new AssignablePerson(id, `N${id}`, `A${id}`, 'masculino', null, null);
 }
 
 function twoPersonPart(id: number): PresentationPart {
@@ -23,7 +23,11 @@ function engineState(chosenCompanions: number[]): AssignmentEngineState {
 }
 
 function historyOf(map: Record<number, number[]>): HistoryView {
-  return { pairedWithWithin6mo: (id) => new Set(map[id] ?? []) };
+  return {
+    pairedWithWithin6mo: (id) => new Set(map[id] ?? []),
+    tipoHistoryWithin6mo: () => new Set(),
+    rolHistoryWithin6mo: () => new Set(),
+  };
 }
 
 function ctx(candidateId: number, chosenCompanionIds: number[], history: HistoryView): ScoringContext {

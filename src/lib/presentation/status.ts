@@ -36,6 +36,8 @@ const PRESENTATION_TYPE_LABELS: Record<PresentationType, string> = {
   haga_revisitas: 'Haga revisitas',
   haga_discipulos: 'Haga discípulos',
   discurso: 'Discurso',
+  escenificacion: 'Escenificación',
+  que_diria: '¿Qué diría?',
 };
 
 export function presentationTypeLabel(tipo: PresentationType): string {

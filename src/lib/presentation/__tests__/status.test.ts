@@ -52,6 +52,14 @@ describe('presentationTypeLabel', () => {
   it('labels the discourse', () => {
     expect(presentationTypeLabel('discurso')).toBe('Discurso');
   });
+
+  it('labels the new one-person qué diría part', () => {
+    expect(presentationTypeLabel('que_diria')).toBe('¿Qué diría?');
+  });
+
+  it('labels the new two-person stage demonstration part', () => {
+    expect(presentationTypeLabel('escenificacion')).toBe('Escenificación');
+  });
 });
 
 describe('meetingSectionLabel', () => {

@@ -1,5 +1,6 @@
 import { getDatabaseClient } from './database.client';
 import { IAssignmentsRepository } from '@/core/domain/presentations/IAssignmentsRepository';
+import { AssignmentHistoryRow } from '@/core/domain/presentations/types';
 import { MeetingWeek } from '@/domain/entities/presentation/MeetingWeek';
 import { PresentationPart } from '@/domain/entities/presentation/PresentationPart';
 import { Assignment } from '@/domain/entities/presentation/Assignment';
@@ -51,6 +52,16 @@ function toAssignment(row: Record<string, unknown>): Assignment {
     row.rol as AssignmentRole,
     row.estado as AssignmentState
   );
+}
+
+function toHistoryRow(row: Record<string, unknown>): AssignmentHistoryRow {
+  return {
+    id_part: Number(row.id_part),
+    id_week: Number(row.id_week),
+    id_usuario: Number(row.id_usuario),
+    rol: row.rol as AssignmentRole,
+    tipo: row.tipo as PresentationType,
+  };
 }
 
 const WEEK_COLS = 'id_week, semana, issue, fecha_inicio, fecha_fin, estado';
@@ -148,17 +159,18 @@ export class TursoAssignmentsRepository implements IAssignmentsRepository {
     return result.rows.map((r) => toAssignment(r as Record<string, unknown>));
   }
 
-  async findRecentAssignments(opts: { desde: string }): Promise<Assignment[]> {
+  async findRecentAssignments(opts: { desde: string }): Promise<AssignmentHistoryRow[]> {
     const client = getDatabaseClient();
     const result = await client.execute({
-      sql: `SELECT a.id_asignacion, a.id_part, a.id_week, a.id_usuario, a.rol, a.estado
+      sql: `SELECT a.id_part, a.id_week, a.id_usuario, a.rol, p.tipo
         FROM presentation_assignment a
         JOIN presentation_week w ON a.id_week = w.id_week
+        JOIN presentation_part p ON a.id_part = p.id_part
         WHERE w.fecha_inicio >= ?
         ORDER BY w.fecha_inicio`,
       args: [opts.desde],
     });
-    return result.rows.map((r) => toAssignment(r as Record<string, unknown>));
+    return result.rows.map((r) => toHistoryRow(r as Record<string, unknown>));
   }
 
   async upsertAssignment(a: Omit<Assignment, 'id_asignacion'>): Promise<Assignment> {
