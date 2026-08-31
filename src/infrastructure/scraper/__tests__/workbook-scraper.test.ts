@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import {
@@ -6,6 +6,8 @@ import {
   mapToWeekAndParts,
   parseIssueFromLanding,
   parseWeekUrlsFromLanding,
+  previousIssue,
+  loadLatestIssueLanding,
 } from '../workbook-scraper';
 
 const FIXTURES = join(__dirname, 'fixtures');
@@ -160,5 +162,57 @@ describe('landing page parsing', () => {
     expect(urls[0]).toContain('7-a-13-de-septiembre-de-2026');
     expect(urls[7]).toContain('26-de-octubre-a-1-de-noviembre-de-2026');
     expect(new Set(urls).size).toBe(8);
+  });
+});
+
+/** Build a landing HTML that parses to the given issue but has an empty TOC. */
+function placeholderLanding(issue: string): string {
+  const compact = issue.replace('-', '');
+  return `<html><body class="iss-${compact}"><a class="jsChooseSiteLanguage" href="/choose?issue=${issue}"></a><div class="toc"></div></body></html>`;
+}
+
+describe('previousIssue', () => {
+  it('steps back two months within the same year', () => {
+    expect(previousIssue('2026-11')).toBe('2026-09');
+  });
+
+  it('steps back between consecutive bimonthly issues', () => {
+    expect(previousIssue('2026-09')).toBe('2026-07');
+  });
+
+  it('rolls over to November of the previous year', () => {
+    expect(previousIssue('2026-01')).toBe('2025-11');
+  });
+});
+
+describe('loadLatestIssueLanding', () => {
+  it('walks back to the latest earlier issue whose landing has week links', async () => {
+    const fetchFn = vi.fn(async (url?: string) => {
+      if (!url || url.includes('noviembre-diciembre-2026-mwb')) {
+        return placeholderLanding('2026-11');
+      }
+      if (url.includes('septiembre-octubre-2026-mwb')) {
+        return LANDING_FIXTURE;
+      }
+      return placeholderLanding('2026-07');
+    });
+
+    const result = await loadLatestIssueLanding(fetchFn);
+
+    expect(result.issue).toBe('2026-09');
+    expect(result.weekUrls).toHaveLength(8);
+    // default landing + 2026-11 specific (empty) + 2026-09 (has weeks)
+    expect(fetchFn).toHaveBeenCalledTimes(3);
+  });
+
+  it('returns the original issue with empty week URLs when no issue has weeks', async () => {
+    const fetchFn = vi.fn(async () => placeholderLanding('2026-11'));
+
+    const result = await loadLatestIssueLanding(fetchFn);
+
+    expect(result.issue).toBe('2026-11');
+    expect(result.weekUrls).toEqual([]);
+    // default landing + 3 lookback fetches (2026-11, 2026-09, 2026-07)
+    expect(fetchFn).toHaveBeenCalledTimes(4);
   });
 });

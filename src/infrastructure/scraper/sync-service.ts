@@ -51,16 +51,32 @@ export async function syncMeetingWorkbook(options?: SyncOptions): Promise<SyncRe
   const client = getDatabaseClient();
   const fetcher = options?.customFetch || fetchWorkbookPage;
 
-  const targetLandingUrl = buildIssueLandingUrl(options?.issue);
-  const landingHtml = await fetcher(targetLandingUrl);
+  let parsedIssue: string;
+  let weekUrls: string[];
 
-  const parsedIssue = parseIssueFromLanding(landingHtml) || options?.issue || '';
-  const weekUrls = parseWeekUrlsFromLanding(landingHtml);
+  if (options?.issue) {
+    const targetLandingUrl = buildIssueLandingUrl(options.issue);
+    const landingHtml = await fetcher(targetLandingUrl);
 
-  if (weekUrls.length === 0) {
-    throw new Error(
-      `No se encontraron semanas para sincronizar en la edición ${options?.issue || parsedIssue || 'solicitada'}`
-    );
+    parsedIssue = parseIssueFromLanding(landingHtml) || options.issue;
+    weekUrls = parseWeekUrlsFromLanding(landingHtml);
+
+    if (weekUrls.length === 0) {
+      throw new Error(
+        `No se encontraron semanas para sincronizar en la edición ${options.issue}`
+      );
+    }
+  } else {
+    const landing = await loadLatestIssueLanding(fetcher);
+
+    parsedIssue = landing.issue;
+    weekUrls = landing.weekUrls;
+
+    if (weekUrls.length === 0) {
+      throw new Error(
+        'No se encontraron semanas para sincronizar; la edición más reciente publicada no tiene semanas disponibles'
+      );
+    }
   }
 
   let weeksLoaded = 0;

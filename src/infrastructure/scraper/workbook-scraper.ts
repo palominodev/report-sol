@@ -256,6 +256,34 @@ export async function fetchWorkbookPage(urlOrIssue?: string): Promise<string> {
   return response.text();
 }
 
+/**
+ * Steps back one bimonthly issue (e.g. '2026-11' -> '2026-09',
+ * '2026-01' -> '2025-11'). Returns the input unchanged when it is
+ * not a valid YYYY-MM issue string.
+ */
+export function previousIssue(issue: string): string {
+  const match = issue.match(/^(\d{4})-(\d{2})$/);
+  if (!match) return issue;
+
+  let year = parseInt(match[1], 10);
+  let month = parseInt(match[2], 10) - 2;
+  if (month < 1) {
+    month += 12;
+    year -= 1;
+  }
+
+  return `${year}-${String(month).padStart(2, '0')}`;
+}
+
+/** Maximum number of issue-specific landing fetches during walk-back. */
+const MAX_LOOKBACK_FETCHES = 3;
+
+/**
+ * Resolves the latest published issue landing with week links.
+ * When the default landing has an empty TOC (e.g. a future placeholder
+ * issue), walks back through earlier bimonthly issues until one yields
+ * week links. If none does, returns the original issue with no week URLs.
+ */
 export async function loadLatestIssueLanding(
   fetchFn?: (url?: string) => Promise<string>
 ): Promise<{
@@ -265,16 +293,23 @@ export async function loadLatestIssueLanding(
   const fetcher = fetchFn || fetchWorkbookPage;
   const html = await fetcher();
   const issue = parseIssueFromLanding(html);
-  let weekUrls = parseWeekUrlsFromLanding(html);
+  const weekUrls = parseWeekUrlsFromLanding(html);
 
   if (issue && weekUrls.length === 0) {
-    try {
-      const issueUrl = buildIssueLandingUrl(issue);
-      const issueHtml = await fetcher(issueUrl);
-      weekUrls = parseWeekUrlsFromLanding(issueHtml);
-    } catch {
-      // Ignored for future or unreleased issues
+    let cursor = issue;
+    for (let lookback = 0; lookback < MAX_LOOKBACK_FETCHES; lookback += 1) {
+      try {
+        const issueHtml = await fetcher(buildIssueLandingUrl(cursor));
+        const candidateUrls = parseWeekUrlsFromLanding(issueHtml);
+        if (candidateUrls.length > 0) {
+          return { issue: cursor, weekUrls: candidateUrls };
+        }
+      } catch {
+        // Ignored for future or unreleased issues
+      }
+      cursor = previousIssue(cursor);
     }
+    return { issue, weekUrls: [] };
   }
 
   return { issue, weekUrls };

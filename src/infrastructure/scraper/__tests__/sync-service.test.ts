@@ -18,6 +18,12 @@ function fixture(name: string): string {
 const LANDING_FIXTURE = fixture('mwb-landing-2026-09.html');
 const WEEK_FIXTURE = fixture('mwb-week1-sep7.html');
 
+/** Build a landing HTML that parses to the given issue but has an empty TOC. */
+function placeholderLanding(issue: string): string {
+  const compact = issue.replace('-', '');
+  return `<html><body class="iss-${compact}"><a class="jsChooseSiteLanguage" href="/choose?issue=${issue}"></a><div class="toc"></div></body></html>`;
+}
+
 describe('sync-service', () => {
   let inMemoryDb: ReturnType<typeof createClient>;
 
@@ -154,6 +160,44 @@ describe('sync-service', () => {
         /No se encontraron semanas para sincronizar/
       );
     });
+
+    it('no issue: walks back from a placeholder default landing and syncs the latest published issue', async () => {
+      const customFetch = vi.fn(async (url?: string) => {
+        if (!url || url.includes('noviembre-diciembre-2026-mwb')) {
+          return placeholderLanding('2026-11');
+        }
+        if (url.includes('Vida-y-Ministerio-Cristianos')) {
+          const slugMatch = url.match(/Vida-y-Ministerio-Cristianos-([^\/]+)/);
+          const label = slugMatch ? slugMatch[1].replace(/-/g, ' ') : '7-13 de septiembre';
+          return WEEK_FIXTURE.replace('7-13 de septiembre', label);
+        }
+        if (url.includes('septiembre-octubre-2026-mwb')) {
+          return LANDING_FIXTURE;
+        }
+        return placeholderLanding('2026-07');
+      });
+
+      const result = await syncMeetingWorkbook({ customFetch });
+
+      expect(result.issue).toBe('2026-09');
+      expect(result.weeksLoaded).toBe(8);
+      expect(result.partsLoaded).toBe(32);
+
+      const weeksRes = await inMemoryDb.execute(
+        'SELECT issue, COUNT(*) as count FROM presentation_week GROUP BY issue'
+      );
+      expect(weeksRes.rows).toHaveLength(1);
+      expect(weeksRes.rows[0].issue).toBe('2026-09');
+      expect(Number(weeksRes.rows[0].count)).toBe(8);
+    });
+
+    it('explicit issue with an empty TOC still throws the issue-specific error', async () => {
+      const customFetch = vi.fn(async () => placeholderLanding('2026-11'));
+
+      await expect(syncMeetingWorkbook({ issue: '2026-11', customFetch })).rejects.toThrow(
+        /No se encontraron semanas para sincronizar en la edición 2026-11/
+      );
+    });
   });
 
   describe('checkGuideUpdate', () => {
@@ -238,6 +282,32 @@ describe('sync-service', () => {
 
       expect(result.hasNewer).toBe(false);
       expect(result.latestLoaded).toBe('2026-09');
+    });
+
+    it('walks back to the latest published issue when the default landing is an empty placeholder', async () => {
+      await inMemoryDb.execute({
+        sql: `INSERT INTO presentation_sync_state (id, latest_loaded_issue, latest_known_published, last_checked_at)
+              VALUES (1, '2026-07', '2026-07', '2026-08-20 00:00:00')`,
+      });
+
+      const customFetch = vi.fn(async (url?: string) => {
+        if (!url || url.includes('noviembre-diciembre-2026-mwb')) {
+          return placeholderLanding('2026-11');
+        }
+        if (url.includes('septiembre-octubre-2026-mwb')) {
+          return LANDING_FIXTURE;
+        }
+        return placeholderLanding('2026-07');
+      });
+
+      const result = await checkGuideUpdate({ force: true, customFetch });
+
+      expect(result.hasNewer).toBe(true);
+      expect(result.latestLoaded).toBe('2026-07');
+      expect(result.latestPublished).toBe('2026-09');
+
+      const dbRow = await inMemoryDb.execute('SELECT * FROM presentation_sync_state WHERE id = 1');
+      expect(dbRow.rows[0].latest_known_published).toBe('2026-09');
     });
   });
 });
