@@ -1,0 +1,13 @@
+services:
+  web:
+    build: .
+    container_name: report-sol-web
+    ports:
+      - "3000:3000"
+    environment:
+      # Same target as local dev (.env.local): local libsql file database.
+      TURSO_URL: file:data/local.db
+    volumes:
+      # Keep host database in sync with the container (uid 1000 = owner).
+      - ./data:/app/data
+    restart: unless-stopped
