@@ -3,4 +3,27 @@
 @theme {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* jw.org dark theme tokens — see design-system/report-sol/MASTER.md */
+  --color-page: #000000;
+  --color-surface: #121212;
+  --color-surface-light: #ffffff;
+  --color-nav: #292929;
+  --color-brand: #4a6da7;
+  --color-brand-dark: #3d5c8f;
+  --color-brand-mid: #7f9fd3;
+  --color-brand-pale: #c2d4f1;
+  --color-brand-light: #9fb9e3;
+  --color-brand-tint: #e8effb;
+  --color-brand-highlight: #0a224b;
+  --color-brand-highlight-hover: #143368;
+  --color-ink: #ffffff;
+  --color-ink-muted: #a7a7a7;
+  --color-ink-on-light: #292929;
+  --color-ink-muted-on-light: #626262;
+  --color-line: #3c3c3c;
+  --color-line-on-light: #d8d8d8;
+  --color-icon: #a7a7a7;
+  --color-danger: #a71d01;
+  --color-danger-light: #f57b62;
 }
