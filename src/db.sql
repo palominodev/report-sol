@@ -111,10 +111,14 @@ CREATE TABLE IF NOT EXISTS presentation_part (
   leccion INTEGER,
   punto TEXT,
   sala TEXT CHECK(sala IS NULL OR sala IN ('A','B')),
-  UNIQUE(id_week, tipo, orden),
   FOREIGN KEY (id_week) REFERENCES presentation_week(id_week) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_part_week ON presentation_part(id_week);
+-- Sala-aware unique index (replaces the former table-level UNIQUE): at most
+-- one row per (week, tipo, orden) per sala value, with NULL acting as its
+-- own slot via COALESCE — a Sala A original and its Sala B clone coexist.
+CREATE UNIQUE INDEX IF NOT EXISTS ux_part_week_tipo_orden_sala
+  ON presentation_part(id_week, tipo, orden, COALESCE(sala, ''));
 
 CREATE TABLE IF NOT EXISTS presentation_assignment (
   id_asignacion INTEGER PRIMARY KEY AUTOINCREMENT,
