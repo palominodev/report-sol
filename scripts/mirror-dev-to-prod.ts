@@ -86,6 +86,19 @@ async function main() {
   const newParts = devParts.filter((r) => !prodPartIds.has(Number(r.id_part)));
   console.log(`parts faltantes en prod: ${newParts.length}`);
 
+  // ---- sala sync: dev is truth; insert-only mirror cannot propagate the
+  // backfill, so update every EXISTING part whose sala differs (dev≠prod→prod).
+  // NOTE: requires presentation_part.sala on BOTH sides — run db-migrate-prod
+  // --prod (adds the column) before --apply.
+  const prodSala = new Map(
+    (await prod.execute('SELECT id_part, sala FROM presentation_part')).rows.map((r) => [Number(r.id_part), r.sala ?? null])
+  );
+  const salaUpdates = devParts.filter(
+    (r) => prodSala.has(Number(r.id_part)) && prodSala.get(Number(r.id_part)) !== (r.sala ?? null)
+  );
+  console.log(`salas a sincronizar en prod: ${salaUpdates.length}`);
+  salaUpdates.forEach((p) => console.log(`   ~ part #${p.id_part}: ${prodSala.get(Number(p.id_part)) ?? 'NULL'} → ${p.sala ?? 'NULL'}`));
+
   // ---- assignments ----
   const devAsigs = (await dev.execute('SELECT * FROM presentation_assignment ORDER BY id_asignacion')).rows;
   const prodAsigIds = new Set(
@@ -135,10 +148,18 @@ async function main() {
 
   if (newParts.length > 0) {
     await prod.batch(newParts.map((p) => ({
-      sql: `INSERT INTO presentation_part (id_part, id_week, orden, tipo, seccion, duracion_min, escenario, fuente, leccion, punto) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      args: rowValues(p, ['id_part', 'id_week', 'orden', 'tipo', 'seccion', 'duracion_min', 'escenario', 'fuente', 'leccion', 'punto']),
+      sql: `INSERT INTO presentation_part (id_part, id_week, orden, tipo, seccion, duracion_min, escenario, fuente, leccion, punto, sala) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      args: rowValues(p, ['id_part', 'id_week', 'orden', 'tipo', 'seccion', 'duracion_min', 'escenario', 'fuente', 'leccion', 'punto', 'sala']),
     })));
     console.log(`✅ parts insertados: ${newParts.length}`);
+  }
+
+  if (salaUpdates.length > 0) {
+    await prod.batch(salaUpdates.map((p) => ({
+      sql: `UPDATE presentation_part SET sala = ? WHERE id_part = ?`,
+      args: [(p.sala ?? null) as InValue, Number(p.id_part)],
+    })));
+    console.log(`✅ salas sincronizadas: ${salaUpdates.length}`);
   }
 
   if (newAsigs.length > 0) {
@@ -158,6 +179,13 @@ async function main() {
   }
   const gen = await prod.execute(`SELECT genero, COUNT(*) AS n FROM usuario GROUP BY genero ORDER BY genero`);
   console.log('prod genero: ' + gen.rows.map((r) => `${r.genero ?? 'NULL'}=${r.n}`).join(', '));
+  // Per-value sala verification: dev is truth, so every room count must match.
+  const salaCount = (rows: { sala: unknown; n: unknown }[]) =>
+    rows.map((r) => `${r.sala ?? 'NULL'}=${r.n}`).join(', ');
+  const devSalaCounts = (await dev.execute(`SELECT sala, COUNT(*) AS n FROM presentation_part GROUP BY sala`)).rows as unknown as { sala: unknown; n: unknown }[];
+  const prodSalaCounts = (await prod.execute(`SELECT sala, COUNT(*) AS n FROM presentation_part GROUP BY sala`)).rows as unknown as { sala: unknown; n: unknown }[];
+  const salaMatch = salaCount(devSalaCounts) === salaCount(prodSalaCounts) ? 'OK' : '❌ DESVIACIÓN';
+  console.log(`${salaMatch} sala por valor — dev: ${salaCount(devSalaCounts)} | prod: ${salaCount(prodSalaCounts)}`);
   const fk = await prod.execute('PRAGMA foreign_key_check');
   console.log(`fk violations: ${fk.rows.length}`);
 

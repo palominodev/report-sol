@@ -115,7 +115,17 @@ export function isEventName(name: string): boolean {
 }
 
 /** One school assignment slot parsed from a sheet (companero optional). */
-export interface Slot { tipo: Tipo; presentador: string; companero?: string; }
+export interface Slot {
+  tipo: Tipo;
+  presentador: string;
+  companero?: string;
+  /**
+   * Which salón the slot came from: 0 = left column-pair (block column b),
+   * 1 = right column-pair (b+3). The assignments import ignores this; the
+   * sala backfill maps side 0 → 'A', side 1 → 'B' (SWAP_SIDES to reverse).
+   */
+  side: 0 | 1;
+}
 
 /** Parsed sheet geometry: raw rows plus the week-block header layout. */
 export interface ParsedSheet {
@@ -160,7 +170,7 @@ export function extractSlots(rows: string[][], headerIdx: number, b: number): Sl
             companero = nn;
           }
         }
-        slots.push({ tipo, presentador: name.replace(/\s+/g, ' ').trim(), companero });
+        slots.push({ tipo, presentador: name.replace(/\s+/g, ' ').trim(), companero, side: s === b ? 0 : 1 });
       }
     }
   }
