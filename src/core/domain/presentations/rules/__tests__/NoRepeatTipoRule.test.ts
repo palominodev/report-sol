@@ -20,6 +20,7 @@ function historyWithTipos(personId: number, tipos: PresentationType[]): HistoryV
     pairedWithWithin6mo: () => new Set(),
     tipoHistoryWithin6mo: (id) => (id === personId ? new Set(tipos) : new Set()),
     rolHistoryWithin6mo: () => new Set(),
+    salaPartnerCombos: () => new Set(),
   };
 }
 

@@ -24,6 +24,7 @@ function emptyHistory(): HistoryView {
     pairedWithWithin6mo: () => new Set(),
     tipoHistoryWithin6mo: () => new Set(),
     rolHistoryWithin6mo: () => new Set(),
+    salaPartnerCombos: () => new Set(),
   };
 }
 

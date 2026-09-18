@@ -31,6 +31,7 @@ function historyOf(map: Record<number, number[]>): HistoryView {
     pairedWithWithin6mo: (id) => new Set(map[id] ?? []),
     tipoHistoryWithin6mo: () => new Set(),
     rolHistoryWithin6mo: () => new Set(),
+    salaPartnerCombos: () => new Set(),
   };
 }
 

@@ -14,11 +14,25 @@ export interface AssignmentHistoryRow {
   sala: Sala | null;
 }
 
-/** Read-only view over recent history within the 6-month window. */
+/**
+ * Joint repetition key: the person already participated in room `Sala`
+ * together with partner `number` inside the history window.
+ */
+export type SalaPartnerKey = `${Sala}#${number}`;
+
+/**
+ * Read-only view over recent history within the shared 26-week window
+ * (accessor names still say Within6mo for continuity; see history-window.ts).
+ */
 export interface HistoryView {
   pairedWithWithin6mo(idUsuario: number): Set<number>;
   tipoHistoryWithin6mo(idUsuario: number): Set<PresentationType>;
   rolHistoryWithin6mo(idUsuario: number): Set<AssignmentRole>;
+  /**
+   * In-window `sala#partner` combinations the person already lived.
+   * Rows with NULL part sala and single-person parts contribute nothing.
+   */
+  salaPartnerCombos(idUsuario: number): ReadonlySet<SalaPartnerKey>;
 }
 
 /** Mutable working state the engine keeps while assigning a week. */
