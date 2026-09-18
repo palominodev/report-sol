@@ -1,6 +1,6 @@
 import { Assignment } from '@/domain/entities/presentation/Assignment';
 import { PresentationPart } from '@/domain/entities/presentation/PresentationPart';
-import { MeetingSection, AssignmentState } from '@/domain/entities/presentation/enums';
+import { MeetingSection, AssignmentState, Sala } from '@/domain/entities/presentation/enums';
 import { SourceRef } from '@/domain/entities/presentation/SourceRef';
 
 const PRINTABLE_STATES: AssignmentState[] = ['confirmed', 'manual'];
@@ -19,6 +19,7 @@ export interface PrintPart {
   seccion: MeetingSection;
   duracionMin: number;
   fuente: string;
+  sala: Sala | null;
   presentador: PrintSlotUser | null;
   companero: PrintSlotUser | null;
 }
@@ -41,6 +42,11 @@ export function formatFuente(fuente: SourceRef): string {
  * Builds the printable weekly program: only assignments whose estado is
  * confirmed or manual, grouped by section, ordered by part orden.
  * A part is omitted when none of its slots hold a printable assignment.
+ *
+ * Display decision: sala is carried per part and rendered as a per-part
+ * badge. Grouping by sala was rejected because `orden` interleaves rooms
+ * (both salas run in parallel), so grouping would break meeting chronology.
+ * NULL sala renders no label (graceful rendering).
  */
 export function buildPrintSections(
   parts: PresentationPart[],
@@ -71,6 +77,7 @@ export function buildPrintSections(
       seccion: part.seccion,
       duracionMin: part.duracion_min,
       fuente: formatFuente(part.fuente),
+      sala: part.sala,
       presentador,
       companero,
     });

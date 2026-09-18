@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getWeekDetail, getAssignableUsers } from '@/lib/presentation/weeks';
-import { assignmentEstadoLabel, meetingSectionLabel, presentationTypeLabel } from '@/lib/presentation/status';
+import { assignmentEstadoLabel, meetingSectionLabel, presentationTypeLabel, salaLabel } from '@/lib/presentation/status';
 import WeekEstadoBadge from '../WeekEstadoBadge';
 import GenerateButton from './GenerateButton';
 import ConfirmButton from './ConfirmButton';
@@ -136,7 +136,9 @@ export default async function AsignacionDetailPage(props: PageProps) {
                   </h2>
                 </div>
                 <ul className="divide-y divide-slate-100">
-                  {sectionParts.map((part) => (
+                  {sectionParts.map((part) => {
+                    const salaBadge = salaLabel(part.sala);
+                    return (
                     <li key={part.id_part} className="flex flex-col gap-4 px-6 py-5">
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                         <span className="font-semibold text-slate-900">
@@ -145,6 +147,11 @@ export default async function AsignacionDetailPage(props: PageProps) {
                         <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
                           {part.duracion_min} min
                         </span>
+                        {salaBadge ? (
+                          <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+                            {salaBadge}
+                          </span>
+                        ) : null}
                       </div>
                       {part.requiresCompanero() ? (
                         <div className="grid grid-cols-1 gap-4 border-t border-slate-100 pt-4 sm:grid-cols-2">
@@ -157,7 +164,8 @@ export default async function AsignacionDetailPage(props: PageProps) {
                         </div>
                       )}
                     </li>
-                  ))}
+                    );
+                  })}
                 </ul>
               </section>
             );

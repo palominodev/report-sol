@@ -4,6 +4,7 @@ import {
   assignmentEstadoLabel,
   presentationTypeLabel,
   meetingSectionLabel,
+  salaLabel,
 } from '../status';
 
 describe('weekEstadoMeta', () => {
@@ -69,5 +70,19 @@ describe('meetingSectionLabel', () => {
 
   it('labels SEAMOS_MEJORES_MAESTROS', () => {
     expect(meetingSectionLabel('SEAMOS_MEJORES_MAESTROS')).toBe('SEAMOS MEJORES MAESTROS');
+  });
+});
+
+describe('salaLabel', () => {
+  it('labels Sala A with its principal-room name', () => {
+    expect(salaLabel('A')).toBe('Sala A (Principal)');
+  });
+
+  it('labels Sala B with its auxiliary-room name', () => {
+    expect(salaLabel('B')).toBe('Sala B (Auxiliar)');
+  });
+
+  it('returns null for an unknown room so no badge renders', () => {
+    expect(salaLabel(null)).toBeNull();
   });
 });
