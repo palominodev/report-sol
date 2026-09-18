@@ -3,15 +3,16 @@ import { buildPrintSections, formatFuente, UserNameResolver } from '../printProg
 import { PresentationPart } from '@/domain/entities/presentation/PresentationPart';
 import { Assignment } from '@/domain/entities/presentation/Assignment';
 import { SourceRef } from '@/domain/entities/presentation/SourceRef';
-import { PresentationType } from '@/domain/entities/presentation/enums';
+import { PresentationType, Sala } from '@/domain/entities/presentation/enums';
 
 function part(
   id: number,
   orden: number,
   seccion: 'TESOROS_DE_LA_BIBLIA' | 'SEAMOS_MEJORES_MAESTROS',
-  tipo: PresentationType = 'lectura_biblia'
+  tipo: PresentationType = 'lectura_biblia',
+  sala: Sala | null = null
 ): PresentationPart {
-  return new PresentationPart(id, 1, orden, tipo, seccion, 4, null, new SourceRef('lmd', 5));
+  return new PresentationPart(id, 1, orden, tipo, seccion, 4, null, new SourceRef('lmd', 5), sala);
 }
 
 function assignment(id: number, idPart: number, idUsuario: number, rol: 'presentador' | 'companero', estado: 'draft' | 'confirmed' | 'manual'): Assignment {
@@ -90,5 +91,26 @@ describe('buildPrintSections', () => {
     );
     expect(sections[0].parts[0].presentador?.nombre).toBe('Luis Gómez');
     expect(sections[0].parts[0].companero?.nombre).toBe('Clara Ruiz');
+  });
+
+  it('carries sala per part and passes NULL through as null (badge-per-part display)', () => {
+    const sections = buildPrintSections(
+      [
+        part(1, 1, 'TESOROS_DE_LA_BIBLIA', 'lectura_biblia', 'A'),
+        part(2, 2, 'SEAMOS_MEJORES_MAESTROS', 'empiece_conversaciones', 'B'),
+        part(3, 3, 'SEAMOS_MEJORES_MAESTROS', 'haga_revisitas', null),
+      ],
+      [
+        assignment(1, 1, 10, 'presentador', 'confirmed'),
+        assignment(2, 2, 20, 'presentador', 'confirmed'),
+        assignment(3, 3, 30, 'presentador', 'confirmed'),
+      ],
+      resolve
+    );
+    // orden interleaves rooms; sala travels on each part without regrouping
+    expect(sections[0].parts[0].sala).toBe('A');
+    expect(sections[1].parts[0].sala).toBe('B');
+    // graceful rendering: NULL-sala part renders without a room label
+    expect(sections[1].parts[1].sala).toBeNull();
   });
 });

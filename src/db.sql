@@ -110,6 +110,7 @@ CREATE TABLE IF NOT EXISTS presentation_part (
   fuente TEXT NOT NULL,
   leccion INTEGER,
   punto TEXT,
+  sala TEXT CHECK(sala IS NULL OR sala IN ('A','B')),
   UNIQUE(id_week, tipo, orden),
   FOREIGN KEY (id_week) REFERENCES presentation_week(id_week) ON DELETE CASCADE
 );

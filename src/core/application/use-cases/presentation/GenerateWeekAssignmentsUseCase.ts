@@ -8,16 +8,11 @@ import { UnprocessableError } from '@/core/domain/errors/UnprocessableError';
 import { IAssignmentsRepository } from '@/core/domain/presentations/IAssignmentsRepository';
 import { IUserRepository } from '@/core/domain/repositories/IUserRepository';
 import { AssignmentHistoryView } from './AssignmentHistoryView';
+import { historyWindowStart } from './history-window';
 
 export interface GenerateWeekAssignmentsResult {
   assignments: Assignment[];
   unassigned: UnassignedSlot[];
-}
-
-function sixMonthsAgo(): string {
-  const d = new Date();
-  d.setMonth(d.getMonth() - 6);
-  return d.toISOString().slice(0, 10);
 }
 
 export class GenerateWeekAssignmentsUseCase {
@@ -54,8 +49,9 @@ export class GenerateWeekAssignmentsUseCase {
       (p) => !manualPersons.has(p.id_usuario)
     );
 
-    // Preload 6-month pairing history into an in-memory HistoryView.
-    const recent = await this.assignmentsRepository.findRecentAssignments({ desde: sixMonthsAgo() });
+    // Preload windowed pairing history into an in-memory HistoryView
+    // (shared 26-week window; see history-window.ts).
+    const recent = await this.assignmentsRepository.findRecentAssignments({ desde: historyWindowStart() });
     const history = new AssignmentHistoryView(recent);
 
     const result = this.matcher.match(parts, candidates, history);

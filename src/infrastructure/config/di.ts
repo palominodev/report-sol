@@ -13,6 +13,7 @@ import { PresenterEligibilityRule } from '@/core/domain/presentations/rules/Pres
 import { PairPolicyRule } from '@/core/domain/presentations/rules/PairPolicyRule';
 import { NoRepeatTipoRule } from '@/core/domain/presentations/rules/NoRepeatTipoRule';
 import { RoleRotationRule } from '@/core/domain/presentations/rules/RoleRotationRule';
+import { SalaRotationRule } from '@/core/domain/presentations/rules/SalaRotationRule';
 import { CreateMeetingWeekUseCase } from '@/core/application/use-cases/presentation/CreateMeetingWeekUseCase';
 import { GenerateWeekAssignmentsUseCase } from '@/core/application/use-cases/presentation/GenerateWeekAssignmentsUseCase';
 import { GetWeekAssignmentsUseCase } from '@/core/application/use-cases/presentation/GetWeekAssignmentsUseCase';
@@ -42,6 +43,7 @@ export function getMatchingRules(): RuleRegistry {
   registry.register(new PairPolicyRule()); // R2 hard
   registry.register(new NoRepeatTipoRule()); // R4 hard
   registry.register(new RoleRotationRule()); // R6 soft
+  registry.register(new SalaRotationRule()); // joint sala+acompañante repeat, soft (26w)
   return registry;
 }
 

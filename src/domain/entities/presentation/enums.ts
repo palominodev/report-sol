@@ -31,6 +31,9 @@ export type Genero = (typeof GENEROS)[number];
 export const WEEK_STATES = ['no_generada', 'borrador', 'confirmada'] as const;
 export type WeekState = (typeof WEEK_STATES)[number];
 
+export const SALAS = ['A', 'B'] as const;
+export type Sala = (typeof SALAS)[number];
+
 export const TWO_PERSON_PART_TYPES = [
   'empiece_conversaciones',
   'haga_revisitas',

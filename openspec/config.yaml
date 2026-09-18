@@ -3,19 +3,19 @@ schema: spec-driven
 context: |
   Tech stack: Next.js 15.3.8 (App Router), React 19.0.1, Tailwind CSS v4, TypeScript
   Architecture: Hexagonal (Ports & Adapters, Domain & Application layers)
-  Testing: No test runner configured
+  Testing: vitest (unit tests via `pnpm vitest run`)
   Style: ESLint (next/core-web-vitals, next/typescript)
 
 testing:
   strict_tdd: false
   capabilities:
     runner:
-      framework: null
-      command: null
+      framework: vitest
+      command: "pnpm vitest run"
     layers:
       unit:
-        available: false
-        tool: null
+        available: true
+        tool: vitest
       integration:
         available: false
         tool: null

@@ -1,22 +1,38 @@
 import { Assignment } from '@/domain/entities/presentation/Assignment';
 import { AssignablePerson } from '@/domain/entities/presentation/AssignablePerson';
-import { AssignmentRole, PresentationType } from '@/domain/entities/presentation/enums';
+import { AssignmentRole, PresentationType, Sala } from '@/domain/entities/presentation/enums';
 import { PresentationPart } from '@/domain/entities/presentation/PresentationPart';
 
-/** Read-only windowed history row: assignment + its part tipo (R4/R6 feeds). */
+/** Read-only windowed history row: assignment + its part tipo/sala (R4/R6/sala feeds). */
 export interface AssignmentHistoryRow {
   id_part: number;
   id_week: number;
   id_usuario: number;
   rol: AssignmentRole;
   tipo: PresentationType;
+  /** Room of the assigned part; NULL passes through, never defaulted. */
+  sala: Sala | null;
 }
 
-/** Read-only view over recent history within the 6-month window. */
+/**
+ * Joint repetition key: the person already participated in room `Sala`
+ * together with partner `number` inside the history window.
+ */
+export type SalaPartnerKey = `${Sala}#${number}`;
+
+/**
+ * Read-only view over recent history within the shared 26-week window
+ * (accessor names still say Within6mo for continuity; see history-window.ts).
+ */
 export interface HistoryView {
   pairedWithWithin6mo(idUsuario: number): Set<number>;
   tipoHistoryWithin6mo(idUsuario: number): Set<PresentationType>;
   rolHistoryWithin6mo(idUsuario: number): Set<AssignmentRole>;
+  /**
+   * In-window `sala#partner` combinations the person already lived.
+   * Rows with NULL part sala and single-person parts contribute nothing.
+   */
+  salaPartnerCombos(idUsuario: number): ReadonlySet<SalaPartnerKey>;
 }
 
 /** Mutable working state the engine keeps while assigning a week. */

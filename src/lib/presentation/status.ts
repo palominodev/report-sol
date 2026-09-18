@@ -3,6 +3,7 @@ import {
   AssignmentState,
   PresentationType,
   MeetingSection,
+  Sala,
 } from '@/domain/entities/presentation/enums';
 
 export interface BadgeMeta {
@@ -51,4 +52,17 @@ const SECTION_LABELS: Record<MeetingSection, string> = {
 
 export function meetingSectionLabel(seccion: MeetingSection): string {
   return SECTION_LABELS[seccion];
+}
+
+const SALA_LABELS: Record<Sala, string> = {
+  A: 'Sala A (Principal)',
+  B: 'Sala B (Auxiliar)',
+};
+
+/**
+ * Display label for a part's sala, or null when the room is unknown (NULL).
+ * Callers render no badge when this returns null (graceful rendering).
+ */
+export function salaLabel(sala: Sala | null): string | null {
+  return sala === null ? null : SALA_LABELS[sala];
 }

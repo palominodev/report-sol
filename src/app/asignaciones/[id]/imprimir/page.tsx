@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getWeekDetail, getAssignableUsers } from '@/lib/presentation/weeks';
 import { buildPrintSections, UserNameResolver } from '@/lib/presentation/printProgram';
-import { meetingSectionLabel, presentationTypeLabel } from '@/lib/presentation/status';
+import { meetingSectionLabel, presentationTypeLabel, salaLabel } from '@/lib/presentation/status';
 import { PresentationType } from '@/domain/entities/presentation/enums';
 
 export const dynamic = 'force-dynamic';
@@ -47,7 +47,9 @@ export default async function AsignacionPrintPage(props: PageProps) {
                 {meetingSectionLabel(section.seccion)}
               </h2>
               <ul className="space-y-6">
-                {section.parts.map((part) => (
+                {section.parts.map((part) => {
+                  const sala = salaLabel(part.sala);
+                  return (
                   <li key={part.id_part} className="flex items-baseline justify-between gap-6">
                     <div>
                       <div className="text-left">
@@ -55,6 +57,7 @@ export default async function AsignacionPrintPage(props: PageProps) {
                           {presentationTypeLabel(part.tipo as PresentationType)}
                         </span>
                         <span className="ml-2 text-sm text-slate-500">({part.duracionMin} min)</span>
+                        {sala ? <span className="ml-2 text-sm text-slate-500">· {sala}</span> : null}
                       </div>
                       <div className="mt-1 text-sm text-slate-700">
                         {part.presentador?.nombre ?? ''}
@@ -63,7 +66,8 @@ export default async function AsignacionPrintPage(props: PageProps) {
                       <div className="mt-0.5 text-xs text-slate-500">{part.fuente}</div>
                     </div>
                   </li>
-                ))}
+                  );
+                })}
               </ul>
             </section>
           ))

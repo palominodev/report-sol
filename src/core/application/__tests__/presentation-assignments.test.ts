@@ -377,7 +377,7 @@ describe('Presentation Assignments — Use Cases (Slice 2)', () => {
       const uc = buildFull(
         [singlePart(10, 1, 'lectura_biblia')],
         [person(1, 'masculino'), person(2, 'masculino')],
-        [{ id_part: 90, id_week: 5, id_usuario: 1, rol: 'presentador', tipo: 'lectura_biblia' }]
+        [{ id_part: 90, id_week: 5, id_usuario: 1, rol: 'presentador', tipo: 'lectura_biblia', sala: null }]
       );
 
       const result = await uc.execute({ id_week: 1 });

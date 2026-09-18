@@ -23,6 +23,7 @@ function historyWithRoles(personId: number, roles: AssignmentRole[]): HistoryVie
     pairedWithWithin6mo: () => new Set(),
     tipoHistoryWithin6mo: () => new Set(),
     rolHistoryWithin6mo: (id) => (id === personId ? new Set(roles) : new Set()),
+    salaPartnerCombos: () => new Set(),
   };
 }
 
