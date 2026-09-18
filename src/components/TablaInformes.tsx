@@ -5,6 +5,7 @@ import { EditInformeModal, DeleteConfirmModal } from './InformeCard';
 
 interface InformeTabla {
   id_informe: number;
+  fecha_registro: string;
   horas: number;
   cursos: number;
   año: number;
