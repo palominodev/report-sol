@@ -6,7 +6,19 @@ import {
   UserDetails,
 } from '@/core/domain/repositories/IUserRepository';
 import { User } from '@/domain/entities/User';
-import { AssignablePerson } from '@/domain/entities/presentation/AssignablePerson';
+import { AssignablePerson, Cargo } from '@/domain/entities/presentation/AssignablePerson';
+
+/**
+ * Derives the congregational cargo from a GROUP_CONCAT CSV of role names.
+ * Priority: anciano > siervo > null (NULL means plain publiador).
+ */
+export function deriveCargo(rolesCsv: string | null): Cargo | null {
+  if (!rolesCsv) return null;
+  const roles = rolesCsv.split(',');
+  if (roles.includes('anciano')) return 'anciano';
+  if (roles.includes('siervo')) return 'siervo';
+  return null;
+}
 
 export class TursoUserRepository implements IUserRepository {
   async create(data: CreateUserDTO): Promise<{ id_usuario: number }> {
@@ -153,7 +165,12 @@ export class TursoUserRepository implements IUserRepository {
   async findAllAssignable(): Promise<AssignablePerson[]> {
     const client = getDatabaseClient();
     const result = await client.execute({
-      sql: 'SELECT id_usuario, nombre, apellido, genero FROM usuario',
+      sql: `SELECT u.id_usuario, u.nombre, u.apellido, u.genero, u.familia_id,
+                   GROUP_CONCAT(r.rol) AS roles
+            FROM usuario u
+            LEFT JOIN usuario_rol ur ON u.id_usuario = ur.id_usuario
+            LEFT JOIN rol r ON ur.id_rol = r.id_rol
+            GROUP BY u.id_usuario`,
     });
     return result.rows.map((row) => {
       const r = row as Record<string, unknown>;
@@ -161,7 +178,9 @@ export class TursoUserRepository implements IUserRepository {
         Number(r.id_usuario),
         r.nombre as string,
         r.apellido as string,
-        (r.genero as 'masculino' | 'femenino' | null) ?? null
+        (r.genero as 'masculino' | 'femenino' | null) ?? null,
+        deriveCargo((r.roles as string | null) ?? null),
+        (r.familia_id as number | null) ?? null
       );
     });
   }

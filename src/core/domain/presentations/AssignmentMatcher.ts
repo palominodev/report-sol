@@ -28,6 +28,8 @@ export class AssignmentMatcher {
 
   match(parts: PresentationPart[], persons: AssignablePerson[], history: HistoryView): AssignmentResult {
     const state: AssignmentEngineState = { byPart: new Map(), assignedPersonIds: new Set() };
+    // Every assignable person by id: rules resolve already-committed co-persons.
+    const personsById = new Map(persons.map((p) => [p.id_usuario, p] as const));
     const assignments: Assignment[] = [];
     const unassigned: UnassignedSlot[] = [];
     const eligible = persons.filter((p) => p.elegible());
@@ -35,9 +37,9 @@ export class AssignmentMatcher {
 
     for (const part of ordered) {
       for (const role of this.rolesFor(part)) {
-        const candidates = eligible.filter((p) => this.acceptable(part, role, p, state));
+        const candidates = eligible.filter((p) => this.acceptable(part, role, p, state, history, personsById));
         const ranked = candidates
-          .map((p) => ({ person: p, score: this.scoreFor(part, role, p, state, history) }))
+          .map((p) => ({ person: p, score: this.scoreFor(part, role, p, state, history, personsById) }))
           .sort((x, y) => this.compareByScore(x, y));
 
         const chosen = ranked.find(({ person }) => this.keepsFeasible(part, role, person, state, eligible));
@@ -47,7 +49,8 @@ export class AssignmentMatcher {
             new Assignment(0, part.id_part, part.id_week, chosen.person.id_usuario, role, 'draft')
           );
         } else {
-          unassigned.push({ part, role });
+          const reason = candidates.length === 0 ? 'no_eligible_candidate' : 'no_feasible_candidate';
+          unassigned.push({ part, role, reason });
           break; // a lone presenter/companion is invalid: skip the rest of this part
         }
       }
@@ -69,14 +72,19 @@ export class AssignmentMatcher {
 
   private acceptable(
     part: PresentationPart,
-    _role: AssignmentRole,
+    role: AssignmentRole,
     p: AssignablePerson,
-    state: AssignmentEngineState
+    state: AssignmentEngineState,
+    history: HistoryView,
+    personsById: ReadonlyMap<number, AssignablePerson>
   ): boolean {
     if (state.assignedPersonIds.has(p.id_usuario)) return false;
     const onPart = state.byPart.get(part.id_part) ?? [];
     if (onPart.includes(p.id_usuario)) return false; // presenter !== companion on the same part
-    return true;
+    // Hard eligibility: every rule must allow the candidate. Rules without an
+    // isAllowed gate default to true (backward-compatible soft-only rules).
+    const ctx: ScoringContext = { person: p, part, role, weekState: state, history, personsById };
+    return this.registry.all().every((rule) => (rule.isAllowed ? rule.isAllowed(ctx) : true));
   }
 
   private scoreFor(
@@ -84,9 +92,10 @@ export class AssignmentMatcher {
     role: AssignmentRole,
     p: AssignablePerson,
     state: AssignmentEngineState,
-    history: HistoryView
+    history: HistoryView,
+    personsById: ReadonlyMap<number, AssignablePerson>
   ): number {
-    const ctx: ScoringContext = { person: p, part, role, weekState: state, history };
+    const ctx: ScoringContext = { person: p, part, role, weekState: state, history, personsById };
     return this.registry.all().reduce((sum, rule) => sum + rule.score(ctx), 0);
   }
 

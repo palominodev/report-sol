@@ -2,14 +2,23 @@ import { describe, it, expect } from 'vitest';
 import { AssignmentMatcher } from '../AssignmentMatcher';
 import { RuleRegistry } from '../RuleRegistry';
 import { NoRepeatPairWithin6MonthsRule } from '../NoRepeatPairWithin6MonthsRule';
-import { HistoryView } from '../types';
+import { PresenterEligibilityRule } from '../rules/PresenterEligibilityRule';
+import { PairPolicyRule } from '../rules/PairPolicyRule';
+import { NoRepeatTipoRule } from '../rules/NoRepeatTipoRule';
+import { RoleRotationRule } from '../rules/RoleRotationRule';
+import { MatchingRule, HistoryView } from '../types';
 import { AssignablePerson } from '@/domain/entities/presentation/AssignablePerson';
 import { PresentationPart } from '@/domain/entities/presentation/PresentationPart';
 import { SourceRef } from '@/domain/entities/presentation/SourceRef';
 import { Genero } from '@/domain/entities/presentation/enums';
 
-function person(id: number, genero: Genero | null): AssignablePerson {
-  return new AssignablePerson(id, `Nombre${id}`, `Apellido${id}`, genero);
+function person(
+  id: number,
+  genero: Genero | null,
+  cargo: AssignablePerson['cargo'] = null,
+  familiaId: number | null = null
+): AssignablePerson {
+  return new AssignablePerson(id, `Nombre${id}`, `Apellido${id}`, genero, cargo, familiaId);
 }
 
 function part(id: number, idWeek: number, orden: number, requiresCompanero = true): PresentationPart {
@@ -18,12 +27,32 @@ function part(id: number, idWeek: number, orden: number, requiresCompanero = tru
 }
 
 function historyOf(map: Record<number, number[]>): HistoryView {
-  return { pairedWithWithin6mo: (id) => new Set(map[id] ?? []) };
+  return {
+    pairedWithWithin6mo: (id) => new Set(map[id] ?? []),
+    tipoHistoryWithin6mo: () => new Set(),
+    rolHistoryWithin6mo: () => new Set(),
+  };
 }
 
 function buildMatcher(): { matcher: AssignmentMatcher } {
   const registry = new RuleRegistry();
   registry.register(new NoRepeatPairWithin6MonthsRule());
+  registry.register(new PresenterEligibilityRule());
+  registry.register(new PairPolicyRule());
+  registry.register(new NoRepeatTipoRule());
+  registry.register(new RoleRotationRule());
+  return { matcher: new AssignmentMatcher(registry) };
+}
+
+/** Registry whose hard gate excludes a fixed set of persons (routing probe). */
+function buildMatcherWithHardGate(blockedIds: Set<number>): { matcher: AssignmentMatcher } {
+  const registry = new RuleRegistry();
+  registry.register(new NoRepeatPairWithin6MonthsRule());
+  registry.register({
+    id: 'test_hard_block',
+    isAllowed: (ctx) => !blockedIds.has(ctx.person.id_usuario),
+    score: () => 0,
+  } satisfies MatchingRule);
   return { matcher: new AssignmentMatcher(registry) };
 }
 
@@ -42,7 +71,13 @@ describe('AssignmentMatcher', () => {
   });
 
   it('skips usuarios with NULL genero and never references them in assignments', () => {
-    const persons = [person(1, 'masculino'), person(2, null), person(3, 'femenino')];
+    // M+F pair on empiece_conversaciones: same familia so the mixed path stays
+    // legal once the pair-policy rule joins the registry (2.5).
+    const persons = [
+      person(1, 'masculino', null, 7),
+      person(2, null),
+      person(3, 'femenino', null, 7),
+    ];
     const parts = [part(10, 100, 1, true)];
     const { matcher } = buildMatcher();
 
@@ -53,7 +88,11 @@ describe('AssignmentMatcher', () => {
   });
 
   it('never assigns the same person to more than one part in the same week (double-book impossible)', () => {
-    const persons = [person(1, 'masculino'), person(2, 'femenino'), person(3, 'masculino')];
+    const persons = [
+      person(1, 'masculino', null, 7),
+      person(2, 'femenino', null, 7),
+      person(3, 'masculino'),
+    ];
     const parts = [part(10, 100, 1, true), part(11, 100, 2, true)]; // 4 slots, only 3 people
     const { matcher } = buildMatcher();
 
@@ -70,7 +109,11 @@ describe('AssignmentMatcher', () => {
   });
 
   it('keeps presenter and companion distinct on a two-person part', () => {
-    const persons = [person(1, 'masculino'), person(2, 'femenino'), person(3, 'masculino')];
+    const persons = [
+      person(1, 'masculino', null, 7),
+      person(2, 'femenino', null, 7),
+      person(3, 'masculino'),
+    ];
     const parts = [part(10, 100, 1, true)];
     const { matcher } = buildMatcher();
 
@@ -108,5 +151,52 @@ describe('AssignmentMatcher', () => {
     // slot is reported as unassigned (a lone companion would be invalid).
     const roles = result.unassigned.map((u) => u.role);
     expect(roles).toEqual(['presentador']);
+    // A candidate existed but no single one kept the part feasible.
+    expect(result.unassigned).toEqual([
+      { part: parts[0], role: 'presentador', reason: 'no_feasible_candidate' },
+    ]);
+  });
+
+  it('excludes candidates rejected by a hard rule before any scoring happens', () => {
+    const persons = [person(1, 'masculino'), person(2, 'masculino'), person(3, 'masculino')];
+    const parts = [part(10, 100, 1, true)];
+    const { matcher } = buildMatcherWithHardGate(new Set([2]));
+
+    const result = matcher.match(parts, persons, historyOf({}));
+
+    // With ids 1 and 3 gated-in, the deterministic pick is 1 as presenter and 3
+    // as companion; person 2 must never appear even though scores tie at 0.
+    const assignedIds = result.assignments.map((a) => a.id_usuario).sort((a, b) => a - b);
+    expect(assignedIds).toEqual([1, 3]);
+    expect(result.unassigned).toHaveLength(0);
+  });
+
+  it("emits 'no_eligible_candidate' when every candidate fails a hard rule", () => {
+    const persons = [person(1, 'masculino'), person(2, 'masculino')];
+    const parts = [part(10, 100, 1, true)];
+    const { matcher } = buildMatcherWithHardGate(new Set([1, 2]));
+
+    const result = matcher.match(parts, persons, historyOf({}));
+
+    expect(result.assignments).toHaveLength(0);
+    expect(result.unassigned).toEqual([
+      { part: parts[0], role: 'presentador', reason: 'no_eligible_candidate' },
+    ]);
+  });
+
+  it('treats soft-only rules as fully allowed (isAllowed defaults to true)', () => {
+    // Registry has no custom gate; the pair-policy rule still sees a legal
+    // same-familia mixed pair, and R5 only penalizes the recent pair.
+    const persons = [person(1, 'masculino', null, 7), person(2, 'femenino', null, 7)];
+    const parts = [part(10, 100, 1, true)];
+    const history = historyOf({ 1: [2] }); // recent pair would be penalized, not blocked
+    const { matcher } = buildMatcher();
+
+    const result = matcher.match(parts, persons, history);
+
+    expect(result.assignments).toHaveLength(2);
+    expect(result.unassigned).toHaveLength(0);
+    const roles = new Set(result.assignments.map((a) => a.rol));
+    expect(roles).toEqual(new Set(['presentador', 'companero']));
   });
 });

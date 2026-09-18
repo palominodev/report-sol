@@ -6,6 +6,10 @@ import { OverrideAssignmentUseCase } from '../use-cases/presentation/OverrideAss
 import { ConfirmWeekAssignmentsUseCase } from '../use-cases/presentation/ConfirmWeekAssignmentsUseCase';
 import { IAssignmentsRepository } from '@/core/domain/presentations/IAssignmentsRepository';
 import { IUserRepository } from '@/core/domain/repositories/IUserRepository';
+import { RuleRegistry } from '@/core/domain/presentations/RuleRegistry';
+import { NoRepeatPairWithin6MonthsRule } from '@/core/domain/presentations/NoRepeatPairWithin6MonthsRule';
+import { AssignmentHistoryRow } from '@/core/domain/presentations/types';
+import { getMatchingRules } from '@/infrastructure/config/di';
 import { NotFoundError } from '@/core/domain/errors/NotFoundError';
 import { ConflictError } from '@/core/domain/errors/ConflictError';
 import { UnprocessableError } from '@/core/domain/errors/UnprocessableError';
@@ -21,8 +25,25 @@ const today = new Date().toISOString();
 const SIX_MONTHS_AGO = new Date();
 SIX_MONTHS_AGO.setMonth(SIX_MONTHS_AGO.getMonth() - 6);
 
-function person(id: number, genero: Genero | null = 'masculino'): AssignablePerson {
-  return new AssignablePerson(id, `Nombre${id}`, `Apellido${id}`, genero);
+/** Mirrors pre-2.8 use-case wiring: R5 only, as the tests were written. */
+function defaultRegistry(): RuleRegistry {
+  const registry = new RuleRegistry();
+  registry.register(new NoRepeatPairWithin6MonthsRule());
+  return registry;
+}
+
+function person(
+  id: number,
+  genero: Genero | null = 'masculino',
+  cargo: AssignablePerson['cargo'] = null,
+  familiaId: number | null = null
+): AssignablePerson {
+  return new AssignablePerson(id, `Nombre${id}`, `Apellido${id}`, genero, cargo, familiaId);
+}
+
+/** One-person part of a given tipo (arity 1: presenter only). */
+function singlePart(id: number, idWeek: number, tipo: 'lectura_biblia' | 'discurso' | 'que_diria'): PresentationPart {
+  return new PresentationPart(id, idWeek, 1, tipo, 'TESOROS_DE_LA_BIBLIA', 4, null, new SourceRef('lmd', 1));
 }
 
 function part(id: number, idWeek: number, orden: number, requiresCompanero = true): PresentationPart {
@@ -111,12 +132,12 @@ describe('Presentation Assignments — Use Cases (Slice 2)', () => {
       (assignRepo.findAssignmentsByWeek as ReturnType<typeof vi.fn>).mockResolvedValue(manual);
       (assignRepo.findRecentAssignments as ReturnType<typeof vi.fn>).mockResolvedValue([]);
       (userRepo.findAllAssignable as ReturnType<typeof vi.fn>).mockResolvedValue(persons);
-      return new GenerateWeekAssignmentsUseCase(userRepo, assignRepo);
+      return new GenerateWeekAssignmentsUseCase(userRepo, assignRepo, defaultRegistry());
     };
 
     it('404 when the week does not exist', async () => {
       (assignRepo.findWeekById as ReturnType<typeof vi.fn>).mockResolvedValue(null);
-      const uc = new GenerateWeekAssignmentsUseCase(userRepo, assignRepo);
+      const uc = new GenerateWeekAssignmentsUseCase(userRepo, assignRepo, defaultRegistry());
       await expect(uc.execute({ id_week: 999 })).rejects.toThrow(NotFoundError);
     });
 
@@ -303,6 +324,78 @@ describe('Presentation Assignments — Use Cases (Slice 2)', () => {
       ]);
       await expect(uc().execute({ id_week: 1 })).rejects.toThrow(ConflictError);
       expect(assignRepo.confirmWeek).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Full-registry acceptance (july-seed shape, PR2 2.9)', () => {
+    const buildFull = (
+      parts: PresentationPart[],
+      persons: AssignablePerson[],
+      recent: AssignmentHistoryRow[] = []
+    ) => {
+      (assignRepo.findWeekById as ReturnType<typeof vi.fn>).mockResolvedValue(week(1));
+      (assignRepo.findPartsByWeek as ReturnType<typeof vi.fn>).mockResolvedValue(parts);
+      (assignRepo.findAssignmentsByWeek as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+      (assignRepo.findRecentAssignments as ReturnType<typeof vi.fn>).mockResolvedValue(recent);
+      (userRepo.findAllAssignable as ReturnType<typeof vi.fn>).mockResolvedValue(persons);
+      (assignRepo.upsertAssignment as ReturnType<typeof vi.fn>).mockImplementation((a) =>
+        Promise.resolve(new Assignment(100 + a.id_part, a.id_part, a.id_week, a.id_usuario, a.rol, a.estado))
+      );
+      // The REAL composition-root registry, not a hand-built list: this is the
+      // full-chain acceptance of the factory seam.
+      return new GenerateWeekAssignmentsUseCase(userRepo, assignRepo, getMatchingRules());
+    };
+
+    it('gates que_diria to anciano/siervo: a higher-id anciano wins over a lower-id publicador', async () => {
+      const uc = buildFull(
+        [singlePart(10, 1, 'que_diria')],
+        [person(1, 'masculino'), person(2, 'masculino', 'anciano')]
+      );
+
+      const result = await uc.execute({ id_week: 1 });
+
+      expect(result.assignments).toHaveLength(1);
+      expect(result.assignments[0].id_usuario).toBe(2); // id 1 is blocked by the cargo gate
+      expect(result.unassigned).toHaveLength(0);
+    });
+
+    it('assigns a same-familia mixed pair on empiece_conversaciones as presentador + companero', async () => {
+      const uc = buildFull(
+        [part(10, 1, 1, true)],
+        [person(1, 'masculino', null, 7), person(2, 'femenino', null, 7)]
+      );
+
+      const result = await uc.execute({ id_week: 1 });
+
+      const roles = new Set(result.assignments.map((a) => a.rol));
+      expect(roles).toEqual(new Set(['presentador', 'companero']));
+      expect(result.assignments).toHaveLength(2);
+      expect(result.unassigned).toHaveLength(0);
+    });
+
+    it('keeps a person off a tipo they held within 6 months (R4 through the full registry)', async () => {
+      const uc = buildFull(
+        [singlePart(10, 1, 'lectura_biblia')],
+        [person(1, 'masculino'), person(2, 'masculino')],
+        [{ id_part: 90, id_week: 5, id_usuario: 1, rol: 'presentador', tipo: 'lectura_biblia' }]
+      );
+
+      const result = await uc.execute({ id_week: 1 });
+
+      expect(result.assignments).toHaveLength(1);
+      expect(result.assignments[0].id_usuario).toBe(2); // id 1 already held lectura_biblia in-window
+      expect(result.unassigned).toHaveLength(0);
+    });
+
+    it('surfaces the no_eligible_candidate diagnostic when the hard gate empties the pool', async () => {
+      const uc = buildFull([singlePart(10, 1, 'que_diria')], [person(1, 'masculino')]); // publicador only
+
+      const result = await uc.execute({ id_week: 1 });
+
+      expect(result.assignments).toHaveLength(0);
+      expect(result.unassigned).toHaveLength(1);
+      expect(result.unassigned[0].role).toBe('presentador');
+      expect(result.unassigned[0].reason).toBe('no_eligible_candidate');
     });
   });
 });

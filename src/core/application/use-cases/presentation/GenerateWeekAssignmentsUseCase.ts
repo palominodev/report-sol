@@ -2,7 +2,6 @@ import { AssignablePerson } from '@/domain/entities/presentation/AssignablePerso
 import { Assignment } from '@/domain/entities/presentation/Assignment';
 import { AssignmentMatcher } from '@/core/domain/presentations/AssignmentMatcher';
 import { RuleRegistry } from '@/core/domain/presentations/RuleRegistry';
-import { NoRepeatPairWithin6MonthsRule } from '@/core/domain/presentations/NoRepeatPairWithin6MonthsRule';
 import { UnassignedSlot } from '@/core/domain/presentations/types';
 import { NotFoundError } from '@/core/domain/errors/NotFoundError';
 import { UnprocessableError } from '@/core/domain/errors/UnprocessableError';
@@ -25,10 +24,12 @@ export class GenerateWeekAssignmentsUseCase {
   private readonly matcher: AssignmentMatcher;
   constructor(
     private readonly userRepository: IUserRepository,
-    private readonly assignmentsRepository: IAssignmentsRepository
+    private readonly assignmentsRepository: IAssignmentsRepository,
+    registry: RuleRegistry
   ) {
-    const registry = new RuleRegistry();
-    registry.register(new NoRepeatPairWithin6MonthsRule());
+    // The registry is injected (di.ts getMatchingRules owns the rule list);
+    // no ctor-side registration, so adding/removing a rule is a single
+    // factory line and never touches this use case.
     this.matcher = new AssignmentMatcher(registry);
   }
 
