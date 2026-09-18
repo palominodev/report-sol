@@ -28,20 +28,18 @@ interface DashboardChartsContentProps {
 }
 
 const GROUP_COLORS = [
-  '#3b82f6',
-  '#10b981',
-  '#f59e0b',
-  '#ef4444',
-  '#8b5cf6',
-  '#ec4899',
-  '#06b6d4',
-  '#84cc16',
+  '#9fb9e3',
+  '#4a6da7',
+  '#7f9fd3',
+  '#3d5c8f',
+  '#c2d4f1',
+  '#a9a7c9',
 ];
 
 const PARTICIPATION_COLORS: Record<string, string> = {
-  regular: '#10b981',
-  auxiliar: '#f59e0b',
-  publicador: '#3b82f6',
+  regular: '#9fb9e3',
+  auxiliar: '#7f9fd3',
+  publicador: '#4a6da7',
 };
 
 function MonthlyTooltip({ active, payload, label }: any) {
@@ -50,27 +48,27 @@ function MonthlyTooltip({ active, payload, label }: any) {
   const data = payload[0]?.payload as MonthlyTrend | undefined;
 
   return (
-    <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg px-4 py-3">
-      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1.5">
+    <div className="bg-surface border border-line px-4 py-3">
+      <p className="text-sm font-semibold text-ink mb-1.5">
         {label}
       </p>
       <div className="flex items-center gap-2 text-sm">
         <span
-          className="w-2.5 h-2.5 rounded-full"
-          style={{ backgroundColor: '#3b82f6' }}
+          className="w-2.5 h-2.5"
+          style={{ backgroundColor: '#9fb9e3' }}
         />
-        <span className="text-gray-600 dark:text-gray-400">Horas:</span>
-        <span className="font-semibold text-gray-900 dark:text-gray-100">
+        <span className="text-ink-muted">Horas:</span>
+        <span className="font-semibold text-ink">
           {data?.horas ?? 0}
         </span>
       </div>
       <div className="flex items-center gap-2 text-sm mt-1">
         <span
-          className="w-2.5 h-2.5 rounded-full"
-          style={{ backgroundColor: '#10b981' }}
+          className="w-2.5 h-2.5"
+          style={{ backgroundColor: '#7f9fd3' }}
         />
-        <span className="text-gray-600 dark:text-gray-400">Cursos:</span>
-        <span className="font-semibold text-gray-900 dark:text-gray-100">
+        <span className="text-ink-muted">Cursos:</span>
+        <span className="font-semibold text-ink">
           {data?.cursos ?? 0}
         </span>
       </div>
@@ -85,25 +83,25 @@ function GroupTooltip({ active, payload }: any) {
   if (!data) return null;
 
   return (
-    <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg px-4 py-3">
-      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1.5">
+    <div className="bg-surface border border-line px-4 py-3">
+      <p className="text-sm font-semibold text-ink mb-1.5">
         {data.grupo}
       </p>
       <div className="flex items-center gap-2 text-sm">
-        <span className="text-gray-600 dark:text-gray-400">Horas:</span>
-        <span className="font-semibold text-gray-900 dark:text-gray-100">
+        <span className="text-ink-muted">Horas:</span>
+        <span className="font-semibold text-ink">
           {data.horas}
         </span>
       </div>
       <div className="flex items-center gap-2 text-sm mt-1">
-        <span className="text-gray-600 dark:text-gray-400">Cursos:</span>
-        <span className="font-semibold text-gray-900 dark:text-gray-100">
+        <span className="text-ink-muted">Cursos:</span>
+        <span className="font-semibold text-ink">
           {data.cursos}
         </span>
       </div>
       <div className="flex items-center gap-2 text-sm mt-1">
-        <span className="text-gray-600 dark:text-gray-400">Participación:</span>
-        <span className="font-semibold text-gray-900 dark:text-gray-100">
+        <span className="text-ink-muted">Participación:</span>
+        <span className="font-semibold text-ink">
           {data.porcentajeParticipacion}%
         </span>
       </div>
@@ -118,19 +116,19 @@ function ParticipationTooltip({ active, payload }: any) {
   if (!data) return null;
 
   return (
-    <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg px-4 py-3">
-      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1.5 capitalize">
+    <div className="bg-surface border border-line px-4 py-3">
+      <p className="text-sm font-semibold text-ink mb-1.5 capitalize">
         {data.tipo}
       </p>
       <div className="flex items-center gap-2 text-sm">
-        <span className="text-gray-600 dark:text-gray-400">Cantidad:</span>
-        <span className="font-semibold text-gray-900 dark:text-gray-100">
+        <span className="text-ink-muted">Cantidad:</span>
+        <span className="font-semibold text-ink">
           {data.cantidad}
         </span>
       </div>
       <div className="flex items-center gap-2 text-sm mt-1">
-        <span className="text-gray-600 dark:text-gray-400">Porcentaje:</span>
-        <span className="font-semibold text-gray-900 dark:text-gray-100">
+        <span className="text-ink-muted">Porcentaje:</span>
+        <span className="font-semibold text-ink">
           {data.porcentaje}%
         </span>
       </div>
@@ -141,7 +139,7 @@ function ParticipationTooltip({ active, payload }: any) {
 function EmptyState({ message }: { message: string }) {
   return (
     <div className="flex items-center justify-center h-full min-h-[200px]">
-      <p className="text-sm text-gray-500 dark:text-gray-400">{message}</p>
+      <p className="text-sm text-ink-muted">{message}</p>
     </div>
   );
 }
@@ -149,11 +147,11 @@ function EmptyState({ message }: { message: string }) {
 function MonthlyHoursChart({ data }: { data: MonthlyTrend[] }) {
   if (data.length === 0) {
     return (
-      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-        <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-1 text-balance">
+      <div className="bg-surface border border-line p-6">
+        <h3 className="text-base font-semibold text-ink mb-1 text-balance">
           Tendencia de Horas Mensuales
         </h3>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+        <p className="mb-4 text-[11px] font-semibold uppercase tracking-widest text-ink-muted">
           Evolución de horas reportadas por mes
         </p>
         <EmptyState message="Sin datos disponibles" />
@@ -162,30 +160,30 @@ function MonthlyHoursChart({ data }: { data: MonthlyTrend[] }) {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-      <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-1 text-balance">
+    <div className="bg-surface border border-line p-6">
+      <h3 className="text-base font-semibold text-ink mb-1 text-balance">
         Tendencia de Horas Mensuales
       </h3>
-      <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+      <p className="mb-4 text-[11px] font-semibold uppercase tracking-widest text-ink-muted">
         Evolución de horas reportadas por mes
       </p>
       <ResponsiveContainer width="100%" height={280}>
         <AreaChart data={data} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
           <defs>
             <linearGradient id="monthlyGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.02} />
+              <stop offset="5%" stopColor="#9fb9e3" stopOpacity={0.35} />
+              <stop offset="95%" stopColor="#9fb9e3" stopOpacity={0.02} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#3c3c3c" />
           <XAxis
             dataKey="mes"
-            tick={{ fontSize: 11, fill: '#94a3b8' }}
-            axisLine={{ stroke: '#e2e8f0' }}
+            tick={{ fontSize: 11, fill: '#a7a7a7' }}
+            axisLine={{ stroke: '#3c3c3c' }}
             tickLine={false}
           />
           <YAxis
-            tick={{ fontSize: 11, fill: '#94a3b8' }}
+            tick={{ fontSize: 11, fill: '#a7a7a7' }}
             axisLine={false}
             tickLine={false}
           />
@@ -194,11 +192,11 @@ function MonthlyHoursChart({ data }: { data: MonthlyTrend[] }) {
             type="monotone"
             dataKey="horas"
             name="Horas"
-            stroke="#3b82f6"
+            stroke="#9fb9e3"
             strokeWidth={2.5}
             fill="url(#monthlyGradient)"
-            dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4, stroke: '#fff' }}
-            activeDot={{ r: 6, strokeWidth: 2, stroke: '#fff' }}
+            dot={{ fill: '#9fb9e3', strokeWidth: 2, r: 4, stroke: '#121212' }}
+            activeDot={{ r: 6, strokeWidth: 2, stroke: '#121212' }}
           />
         </AreaChart>
       </ResponsiveContainer>
@@ -209,11 +207,11 @@ function MonthlyHoursChart({ data }: { data: MonthlyTrend[] }) {
 function GroupComparisonChart({ data }: { data: GroupComparison[] }) {
   if (data.length === 0) {
     return (
-      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-        <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-1 text-balance">
+      <div className="bg-surface border border-line p-6">
+        <h3 className="text-base font-semibold text-ink mb-1 text-balance">
           Comparación por Grupo
         </h3>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+        <p className="mb-4 text-[11px] font-semibold uppercase tracking-widest text-ink-muted">
           Total de horas por grupo de predicación
         </p>
         <EmptyState message="Sin datos de grupos" />
@@ -227,28 +225,28 @@ function GroupComparisonChart({ data }: { data: GroupComparison[] }) {
   }));
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-      <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-1 text-balance">
+    <div className="bg-surface border border-line p-6">
+      <h3 className="text-base font-semibold text-ink mb-1 text-balance">
         Comparación por Grupo
       </h3>
-      <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+      <p className="mb-4 text-[11px] font-semibold uppercase tracking-widest text-ink-muted">
         Total de horas por grupo de predicación
       </p>
       <ResponsiveContainer width="100%" height={250}>
         <BarChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#3c3c3c" />
           <XAxis
             dataKey="grupoLabel"
-            tick={{ fontSize: 11, fill: '#94a3b8' }}
-            axisLine={{ stroke: '#e2e8f0' }}
+            tick={{ fontSize: 11, fill: '#a7a7a7' }}
+            axisLine={{ stroke: '#3c3c3c' }}
             tickLine={false}
           />
           <YAxis
-            tick={{ fontSize: 11, fill: '#94a3b8' }}
+            tick={{ fontSize: 11, fill: '#a7a7a7' }}
             axisLine={false}
             tickLine={false}
           />
-          <Tooltip content={<GroupTooltip />} cursor={{ fill: '#f8fafc' }} />
+          <Tooltip content={<GroupTooltip />} cursor={{ fill: '#292929' }} />
           <Bar dataKey="horas" name="Horas" radius={[6, 6, 0, 0]} maxBarSize={48}>
             {chartData.map((entry, index) => (
               <Cell key={`cell-${entry.grupo}`} fill={GROUP_COLORS[index % GROUP_COLORS.length]} />
@@ -263,11 +261,11 @@ function GroupComparisonChart({ data }: { data: GroupComparison[] }) {
 function ParticipationChart({ data }: { data: ParticipationBreakdown[] }) {
   if (data.length === 0 || data.every((d) => d.cantidad === 0)) {
     return (
-      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-        <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-1 text-balance">
+      <div className="bg-surface border border-line p-6">
+        <h3 className="text-base font-semibold text-ink mb-1 text-balance">
           Distribución de Participación
         </h3>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+        <p className="mb-4 text-[11px] font-semibold uppercase tracking-widest text-ink-muted">
           Publicadores por categoría de servicio
         </p>
         <EmptyState message="Sin datos de participación" />
@@ -278,11 +276,11 @@ function ParticipationChart({ data }: { data: ParticipationBreakdown[] }) {
   const totalPublishers = data.reduce((sum, d) => sum + d.cantidad, 0);
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-      <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-1 text-balance">
+    <div className="bg-surface border border-line p-6">
+      <h3 className="text-base font-semibold text-ink mb-1 text-balance">
         Distribución de Participación
       </h3>
-      <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+      <p className="mb-4 text-[11px] font-semibold uppercase tracking-widest text-ink-muted">
         Publicadores por categoría de servicio
       </p>
       <ResponsiveContainer width="100%" height={250}>
@@ -306,8 +304,8 @@ function ParticipationChart({ data }: { data: ParticipationBreakdown[] }) {
             {data.map((entry) => (
               <Cell
                 key={entry.tipo}
-                fill={PARTICIPATION_COLORS[entry.tipo] ?? '#9ca3af'}
-                stroke="#fff"
+                fill={PARTICIPATION_COLORS[entry.tipo] ?? '#a7a7a7'}
+                stroke="#121212"
                 strokeWidth={2}
               />
             ))}
@@ -328,7 +326,7 @@ function ParticipationChart({ data }: { data: ParticipationBreakdown[] }) {
                       x={viewBox.cx}
                       dy="-0.4em"
                       fontSize="13"
-                      fill="#6b7280"
+                      fill="#a7a7a7"
                     >
                       Total
                     </tspan>
@@ -337,7 +335,7 @@ function ParticipationChart({ data }: { data: ParticipationBreakdown[] }) {
                       dy="1.3em"
                       fontSize="20"
                       fontWeight="700"
-                      fill="#111827"
+                      fill="#ffffff"
                     >
                       {totalPublishers}
                     </tspan>

@@ -62,13 +62,13 @@ function calculateTrend(valor: number, valorPrevio: number): number | null {
 
 function SkeletonCard() {
   return (
-    <div className="bg-white rounded-xl border border-gray-100 p-5 animate-pulse">
+    <div className="bg-surface border border-line p-5 animate-pulse">
       <div className="flex items-start justify-between mb-3">
-        <div className="w-10 h-10 bg-gray-200 rounded-lg" />
-        <div className="w-10 h-4 bg-gray-200 rounded" />
+        <div className="w-10 h-10 bg-nav" />
+        <div className="w-10 h-4 bg-nav" />
       </div>
-      <div className="h-8 bg-gray-200 rounded w-20 mb-2" />
-      <div className="h-4 bg-gray-200 rounded w-28" />
+      <div className="h-8 bg-nav w-20 mb-2" />
+      <div className="h-4 bg-nav w-28" />
     </div>
   );
 }
@@ -76,8 +76,8 @@ function SkeletonCard() {
 export default function DashboardKPIs({ stats, loading, error }: DashboardKPIsProps) {
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-100 rounded-xl p-5 mb-6">
-        <p className="text-red-600 text-sm font-medium">{error}</p>
+      <div className="border border-danger/50 bg-danger/10 p-5 mb-6">
+        <p className="text-sm font-medium text-ink">{error}</p>
       </div>
     );
   }

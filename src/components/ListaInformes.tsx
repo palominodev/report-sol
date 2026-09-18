@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import EstadisticasInformes from './EstadisticasInformes';
 import InformeCard from './InformeCard';
+import TablaInformes from './TablaInformes';
 
 interface Informe {
   id_informe: number;
@@ -29,9 +30,13 @@ interface Filtros {
 
 interface ListaInformesProps {
   filtros: Filtros;
+  /** Reports the number of fetched reports so the parent can show a result count */
+  onCountChange?: (count: number) => void;
+  /** Presentation mode for the reports */
+  vista?: 'lista' | 'tabla';
 }
 
-export default function ListaInformes({ filtros }: ListaInformesProps) {
+export default function ListaInformes({ filtros, onCountChange, vista = 'lista' }: ListaInformesProps) {
   const [informes, setInformes] = useState<Informe[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -39,6 +44,20 @@ export default function ListaInformes({ filtros }: ListaInformesProps) {
   const refreshInformes = useCallback(() => {
     setRefreshKey(k => k + 1);
   }, []);
+
+  // In table view the visible rows can differ from informes.length (local role filter)
+  const handleVisibleCount = useCallback(
+    (count: number) => {
+      if (vista === 'tabla') onCountChange?.(count);
+    },
+    [vista, onCountChange],
+  );
+
+  useEffect(() => {
+    // In table view TablaInformes reports the filtered count instead
+    if (vista === 'tabla') return;
+    onCountChange?.(informes.length);
+  }, [informes, onCountChange, vista]);
 
   useEffect(() => {
     const fetchInformes = async () => {
@@ -106,16 +125,20 @@ export default function ListaInformes({ filtros }: ListaInformesProps) {
     <div className="space-y-6">
       <EstadisticasInformes informes={informes} />
 
-      {/* Informes List */}
+      {/* Reports List / Table */}
       <div className="space-y-4">
-        {informes.map((informe) => (
-          <InformeCard 
-            key={informe.id_informe} 
-            informe={informe} 
-            onUpdate={refreshInformes}
-            onDelete={refreshInformes}
-          />
-        ))}
+        {vista === 'tabla' ? (
+          <TablaInformes informes={informes} onRefresh={refreshInformes} onVisibleCountChange={handleVisibleCount} />
+        ) : (
+          informes.map((informe) => (
+            <InformeCard
+              key={informe.id_informe}
+              informe={informe}
+              onUpdate={refreshInformes}
+              onDelete={refreshInformes}
+            />
+          ))
+        )}
       </div>
 
       {/* Empty State */}
