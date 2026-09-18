@@ -82,6 +82,7 @@ describe('Presentation Assignments — Use Cases (Slice 2)', () => {
       upsertAssignment: vi.fn(),
       deleteNonManualByWeek: vi.fn().mockResolvedValue(0),
       confirmWeek: vi.fn().mockResolvedValue(0),
+      updatePartSala: vi.fn().mockResolvedValue(undefined),
     } as IAssignmentsRepository;
 
     userRepo = {

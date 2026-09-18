@@ -248,3 +248,68 @@ describe('TursoAssignmentsRepository sala projection (toPart/upsertWeek)', () =>
     expect(parts[0].sala).toBe('B');
   });
 });
+
+describe('TursoAssignmentsRepository.updatePartSala (direct UPDATE write path)', () => {
+  function week(fecha: string, semana: string): MeetingWeek {
+    return new MeetingWeek(0, semana, 'LMD', fecha, fecha, 'no_generada');
+  }
+
+  function part(orden: number, tipo: PresentationPart['tipo'], sala: PresentationPart['sala']): PresentationPart {
+    return new PresentationPart(0, 0, orden, tipo, 'SEAMOS_MEJORES_MAESTROS', 5, null, new SourceRef('lmd'), sala);
+  }
+
+  async function salaOf(repo: TursoAssignmentsRepository, id_part: number): Promise<PresentationPart['sala']> {
+    const part = await repo.findPartById(id_part);
+    if (!part) throw new Error(`part ${id_part} not found in test harness`);
+    return part.sala;
+  }
+
+  it('direct UPDATE sets A, then B, and clear writes NULL', async () => {
+    const client = await freshClient();
+    setDatabaseClient(client);
+    const repo = new TursoAssignmentsRepository();
+
+    const id_week = await repo.upsertWeek(week('2026-07-01', '2026/07/01'), [part(1, 'discurso', null)]);
+    const id_part = (await repo.findPartsByWeek(id_week))[0].id_part;
+
+    await repo.updatePartSala(id_part, 'A');
+    expect(await salaOf(repo, id_part)).toBe('A');
+
+    await repo.updatePartSala(id_part, 'B');
+    expect(await salaOf(repo, id_part)).toBe('B');
+
+    await repo.updatePartSala(id_part, null);
+    expect(await salaOf(repo, id_part)).toBeNull();
+  });
+
+  it('PIN: a direct-UPDATE clear to NULL is not resurrected by a scraper re-upsert', async () => {
+    const client = await freshClient();
+    setDatabaseClient(client);
+    const repo = new TursoAssignmentsRepository();
+
+    // Sync stamps 'A', user clears it to NULL via the write path.
+    const id_week = await repo.upsertWeek(week('2026-07-01', '2026/07/01'), [part(1, 'discurso', 'A')]);
+    const id_part = (await repo.findPartsByWeek(id_week))[0].id_part;
+    await repo.updatePartSala(id_part, null);
+    expect(await salaOf(repo, id_part)).toBeNull();
+
+    // Scraper re-syncs the same week without room info (incoming sala NULL).
+    await repo.upsertWeek(week('2026-07-01', '2026/07/01'), [part(1, 'discurso', null)]);
+
+    // The explicit clear must win: COALESCE must not resurrect 'A'.
+    expect(await salaOf(repo, id_part)).toBeNull();
+  });
+
+  it('COALESCE guard: a stamped sala survives a scraper re-upsert with incoming NULL', async () => {
+    const client = await freshClient();
+    setDatabaseClient(client);
+    const repo = new TursoAssignmentsRepository();
+
+    const id_week = await repo.upsertWeek(week('2026-07-01', '2026/07/01'), [part(1, 'discurso', 'A')]);
+    const id_part = (await repo.findPartsByWeek(id_week))[0].id_part;
+
+    await repo.upsertWeek(week('2026-07-01', '2026/07/01'), [part(1, 'discurso', null)]);
+
+    expect(await salaOf(repo, id_part)).toBe('A');
+  });
+});

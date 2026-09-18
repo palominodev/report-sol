@@ -156,6 +156,16 @@ export class TursoAssignmentsRepository implements IAssignmentsRepository {
     return toPart(result.rows[0] as Record<string, unknown>);
   }
 
+  async updatePartSala(id_part: number, sala: Sala | null): Promise<void> {
+    const client = getDatabaseClient();
+    // Direct UPDATE by design: upsertWeek's COALESCE guard cannot write NULL,
+    // so an explicit clear ('—' → null) must bypass the sync path entirely.
+    await client.execute({
+      sql: `UPDATE presentation_part SET sala = ? WHERE id_part = ?`,
+      args: [sala, id_part],
+    });
+  }
+
   async findAssignmentsByWeek(id_week: number): Promise<Assignment[]> {
     const client = getDatabaseClient();
     const result = await client.execute({
