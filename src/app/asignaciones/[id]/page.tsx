@@ -53,6 +53,8 @@ export default async function AsignacionDetailPage(props: PageProps) {
 
   const isConfirmed = week.estado === 'confirmada';
   const hasAssignments = assignments.length > 0;
+  // Primitive across the RSC boundary: how many parts still have no sala (drives the policy modal).
+  const nullSalaParts = parts.filter((p) => p.sala === null).length;
 
   const renderSlot = (partId: number, rol: 'presentador' | 'companero', label: string) => {
     const slot = assignmentsBySlot[`${partId}:${rol}`];
@@ -103,7 +105,11 @@ export default async function AsignacionDetailPage(props: PageProps) {
             <div className="flex flex-col gap-3">
               <div className="flex gap-2">
                 {!isConfirmed && (
-                  <GenerateButton idWeek={week.id_week} label={hasAssignments ? 'Regenerar' : 'Generar'} />
+                  <GenerateButton
+                    idWeek={week.id_week}
+                    label={hasAssignments ? 'Regenerar' : 'Generar'}
+                    nullSalaParts={nullSalaParts}
+                  />
                 )}
                 <Link
                   href={`/asignaciones/${week.id_week}/imprimir`}
