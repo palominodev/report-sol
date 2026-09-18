@@ -255,6 +255,20 @@ export class TursoAssignmentsRepository implements IAssignmentsRepository {
     );
   }
 
+  async deletePartsByIds(ids: number[]): Promise<void> {
+    if (ids.length === 0) return;
+    const client = getDatabaseClient();
+    // Plain per-id DELETEs in one batch. Callers (the rebuild adoption policy)
+    // assert no assignments reference these rows, so no orphan handling here;
+    // the schema's ON DELETE CASCADE is the last-resort safety net.
+    await client.batch(
+      ids.map((id) => ({
+        sql: 'DELETE FROM presentation_part WHERE id_part = ?',
+        args: [id],
+      }))
+    );
+  }
+
   async findAssignmentsByWeek(id_week: number): Promise<Assignment[]> {
     const client = getDatabaseClient();
     const result = await client.execute({

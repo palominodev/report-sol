@@ -490,4 +490,26 @@ describe('TursoAssignmentsRepository.upsertWeek adoption-aware merge (sala mirro
     // Explicit clear: null overwrites the previous 'B' (no COALESCE guard here).
     expect(after.find((p) => p.id_part === lectura.id_part)?.sala).toBeNull();
   });
+
+  it('deletePartsByIds removes exactly the given rows in one batch; empty input is a no-op', async () => {
+    const client = await freshClient();
+    setDatabaseClient(client);
+    const repo = new TursoAssignmentsRepository();
+
+    const id_week = await repo.upsertWeek(week('2026-07-01', '2026/07/01'), [
+      part(1, 'discurso', 'A'),
+      part(2, 'lectura_biblia', 'B'),
+    ]);
+    const parts = await repo.findPartsByWeek(id_week);
+
+    // Rebuild-policy surplus removal: drop the B row, keep the A original.
+    await repo.deletePartsByIds([parts.find((p) => p.sala === 'B')!.id_part]);
+    let after = await repo.findPartsByWeek(id_week);
+    expect(after.map((p) => p.sala)).toEqual(['A']);
+
+    // Empty batch must not touch the client.
+    await repo.deletePartsByIds([]);
+    after = await repo.findPartsByWeek(id_week);
+    expect(after).toHaveLength(1);
+  });
 });

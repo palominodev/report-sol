@@ -17,6 +17,7 @@ import { SalaRotationRule } from '@/core/domain/presentations/rules/SalaRotation
 import { CreateMeetingWeekUseCase } from '@/core/application/use-cases/presentation/CreateMeetingWeekUseCase';
 import { GenerateWeekAssignmentsUseCase } from '@/core/application/use-cases/presentation/GenerateWeekAssignmentsUseCase';
 import { GetWeekAssignmentsUseCase } from '@/core/application/use-cases/presentation/GetWeekAssignmentsUseCase';
+import { AdoptSalaRoomsUseCase } from '@/core/application/use-cases/presentation/AdoptSalaRoomsUseCase';
 import { OverrideAssignmentUseCase } from '@/core/application/use-cases/presentation/OverrideAssignmentUseCase';
 import { SetPartSalaUseCase } from '@/core/application/use-cases/presentation/SetPartSalaUseCase';
 import { ConfirmWeekAssignmentsUseCase } from '@/core/application/use-cases/presentation/ConfirmWeekAssignmentsUseCase';
@@ -54,6 +55,10 @@ export function getGenerateWeekAssignmentsUseCase(): GenerateWeekAssignmentsUseC
 
 export function getGetWeekAssignmentsUseCase(): GetWeekAssignmentsUseCase {
   return new GetWeekAssignmentsUseCase(getAssignmentsRepository());
+}
+
+export function getAdoptSalaRoomsUseCase(): AdoptSalaRoomsUseCase {
+  return new AdoptSalaRoomsUseCase(getAssignmentsRepository());
 }
 
 export function getOverrideAssignmentUseCase(): OverrideAssignmentUseCase {

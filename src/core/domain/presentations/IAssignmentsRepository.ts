@@ -46,4 +46,11 @@ export interface IAssignmentsRepository {
    * twin. Creates no assignment rows.
    */
   insertParts(parts: PresentationPart[]): Promise<void>;
+  /**
+   * Deletes parts by id in one atomic batch. Needed by the rebuild adoption
+   * policy to drop surplus NULL-sala rows left in (tipo, orden) groups that
+   * already hold an 'A'. Callers MUST assert the doomed rows carry no
+   * assignments before calling (the use case enforces this).
+   */
+  deletePartsByIds(ids: number[]): Promise<void>;
 }

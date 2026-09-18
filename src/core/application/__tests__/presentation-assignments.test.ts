@@ -86,6 +86,7 @@ describe('Presentation Assignments — Use Cases (Slice 2)', () => {
       updatePartSala: vi.fn().mockResolvedValue(undefined),
       bulkUpdatePartSala: vi.fn().mockResolvedValue(undefined),
       insertParts: vi.fn().mockResolvedValue(undefined),
+      deletePartsByIds: vi.fn().mockResolvedValue(undefined),
     } as IAssignmentsRepository;
 
     userRepo = {
