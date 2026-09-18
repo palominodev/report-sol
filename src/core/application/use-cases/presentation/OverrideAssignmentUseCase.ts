@@ -4,6 +4,7 @@ import { NotFoundError } from '@/core/domain/errors/NotFoundError';
 import { ValidationError } from '@/core/domain/errors/ValidationError';
 import { IAssignmentsRepository } from '@/core/domain/presentations/IAssignmentsRepository';
 import { AssignmentHistoryView } from './AssignmentHistoryView';
+import { historyWindowStart } from './history-window';
 
 export interface AssignmentWarning {
   code: string;
@@ -14,12 +15,6 @@ export interface AssignmentWarning {
 export interface OverrideAssignmentResult {
   assignment: Assignment;
   warnings: AssignmentWarning[];
-}
-
-function sixMonthsAgo(): string {
-  const d = new Date();
-  d.setMonth(d.getMonth() - 6);
-  return d.toISOString().slice(0, 10);
 }
 
 export class OverrideAssignmentUseCase {
@@ -68,7 +63,7 @@ export class OverrideAssignmentUseCase {
     input: { id_part: number; rol: AssignmentRole; id_usuario: number },
     weekAssignments: Assignment[]
   ): Promise<AssignmentWarning[]> {
-    const recent = await this.assignmentsRepository.findRecentAssignments({ desde: sixMonthsAgo() });
+    const recent = await this.assignmentsRepository.findRecentAssignments({ desde: historyWindowStart() });
     const history = new AssignmentHistoryView(recent);
 
     // The counterpart on this part is the person in the opposite role.
@@ -83,7 +78,7 @@ export class OverrideAssignmentUseCase {
         warnings.push({
           code: 'REPEAT_PAIR_6M',
           message: `El publicador ${input.id_usuario} ya fue pareja del publicador ${counterpart.id_usuario} en los últimos 6 meses`,
-          detail: { since: sixMonthsAgo() },
+          detail: { since: historyWindowStart() },
         });
       }
     }
