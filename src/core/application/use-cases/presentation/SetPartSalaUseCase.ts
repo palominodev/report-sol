@@ -13,6 +13,13 @@ export class SetPartSalaUseCase {
   constructor(private readonly assignmentsRepository: IAssignmentsRepository) {}
 
   async execute(input: { id_part: number; sala: Sala | null }): Promise<void> {
+    // Non-finite ids (NaN from a non-numeric route segment) never reach SQL:
+    // the libsql driver rejects NaN args with a 500-grade error, so the use
+    // case maps them to the same NotFoundError as an unknown id.
+    if (!Number.isInteger(input.id_part)) {
+      throw new NotFoundError(`Presentación ${input.id_part} no encontrada`);
+    }
+
     const part = await this.assignmentsRepository.findPartById(input.id_part);
     if (!part) throw new NotFoundError(`Presentación ${input.id_part} no encontrada`);
 
