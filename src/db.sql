@@ -5,10 +5,15 @@ CREATE TABLE rol (
   rol TEXT NOT NULL UNIQUE
 );
 -- 2. Usuarios (debe estar antes de usuario_rol y grupo_usuario)
+-- genero/familia_id are part of the canonical schema. familia_id is
+-- intentionally FK-less: no familia table exists yet; when that feature
+-- lands, its migration decides whether usuario is recreated with a FK.
 CREATE TABLE usuario (
   id_usuario INTEGER PRIMARY KEY AUTOINCREMENT,
   nombre TEXT NOT NULL,
-  apellido TEXT NOT NULL
+  apellido TEXT NOT NULL,
+  genero TEXT CHECK(genero IN ('masculino','femenino')),
+  familia_id INTEGER
 );
 -- 3. Grupos (debe estar antes de grupo_usuario)
 CREATE TABLE grupo (
@@ -47,6 +52,7 @@ CREATE TABLE informe (
   año INTEGER NOT NULL,
   participacion BOOLEAN NOT NULL,
   trabajo_como_auxiliar BOOLEAN NOT NULL DEFAULT FALSE,
+  notas TEXT DEFAULT NULL,
   mes TEXT NOT NULL CHECK(
     mes IN (
       'ENE',
@@ -78,7 +84,6 @@ VALUES ('publicador'),
 
 -- ============================================================
 -- Asignaciones de la reunión Vida y Ministerio (presentation)
--- genero column on usuario is added by scripts/migrate-genero.ts.
 -- ============================================================
 CREATE TABLE IF NOT EXISTS presentation_week (
   id_week INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -97,7 +102,7 @@ CREATE TABLE IF NOT EXISTS presentation_part (
   id_week INTEGER NOT NULL,
   orden INTEGER NOT NULL,
   tipo TEXT NOT NULL CHECK(tipo IN
-    ('lectura_biblia','empiece_conversaciones','haga_revisitas','haga_discipulos','discurso')),
+    ('lectura_biblia','empiece_conversaciones','haga_revisitas','haga_discipulos','discurso','escenificacion','que_diria')),
   seccion TEXT NOT NULL CHECK(seccion IN ('TESOROS_DE_LA_BIBLIA','SEAMOS_MEJORES_MAESTROS')),
   duracion_min INTEGER NOT NULL CHECK(duracion_min > 0),
   escenario TEXT CHECK(escenario IS NULL OR escenario IN
