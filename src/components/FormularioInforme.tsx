@@ -31,7 +31,7 @@ export default function FormularioInforme({ id_usuario, nombre, apellido, roles,
   const fechaActual = new Date();
   const mesActualIdx = fechaActual.getMonth();
   const anioActual = fechaActual.getFullYear();
-  
+
   // Si estamos en enero (0), el informe es de diciembre (11) del año anterior
   const mesInformeIdx = mesActualIdx === 0 ? 11 : mesActualIdx - 1;
   const anioInforme = mesActualIdx === 0 ? anioActual - 1 : anioActual;
@@ -63,60 +63,65 @@ export default function FormularioInforme({ id_usuario, nombre, apellido, roles,
     }
   };
 
+  const inputClass =
+    'w-full border border-line-on-light bg-surface-light px-4 py-3 text-sm text-ink-on-light placeholder:text-ink-muted-on-light focus:outline-none focus:ring-2 focus:ring-brand';
+  const labelClass =
+    'mb-2 block text-[11px] font-semibold uppercase tracking-widest text-ink-muted-on-light';
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl shadow-lg w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-[#4A90E2] to-[#2E5BBA] rounded-t-xl p-6">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-[#4A90E2] bg-opacity-20 rounded-lg flex items-center justify-center">
-                <svg aria-hidden="true" className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-white text-balance">
-                  Registrar Informe
-                </h2>
-                <p className="text-blue-100 text-sm">
-                  {nombre} {apellido}
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={onClose}
-              className="w-8 h-8 bg-[#F44336] bg-opacity-20 rounded-lg flex items-center justify-center text-white hover:bg-opacity-30 transition-colors"
-            >
-              <svg aria-hidden="true" className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Registrar informe de ${nombre} ${apellido}`}
+        className="max-h-[90vh] w-full max-w-lg overflow-y-auto border border-line-on-light bg-surface-light"
+      >
+        {/* Header — jw.org pattern: solid brand band, square corners */}
+        <div className="flex items-center justify-between bg-brand p-5">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-white/80">
+              Registrar Informe
+            </p>
+            <h2 className="mt-0.5 text-xl font-bold text-white text-balance">
+              {nombre} {apellido}
+            </h2>
           </div>
+          <button
+            onClick={onClose}
+            aria-label="Cerrar"
+            className="flex h-8 w-8 items-center justify-center bg-white/15 text-white transition-colors duration-200 hover:bg-white/25"
+          >
+            <svg aria-hidden="true" className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
 
         {/* Content */}
         <div className="p-6">
           {/* User Info Card */}
-          <div className="bg-[#F5F5F5] rounded-lg p-4 mb-6">
+          <div className="mb-6 border border-line-on-light bg-brand-tint p-4">
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-[#4A90E2] to-[#2E5BBA] rounded-full flex items-center justify-center">
-                <span className="text-white font-semibold text-sm">
-                  {nombre.charAt(0)}{apellido.charAt(0)}
-                </span>
-              </div>
+              <span
+                aria-hidden="true"
+                className="flex h-12 w-12 shrink-0 items-center justify-center bg-brand text-sm font-semibold text-white"
+              >
+                {nombre.charAt(0)}
+                {apellido.charAt(0)}
+              </span>
               <div>
-                <h3 className="font-semibold text-[#333333] text-balance">
+                <h3 className="font-semibold text-ink-on-light text-balance">
                   {nombre} {apellido}
                 </h3>
-                <p className="text-sm text-[#666666]">
-                  ID: {id_usuario}
-                </p>
+                <p className="text-sm text-ink-muted-on-light">ID: {id_usuario}</p>
                 {roles.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-1">
+                  <div className="mt-1 flex flex-wrap gap-1">
                     {roles.map((rol, index) => (
-                      <span key={index} className="px-2 py-1 bg-[#E8F4FD] text-[#4A90E2] rounded-full text-xs font-medium">
-                        {rol}
+                      <span
+                        key={index}
+                        className="border border-brand px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-brand"
+                      >
+                        {rol.trim()}
                       </span>
                     ))}
                   </div>
@@ -128,15 +133,16 @@ export default function FormularioInforme({ id_usuario, nombre, apellido, roles,
           <form onSubmit={handleSubmit} className="space-y-6">
             {(!esPublicador || formData.trabajo_como_auxiliar) && (
               <div>
-                <label className="block text-sm font-semibold text-[#333333] mb-2">
+                <label htmlFor="informe-horas" className={labelClass}>
                   Horas
                 </label>
                 <input
+                  id="informe-horas"
                   type="number"
                   min="0"
-                  defaultValue={formData.horas || 0}
-                  onChange={(e) => setFormData({ ...formData, horas: parseInt(e.target.value) })}
-                  className="w-full px-4 py-3 border border-[#E0E0E0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent transition-all"
+                  value={formData.horas}
+                  onChange={(e) => setFormData({ ...formData, horas: parseInt(e.target.value) || 0 })}
+                  className={inputClass}
                   placeholder="Ingresa las horas"
                   required
                 />
@@ -144,57 +150,58 @@ export default function FormularioInforme({ id_usuario, nombre, apellido, roles,
             )}
 
             <div>
-              <label className="block text-sm font-semibold text-[#333333] mb-2">
+              <label htmlFor="informe-cursos" className={labelClass}>
                 Cursos
               </label>
               <input
+                id="informe-cursos"
                 type="number"
                 min="0"
-                defaultValue={formData.cursos || 0}
-                onChange={(e) => setFormData({ ...formData, cursos: parseInt(e.target.value) })}
-                className="w-full px-4 py-3 border border-[#E0E0E0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent transition-all"
+                value={formData.cursos}
+                onChange={(e) => setFormData({ ...formData, cursos: parseInt(e.target.value) || 0 })}
+                className={inputClass}
                 placeholder="Ingresa el número de cursos"
                 required
               />
             </div>
+
             <div>
-              <label className="block text-sm font-semibold text-[#333333] mb-2">
+              <label htmlFor="informe-notas" className={labelClass}>
                 Notas
               </label>
               <textarea
-                defaultValue={formData.notas || ''}
+                id="informe-notas"
+                value={formData.notas || ''}
                 onChange={(e) => setFormData({ ...formData, notas: e.target.value })}
-                className="w-full px-4 py-3 border border-[#E0E0E0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent transition-all"
+                className={inputClass}
                 placeholder="Ingresa las notas"
-                
+                rows={3}
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-[#333333] mb-2">
+                <label htmlFor="informe-año" className={labelClass}>
                   Año
                 </label>
                 <input
+                  id="informe-año"
                   disabled
                   type="number"
-                  min="2000"
-                  max="2100"
-                  defaultValue={formData.año || 0}
-                  onChange={(e) => setFormData({ ...formData, año: parseInt(e.target.value) })}
-                  className="w-full px-4 py-3 border border-[#E0E0E0] rounded-lg bg-[#F5F5F5] text-[#666666] cursor-not-allowed"
+                  value={formData.año || 0}
+                  className={`${inputClass} cursor-not-allowed opacity-60`}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-[#333333] mb-2">
+                <label htmlFor="informe-mes" className={labelClass}>
                   Mes
                 </label>
                 <select
+                  id="informe-mes"
                   disabled
-                  defaultValue={formData.mes}
-                  onChange={(e) => setFormData({ ...formData, mes: e.target.value })}
-                  className="w-full px-4 py-3 border border-[#E0E0E0] rounded-lg bg-[#F5F5F5] text-[#666666] cursor-not-allowed"
+                  value={formData.mes}
+                  className={`${inputClass} cursor-not-allowed opacity-60`}
                 >
                   {meses.map((mes) => (
                     <option key={mes} value={mes}>
@@ -205,67 +212,67 @@ export default function FormularioInforme({ id_usuario, nombre, apellido, roles,
               </div>
             </div>
 
-            <div className="bg-[#E8F4FD] rounded-lg p-4">
-              <label htmlFor="participacion" className="flex items-start cursor-pointer">
+            <div className="border border-line-on-light bg-brand-tint p-4">
+              <label htmlFor="participacion" className="flex cursor-pointer items-start">
                 <input
                   type="checkbox"
                   id="participacion"
-                  defaultChecked={formData.participacion}
+                  checked={formData.participacion}
                   onChange={(e) => setFormData({ ...formData, participacion: e.target.checked })}
-                  className="h-5 w-5 border-[#E0E0E0] rounded transition-colors mt-0.5 mr-3 checked:bg-[#4A90E2] checked:border-[#4A90E2] focus:ring-[#4A90E2] focus:ring-2"
+                  className="mr-3 mt-0.5 h-5 w-5 accent-brand"
                 />
-                <div>
-                  <span className="block text-sm font-medium text-[#333333]">
+                <span>
+                  <span className="block text-sm font-semibold text-ink-on-light">
                     Participación en el mes
                   </span>
-                  <p className="text-xs text-[#666666] mt-1">
+                  <span className="mt-1 block text-xs text-ink-muted-on-light">
                     Marca esta casilla si el miembro participó durante el mes seleccionado
-                  </p>
-                </div>
+                  </span>
+                </span>
               </label>
             </div>
 
-            {/* Nuevo checkbox para trabajo como auxiliar - solo para publicadores */}
+            {/* Checkbox para trabajo como auxiliar - solo para publicadores */}
             {esPublicador && (
-              <div className="bg-[#E8F5E8] rounded-lg p-4">
-                <label htmlFor="trabajo_como_auxiliar" className="flex items-start cursor-pointer">
+              <div className="border border-line-on-light bg-brand-tint p-4">
+                <label htmlFor="trabajo_como_auxiliar" className="flex cursor-pointer items-start">
                   <input
                     type="checkbox"
                     id="trabajo_como_auxiliar"
-                    defaultChecked={formData.trabajo_como_auxiliar}
+                    checked={formData.trabajo_como_auxiliar}
                     onChange={(e) => setFormData({ ...formData, trabajo_como_auxiliar: e.target.checked })}
-                    className="h-5 w-5 border-[#E0E0E0] rounded transition-colors mt-0.5 mr-3 checked:bg-[#4CAF50] checked:border-[#4CAF50] focus:ring-[#4CAF50] focus:ring-2"
+                    className="mr-3 mt-0.5 h-5 w-5 accent-brand"
                   />
-                  <div>
-                    <span className="block text-sm font-medium text-[#333333]">
+                  <span>
+                    <span className="block text-sm font-semibold text-ink-on-light">
                       Trabajó como Precursor Auxiliar
                     </span>
-                    <p className="text-xs text-[#666666] mt-1">
+                    <span className="mt-1 block text-xs text-ink-muted-on-light">
                       Marca esta casilla si el publicador trabajó como precursor auxiliar durante el mes seleccionado
-                    </p>
-                  </div>
+                    </span>
+                  </span>
                 </label>
               </div>
             )}
 
             {/* Action Buttons */}
-            <div className="flex justify-end space-x-3 pt-4 border-t border-[#E0E0E0]">
+            <div className="flex justify-end space-x-3 border-t border-line-on-light pt-4">
               <button
                 type="button"
                 onClick={onClose}
                 disabled={isSubmitting}
-                className={`px-6 py-3 text-sm font-semibold text-[#4A90E2] bg-white border border-[#4A90E2] rounded-lg transition-all ${isSubmitting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#E8F4FD]'}`}
+                className="border border-brand px-5 py-2.5 text-sm font-semibold text-brand transition-colors duration-200 hover:bg-brand-tint disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className={`px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-[#4A90E2] to-[#2E5BBA] rounded-lg shadow-sm transition-all flex items-center justify-center min-w-[150px] ${isSubmitting ? 'opacity-70 cursor-not-allowed' : 'hover:from-[#2E5BBA] hover:to-[#4A90E2]'}`}
+                className="flex min-w-[150px] items-center justify-center bg-brand px-5 py-2.5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {isSubmitting ? (
                   <>
-                    <svg aria-hidden="true" className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <svg aria-hidden="true" className="-ml-1 mr-2 h-4 w-4 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
@@ -281,4 +288,4 @@ export default function FormularioInforme({ id_usuario, nombre, apellido, roles,
       </div>
     </div>
   );
-} 
+}

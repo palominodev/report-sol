@@ -250,4 +250,23 @@ export class TursoInformeRepository implements IInformeRepository {
       notas: (row.notas as string | null) ?? null,
     }));
   }
+
+  async findUltimo(): Promise<{ año: number; mes: string } | null> {
+    const client = getDatabaseClient();
+
+    const result = await client.execute({
+      sql: 'SELECT año, mes FROM informe ORDER BY fecha_registro DESC LIMIT 1',
+      args: [],
+    });
+
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    const row = result.rows[0];
+    return {
+      año: row.año as number,
+      mes: row.mes as string,
+    };
+  }
 }

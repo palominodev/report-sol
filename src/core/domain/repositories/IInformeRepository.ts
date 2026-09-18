@@ -64,4 +64,10 @@ export interface IInformeRepository {
    * Retrieves all informes with user info filtered for export.
    */
   findAllWithUsersFilter(año: number | null, mes: string | null, rol: string | null, grupo: number | null): Promise<ExportableInformeRow[]>;
+
+  /**
+   * Retrieves the service period (año, mes) of the most recently registered informe.
+   * Returns null when no informes exist.
+   */
+  findUltimo(): Promise<{ año: number; mes: string } | null>;
 }
