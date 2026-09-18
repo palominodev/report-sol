@@ -194,8 +194,11 @@ async function verify(target: DatabaseClient): Promise<void> {
   const partSql = (
     await target.execute(`SELECT sql FROM sqlite_master WHERE name='presentation_part'`)
   ).rows[0]?.sql as string | undefined;
-  const checkOk = partSql?.includes('escenificacion') && partSql?.includes('que_diria');
-  console.log(`${checkOk ? '✅' : '❌'} presentation_part.tipo CHECK incluye escenificacion y que_diria`);
+  const checkOk =
+    partSql?.includes('que_diria') &&
+    partSql?.includes('explique_sus_creencias') &&
+    !partSql?.includes('escenificacion');
+  console.log(`${checkOk ? '✅' : '❌'} presentation_part.tipo CHECK canonico (que_diria + explique_sus_creencias, sin escenificacion)`);
   if (!checkOk) throw new Error('presentation_part CHECK is stale');
 
   // sala post-check mirrors the tipo-CHECK incident pattern: assert the stored
