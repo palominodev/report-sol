@@ -77,7 +77,7 @@ export class OverrideAssignmentUseCase {
       if (pairedWith.has(counterpart.id_usuario)) {
         warnings.push({
           code: 'REPEAT_PAIR_6M',
-          message: `El publicador ${input.id_usuario} ya fue pareja del publicador ${counterpart.id_usuario} en los últimos 6 meses`,
+          message: `El publicador ${input.id_usuario} ya fue pareja del publicador ${counterpart.id_usuario} en las últimas 26 semanas (~6 meses)`,
           detail: { since: historyWindowStart() },
         });
       }
