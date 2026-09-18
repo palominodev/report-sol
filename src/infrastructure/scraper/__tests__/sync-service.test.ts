@@ -59,9 +59,16 @@ describe('sync-service', () => {
         leccion INTEGER,
         punto TEXT,
         sala TEXT CHECK(sala IS NULL OR sala IN ('A','B')),
-        UNIQUE(id_week, tipo, orden),
         FOREIGN KEY (id_week) REFERENCES presentation_week(id_week) ON DELETE CASCADE
       );
+    `);
+
+    // Sala-aware expression unique index — mirrors the post-migration shape
+    // (no table-level UNIQUE): an A original and its B clone coexist per
+    // (week, tipo, orden), same-slot duplicates are blocked.
+    await inMemoryDb.execute(`
+      CREATE UNIQUE INDEX ux_part_week_tipo_orden_sala
+        ON presentation_part(id_week, tipo, orden, COALESCE(sala, ''));
     `);
 
     await inMemoryDb.execute(`

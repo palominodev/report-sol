@@ -89,33 +89,81 @@ export class TursoAssignmentsRepository implements IAssignmentsRepository {
     });
     const id_week = Number(weekResult.rows[0].id_week);
 
-    const partStatements: InStatement[] = parts.map((p) => ({
-      sql: `INSERT INTO presentation_part
-        (id_week, orden, tipo, seccion, duracion_min, escenario, fuente, leccion, punto, sala)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT(id_week, tipo, orden) DO UPDATE SET
-          seccion = excluded.seccion,
-          duracion_min = excluded.duracion_min,
-          escenario = excluded.escenario,
-          fuente = excluded.fuente,
-          leccion = excluded.leccion,
-          punto = excluded.punto,
-          sala = COALESCE(excluded.sala, presentation_part.sala)`,
-      args: [
-        id_week,
-        p.orden,
-        p.tipo,
-        p.seccion,
-        p.duracion_min,
-        p.escenario,
-        p.fuente.fuente,
-        p.fuente.leccion ?? null,
-        p.fuente.punto ?? null,
-        p.sala ?? null,
-      ],
-    }));
+    if (parts.length === 0) return id_week;
 
-    await client.batch(partStatements);
+    // SELECT-then-merge (adoption-aware): read what the week already holds so
+    // a re-sync refreshes adopted rows instead of conflicting with them.
+    const existing = await client.execute({
+      sql: 'SELECT id_part, tipo, orden FROM presentation_part WHERE id_week = ?',
+      args: [id_week],
+    });
+    // Key `${tipo}|${orden}` can map to several rows post-adoption: the 'A'
+    // original and its 'B' clone. Every twin is refreshed by the merge.
+    const existingByKey = new Map<string, number[]>();
+    for (const row of existing.rows) {
+      const key = `${row.tipo}|${row.orden}`;
+      const ids = existingByKey.get(key);
+      if (ids) ids.push(Number(row.id_part));
+      else existingByKey.set(key, [Number(row.id_part)]);
+    }
+
+    const statements: InStatement[] = [];
+    for (const p of parts) {
+      const matches = existingByKey.get(`${p.tipo}|${p.orden}`);
+      if (!matches || matches.length === 0) {
+        // INSERT branch. The expression-index conflict target is a RACE GUARD
+        // only: spike A5 proved a naive upsert cannot see NULL-vs-stamped, so
+        // matching is decided by the SELECT above, not by the conflict target.
+        // COALESCE keeps any sala a concurrent writer stamped in between.
+        statements.push({
+          sql: `INSERT INTO presentation_part
+            (id_week, orden, tipo, seccion, duracion_min, escenario, fuente, leccion, punto, sala)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(id_week, tipo, orden, COALESCE(sala, ''))
+            DO UPDATE SET sala = COALESCE(excluded.sala, presentation_part.sala)`,
+          args: [
+            id_week,
+            p.orden,
+            p.tipo,
+            p.seccion,
+            p.duracion_min,
+            p.escenario,
+            p.fuente.fuente,
+            p.fuente.leccion ?? null,
+            p.fuente.punto ?? null,
+            p.sala ?? null,
+          ],
+        });
+      } else {
+        // UPDATE branch: refresh metadata on each twin; the per-row COALESCE
+        // preserves a stamped sala when the sync comes in with NULL.
+        for (const id_part of matches) {
+          statements.push({
+            sql: `UPDATE presentation_part SET
+              seccion = ?,
+              duracion_min = ?,
+              escenario = ?,
+              fuente = ?,
+              leccion = ?,
+              punto = ?,
+              sala = COALESCE(?, sala)
+              WHERE id_part = ?`,
+            args: [
+              p.seccion,
+              p.duracion_min,
+              p.escenario,
+              p.fuente.fuente,
+              p.fuente.leccion ?? null,
+              p.fuente.punto ?? null,
+              p.sala ?? null,
+              id_part,
+            ],
+          });
+        }
+      }
+    }
+
+    if (statements.length > 0) await client.batch(statements);
     return id_week;
   }
 
@@ -164,6 +212,47 @@ export class TursoAssignmentsRepository implements IAssignmentsRepository {
       sql: `UPDATE presentation_part SET sala = ? WHERE id_part = ?`,
       args: [sala, id_part],
     });
+  }
+
+  async bulkUpdatePartSala(updates: { id_part: number; sala: Sala | null }[]): Promise<void> {
+    if (updates.length === 0) return;
+    const client = getDatabaseClient();
+    // Same direct-UPDATE semantics as updatePartSala (null = explicit clear),
+    // applied atomically in one batch for adoption plans.
+    await client.batch(
+      updates.map((u) => ({
+        sql: `UPDATE presentation_part SET sala = ? WHERE id_part = ?`,
+        args: [u.sala, u.id_part],
+      }))
+    );
+  }
+
+  async insertParts(parts: PresentationPart[]): Promise<void> {
+    if (parts.length === 0) return;
+    const client = getDatabaseClient();
+    // Plain INSERT in one batch (ids assigned by the DB): sala-B clones share
+    // (tipo, orden) with their 'A' original, so upsertWeek's merge would treat
+    // them as the same part — clones must bypass it. No assignment rows are
+    // created; the unique index rejects same-slot duplicates.
+    await client.batch(
+      parts.map((p) => ({
+        sql: `INSERT INTO presentation_part
+          (id_week, orden, tipo, seccion, duracion_min, escenario, fuente, leccion, punto, sala)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        args: [
+          p.id_week,
+          p.orden,
+          p.tipo,
+          p.seccion,
+          p.duracion_min,
+          p.escenario,
+          p.fuente.fuente,
+          p.fuente.leccion ?? null,
+          p.fuente.punto ?? null,
+          p.sala ?? null,
+        ],
+      }))
+    );
   }
 
   async findAssignmentsByWeek(id_week: number): Promise<Assignment[]> {
