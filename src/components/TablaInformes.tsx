@@ -83,10 +83,11 @@ export default function TablaInformes({ informes, onRefresh, onVisibleCountChang
   };
 
   const informesOrdenados = useMemo(() => {
-    if (!orden.campo) return informesFiltrados;
+    const campo = orden.campo;
+    if (!campo) return informesFiltrados;
     const factor = orden.dir === 'asc' ? 1 : -1;
     const valor = (informe: InformeTabla): string | number => {
-      switch (orden.campo) {
+      switch (campo) {
         case 'publicador': return `${informe.nombre} ${informe.apellido}`.toLowerCase();
         case 'grupo': return (informe.nombre_grupo || '').toLowerCase();
         case 'periodo': return informe.año * 12 + (MESES_IDX[informe.mes] ?? 0);
