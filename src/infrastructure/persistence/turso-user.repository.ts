@@ -170,11 +170,12 @@ export class TursoUserRepository implements IUserRepository {
     const client = getDatabaseClient();
 
     const query = `
-      SELECT 
-        u.id_usuario, 
-        u.nombre, 
-        u.apellido, 
+      SELECT
+        u.id_usuario,
+        u.nombre,
+        u.apellido,
         u.genero,
+        gu.id_grupo,
         GROUP_CONCAT(r.rol) as roles,
         g.nombre as grupo
       FROM usuario u
@@ -183,7 +184,7 @@ export class TursoUserRepository implements IUserRepository {
       LEFT JOIN grupo_usuario gu ON u.id_usuario = gu.id_usuario
       LEFT JOIN grupo g ON gu.id_grupo = g.id_grupo
       ${grupoId ? 'WHERE g.id_grupo = ?' : ''}
-      GROUP BY u.id_usuario, u.nombre, u.apellido, g.nombre
+      GROUP BY u.id_usuario, u.nombre, u.apellido, gu.id_grupo, g.nombre
     `;
 
     const result = await client.execute({
