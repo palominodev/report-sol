@@ -102,7 +102,7 @@ CREATE TABLE IF NOT EXISTS presentation_part (
   id_week INTEGER NOT NULL,
   orden INTEGER NOT NULL,
   tipo TEXT NOT NULL CHECK(tipo IN
-    ('lectura_biblia','empiece_conversaciones','haga_revisitas','haga_discipulos','discurso','escenificacion','que_diria')),
+    ('lectura_biblia','empiece_conversaciones','haga_revisitas','haga_discipulos','discurso','que_diria','explique_sus_creencias')),
   seccion TEXT NOT NULL CHECK(seccion IN ('TESOROS_DE_LA_BIBLIA','SEAMOS_MEJORES_MAESTROS')),
   duracion_min INTEGER NOT NULL CHECK(duracion_min > 0),
   escenario TEXT CHECK(escenario IS NULL OR escenario IN
