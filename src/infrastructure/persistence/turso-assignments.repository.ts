@@ -11,6 +11,7 @@ import {
   MeetingSection,
   PresentationSetting,
   PresentationType,
+  Sala,
   WeekState,
 } from '@/domain/entities/presentation/enums';
 import type { InStatement } from '@libsql/client';
@@ -39,7 +40,8 @@ function toPart(row: Record<string, unknown>): PresentationPart {
       row.fuente as 'lmd' | 'th' | 'bib',
       row.leccion == null ? undefined : Number(row.leccion),
       (row.punto as string | undefined) ?? undefined
-    )
+    ),
+    (row.sala as Sala | null) ?? null
   );
 }
 
@@ -61,11 +63,13 @@ function toHistoryRow(row: Record<string, unknown>): AssignmentHistoryRow {
     id_usuario: Number(row.id_usuario),
     rol: row.rol as AssignmentRole,
     tipo: row.tipo as PresentationType,
+    sala: (row.sala as Sala | null) ?? null,
   };
 }
 
 const WEEK_COLS = 'id_week, semana, issue, fecha_inicio, fecha_fin, estado';
-const PART_COLS = 'id_part, id_week, orden, tipo, seccion, duracion_min, escenario, fuente, leccion, punto';
+const PART_COLS =
+  'id_part, id_week, orden, tipo, seccion, duracion_min, escenario, fuente, leccion, punto, sala';
 const ASSIGNMENT_COLS = 'id_asignacion, id_part, id_week, id_usuario, rol, estado';
 
 export class TursoAssignmentsRepository implements IAssignmentsRepository {
@@ -87,15 +91,16 @@ export class TursoAssignmentsRepository implements IAssignmentsRepository {
 
     const partStatements: InStatement[] = parts.map((p) => ({
       sql: `INSERT INTO presentation_part
-        (id_week, orden, tipo, seccion, duracion_min, escenario, fuente, leccion, punto)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (id_week, orden, tipo, seccion, duracion_min, escenario, fuente, leccion, punto, sala)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(id_week, tipo, orden) DO UPDATE SET
           seccion = excluded.seccion,
           duracion_min = excluded.duracion_min,
           escenario = excluded.escenario,
           fuente = excluded.fuente,
           leccion = excluded.leccion,
-          punto = excluded.punto`,
+          punto = excluded.punto,
+          sala = COALESCE(excluded.sala, presentation_part.sala)`,
       args: [
         id_week,
         p.orden,
@@ -106,6 +111,7 @@ export class TursoAssignmentsRepository implements IAssignmentsRepository {
         p.fuente.fuente,
         p.fuente.leccion ?? null,
         p.fuente.punto ?? null,
+        p.sala ?? null,
       ],
     }));
 
@@ -162,7 +168,7 @@ export class TursoAssignmentsRepository implements IAssignmentsRepository {
   async findRecentAssignments(opts: { desde: string }): Promise<AssignmentHistoryRow[]> {
     const client = getDatabaseClient();
     const result = await client.execute({
-      sql: `SELECT a.id_part, a.id_week, a.id_usuario, a.rol, p.tipo
+      sql: `SELECT a.id_part, a.id_week, a.id_usuario, a.rol, p.tipo, p.sala
         FROM presentation_assignment a
         JOIN presentation_week w ON a.id_week = w.id_week
         JOIN presentation_part p ON a.id_part = p.id_part

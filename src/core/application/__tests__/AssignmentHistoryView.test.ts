@@ -1,15 +1,17 @@
 import { describe, it, expect } from 'vitest';
 import { AssignmentHistoryView } from '../use-cases/presentation/AssignmentHistoryView';
 import { AssignmentHistoryRow } from '@/core/domain/presentations/types';
+import type { Sala } from '@/domain/entities/presentation/enums';
 
 function row(
   idPart: number,
   idWeek: number,
   idUsuario: number,
   rol: 'presentador' | 'companero',
-  tipo: string
+  tipo: string,
+  sala: Sala | null = null
 ): AssignmentHistoryRow {
-  return { id_part: idPart, id_week: idWeek, id_usuario: idUsuario, rol, tipo: tipo as never };
+  return { id_part: idPart, id_week: idWeek, id_usuario: idUsuario, rol, tipo: tipo as never, sala };
 }
 
 describe('AssignmentHistoryView', () => {

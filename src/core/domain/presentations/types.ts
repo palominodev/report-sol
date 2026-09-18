@@ -1,15 +1,17 @@
 import { Assignment } from '@/domain/entities/presentation/Assignment';
 import { AssignablePerson } from '@/domain/entities/presentation/AssignablePerson';
-import { AssignmentRole, PresentationType } from '@/domain/entities/presentation/enums';
+import { AssignmentRole, PresentationType, Sala } from '@/domain/entities/presentation/enums';
 import { PresentationPart } from '@/domain/entities/presentation/PresentationPart';
 
-/** Read-only windowed history row: assignment + its part tipo (R4/R6 feeds). */
+/** Read-only windowed history row: assignment + its part tipo/sala (R4/R6/sala feeds). */
 export interface AssignmentHistoryRow {
   id_part: number;
   id_week: number;
   id_usuario: number;
   rol: AssignmentRole;
   tipo: PresentationType;
+  /** Room of the assigned part; NULL passes through, never defaulted. */
+  sala: Sala | null;
 }
 
 /** Read-only view over recent history within the 6-month window. */

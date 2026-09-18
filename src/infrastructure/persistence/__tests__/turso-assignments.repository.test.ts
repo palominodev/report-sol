@@ -2,6 +2,9 @@ import { describe, it, expect, afterEach } from 'vitest';
 import { createClient } from '@libsql/client';
 import { TursoAssignmentsRepository } from '../turso-assignments.repository';
 import { setDatabaseClient } from '../database.client';
+import { MeetingWeek } from '@/domain/entities/presentation/MeetingWeek';
+import { PresentationPart } from '@/domain/entities/presentation/PresentationPart';
+import { SourceRef } from '@/domain/entities/presentation/SourceRef';
 
 type DatabaseClient = ReturnType<typeof createClient>;
 
@@ -29,6 +32,7 @@ async function freshClient(): Promise<DatabaseClient> {
     fuente TEXT NOT NULL,
     leccion INTEGER,
     punto TEXT,
+    sala TEXT,
     UNIQUE(id_week, tipo, orden)
   )`);
   await client.execute(`CREATE TABLE presentation_assignment (
@@ -115,7 +119,7 @@ describe('TursoAssignmentsRepository.findRecentAssignments', () => {
     const rows = await repo.findRecentAssignments({ desde: '2026-01-01' });
 
     expect(rows).toEqual([
-      { id_part, id_week, id_usuario: 1, rol: 'presentador', tipo: 'explique_sus_creencias' },
+      { id_part, id_week, id_usuario: 1, rol: 'presentador', tipo: 'explique_sus_creencias', sala: null },
     ]);
   });
 
@@ -156,5 +160,91 @@ describe('TursoAssignmentsRepository.findRecentAssignments', () => {
     expect(rows).toHaveLength(2);
     expect(rows.map((r) => r.rol).sort()).toEqual(['companero', 'presentador']);
     expect(rows.every((r) => r.id_part === id_part && r.tipo === 'explique_sus_creencias')).toBe(true);
+  });
+
+  it('projects sala from presentation_part onto each history row, NULL passes through', async () => {
+    const client = await freshClient();
+    setDatabaseClient(client);
+    const repo = new TursoAssignmentsRepository();
+
+    const { id_week, id_part } = await seedWeekWithPart(
+      client,
+      '2026/07/01',
+      '2026-07-01',
+      'explique_sus_creencias'
+    );
+    await client.execute({ sql: 'UPDATE presentation_part SET sala = ? WHERE id_part = ?', args: ['B', id_part] });
+    await assign(client, id_part, id_week, 1, 'presentador');
+
+    const nula = await seedWeekWithPart(client, '2026/07/08', '2026-07-08', 'discurso');
+    await assign(client, nula.id_part, nula.id_week, 2, 'presentador');
+
+    const rows = await repo.findRecentAssignments({ desde: '2026-01-01' });
+
+    expect(rows.find((r) => r.id_part === id_part)?.sala).toBe('B');
+    expect(rows.find((r) => r.id_part === nula.id_part)?.sala).toBeNull();
+  });
+});
+
+describe('TursoAssignmentsRepository sala projection (toPart/upsertWeek)', () => {
+  function week(fecha: string, semana: string): MeetingWeek {
+    return new MeetingWeek(0, semana, 'LMD', fecha, fecha, 'no_generada');
+  }
+
+  function part(orden: number, tipo: PresentationPart['tipo'], sala: PresentationPart['sala']): PresentationPart {
+    return new PresentationPart(0, 0, orden, tipo, 'SEAMOS_MEJORES_MAESTROS', 5, null, new SourceRef('lmd'), sala);
+  }
+
+  it('toPart maps sala through findPartsByWeek, NULL never defaulted', async () => {
+    const client = await freshClient();
+    setDatabaseClient(client);
+    const repo = new TursoAssignmentsRepository();
+
+    const stamped = await seedWeekWithPart(client, '2026/07/01', '2026-07-01', 'discurso');
+    await client.execute({ sql: 'UPDATE presentation_part SET sala = ? WHERE id_part = ?', args: ['A', stamped.id_part] });
+    const nula = await seedWeekWithPart(client, '2026/07/08', '2026-07-08', 'discurso');
+
+    const stampedParts = await repo.findPartsByWeek(stamped.id_week);
+    const nulaParts = await repo.findPartsByWeek(nula.id_week);
+
+    expect(stampedParts[0].sala).toBe('A');
+    expect(nulaParts[0].sala).toBeNull();
+  });
+
+  it('upsertWeek persists sala on fresh parts', async () => {
+    const client = await freshClient();
+    setDatabaseClient(client);
+    const repo = new TursoAssignmentsRepository();
+
+    const id_week = await repo.upsertWeek(week('2026-07-01', '2026/07/01'), [part(1, 'discurso', 'B')]);
+
+    const parts = await repo.findPartsByWeek(id_week);
+    expect(parts[0].sala).toBe('B');
+  });
+
+  it('upsertWeek COALESCE preserves a stamped sala across a NULL re-upsert (scraper sync erosion guard)', async () => {
+    const client = await freshClient();
+    setDatabaseClient(client);
+    const repo = new TursoAssignmentsRepository();
+
+    // First sync carries the known sala; backfill-equivalent stamping.
+    const id_week = await repo.upsertWeek(week('2026-07-01', '2026/07/01'), [part(1, 'discurso', 'A')]);
+    // Scraper re-syncs the same week WITHOUT room info (sala null).
+    await repo.upsertWeek(week('2026-07-01', '2026/07/01'), [part(1, 'discurso', null)]);
+
+    const parts = await repo.findPartsByWeek(id_week);
+    expect(parts[0].sala).toBe('A');
+  });
+
+  it('upsertWeek overwrites sala when the sync explicitly provides one', async () => {
+    const client = await freshClient();
+    setDatabaseClient(client);
+    const repo = new TursoAssignmentsRepository();
+
+    const id_week = await repo.upsertWeek(week('2026-07-01', '2026/07/01'), [part(1, 'discurso', 'A')]);
+    await repo.upsertWeek(week('2026-07-01', '2026/07/01'), [part(1, 'discurso', 'B')]);
+
+    const parts = await repo.findPartsByWeek(id_week);
+    expect(parts[0].sala).toBe('B');
   });
 });

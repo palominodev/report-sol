@@ -5,6 +5,7 @@ import {
   MeetingSection,
   PresentationSetting,
   PresentationType,
+  Sala,
 } from '@/domain/entities/presentation/enums';
 import { ValidationError } from '@/core/domain/errors/ValidationError';
 import { IAssignmentsRepository } from '@/core/domain/presentations/IAssignmentsRepository';
@@ -16,6 +17,8 @@ export interface WeekPartInput {
   duracion_min: number;
   escenario: PresentationSetting | null;
   fuente: SourceRef | { fuente: 'lmd' | 'th' | 'bib'; leccion?: number; punto?: string };
+  /** Room when known; the scraper omits it and NULL is persisted. */
+  sala?: Sala | null;
 }
 
 export interface CreateMeetingWeekInput {
@@ -53,7 +56,8 @@ export class CreateMeetingWeekUseCase {
         p.seccion,
         p.duracion_min,
         p.escenario,
-        fuente
+        fuente,
+        p.sala ?? null
       );
     });
 

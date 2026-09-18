@@ -58,6 +58,7 @@ describe('sync-service', () => {
         fuente TEXT NOT NULL,
         leccion INTEGER,
         punto TEXT,
+        sala TEXT CHECK(sala IS NULL OR sala IN ('A','B')),
         UNIQUE(id_week, tipo, orden),
         FOREIGN KEY (id_week) REFERENCES presentation_week(id_week) ON DELETE CASCADE
       );
@@ -151,6 +152,12 @@ describe('sync-service', () => {
 
       const partsRes = await inMemoryDb.execute('SELECT COUNT(*) as count FROM presentation_part');
       expect(Number(partsRes.rows[0].count)).toBe(32);
+
+      // Scraper output has no room source: every scraped part syncs with sala NULL.
+      const salaRes = await inMemoryDb.execute(
+        "SELECT COUNT(*) as count FROM presentation_part WHERE sala IS NULL"
+      );
+      expect(Number(salaRes.rows[0].count)).toBe(32);
     });
 
     it('throws error when no week links are found', async () => {
