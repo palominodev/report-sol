@@ -14,12 +14,36 @@ import { join } from 'path';
  *
  * Tables are copied in FK-safe order with explicit column lists so primary
  * keys are preserved.
+ *
+ * ROLLOUT-AWARE: presentation_* tables are pulled only when they exist in
+ * production. When production lacks them, local presentation_assignment rows
+ * are still cleared (they FK-reference usuario with ON DELETE RESTRICT and
+ * would block the usuario refresh), but presentation_week,
+ * presentation_part and presentation_sync_state are preserved so scraped
+ * weeks survive and assignments can be regenerated afterwards.
  */
 
-// FK-safe INSERT order: parents before children.
-const INSERT_ORDER = ['rol', 'usuario', 'grupo', 'usuario_rol', 'grupo_usuario', 'informe'] as const;
-// FK-safe DELETE order: children before parents (reverse of INSERT_ORDER).
-const DELETE_ORDER = [...INSERT_ORDER].reverse();
+// FK-safe base order: parents before children. Always pulled.
+const BASE_INSERT_ORDER = [
+  'rol',
+  'usuario',
+  'grupo',
+  'usuario_rol',
+  'grupo_usuario',
+  'informe',
+] as const;
+
+// Optional tables, pulled only when present in production (feature rollout).
+// Must already exist locally (create with pnpm db:push first).
+const OPTIONAL_INSERT_ORDER = [
+  'presentation_week',
+  'presentation_part',
+  'presentation_assignment',
+] as const;
+
+// Local tables that must be cleared for DELETE FK-safety even when they are
+// not pulled (they reference base tables with ON DELETE RESTRICT).
+const ALWAYS_CLEAR = ['presentation_assignment'] as const;
 
 function loadProdEnv(): Record<string, string> {
   const envPath = join(process.cwd(), '.env');
@@ -37,6 +61,15 @@ function loadProdEnv(): Record<string, string> {
     }
   }
   return envVars;
+}
+
+async function getTables(
+  client: ReturnType<typeof createClient>
+): Promise<Set<string>> {
+  const result = await client.execute(
+    `SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'`
+  );
+  return new Set(result.rows.map((row) => String(row.name)));
 }
 
 function sqlValue(value: unknown): string {
@@ -128,16 +161,50 @@ async function main(): Promise<void> {
   const prod = createClient({ url: prodUrl, authToken: prodToken });
   const local = createClient({ url: `file:${localPath}` });
 
+  const prodTables = await getTables(prod);
+  const localTables = await getTables(local);
+
+  const missingInProd = BASE_INSERT_ORDER.filter((t) => !prodTables.has(t));
+  if (missingInProd.length > 0) {
+    throw new Error(`Refusing to run: base tables missing in production: ${missingInProd.join(', ')}`);
+  }
+
+  // Build the pull list: base tables plus optional tables present in both
+  // production and local. Warn about rollout drift in either direction.
+  const pull: string[] = [...BASE_INSERT_ORDER];
+  for (const table of OPTIONAL_INSERT_ORDER) {
+    if (prodTables.has(table) && localTables.has(table)) {
+      pull.push(table);
+    } else if (prodTables.has(table) && !localTables.has(table)) {
+      console.warn(`⚠️  ${table}: exists in production but not locally — run "pnpm db:push" to create it. Skipping.`);
+    }
+  }
+  const preservedLocally = [...OPTIONAL_INSERT_ORDER, 'presentation_sync_state'].filter(
+    (t) => !prodTables.has(t) && localTables.has(t)
+  );
+
+  // FK-safe DELETE order: children before parents.
+  // ALWAYS_CLEAR entries go first even when not pulled (FK release), then the
+  // reverse of the pull list without them.
+  const deleteOrder: string[] = [
+    ...ALWAYS_CLEAR.filter((t) => localTables.has(t)),
+    ...[...pull].reverse().filter((t) => !ALWAYS_CLEAR.includes(t as (typeof ALWAYS_CLEAR)[number])),
+  ];
+
   console.log('📥 Copying production data → data/local.db (production is read-only)');
+  if (preservedLocally.length > 0) {
+    console.log(`ℹ️  Not in production, preserved locally: ${preservedLocally.join(', ')}`);
+    console.log('ℹ️  presentation_assignment cleared locally (FK-safety) — regenerate from semanas.');
+  }
 
   // Phase 1: clear local tables children-first so FK checks pass.
-  for (const table of DELETE_ORDER) {
+  for (const table of deleteOrder) {
     await local.execute(`DELETE FROM ${table}`);
   }
 
   // Phase 2: copy parents-first so FK checks pass on insert.
   let mismatch = false;
-  for (const table of INSERT_ORDER) {
+  for (const table of pull) {
     const added = await syncColumns(prod, local, table);
     if (added.length > 0) {
       console.log(`ℹ️  ${table}: mirrored drifted columns from production: ${added.join(', ')}`);
