@@ -10,7 +10,7 @@ import { MatchingRule, HistoryView } from '../types';
 import { AssignablePerson } from '@/domain/entities/presentation/AssignablePerson';
 import { PresentationPart } from '@/domain/entities/presentation/PresentationPart';
 import { SourceRef } from '@/domain/entities/presentation/SourceRef';
-import { Genero } from '@/domain/entities/presentation/enums';
+import { Genero, Sala } from '@/domain/entities/presentation/enums';
 
 function person(
   id: number,
@@ -21,9 +21,21 @@ function person(
   return new AssignablePerson(id, `Nombre${id}`, `Apellido${id}`, genero, cargo, familiaId);
 }
 
-function part(id: number, idWeek: number, orden: number, requiresCompanero = true): PresentationPart {
+function part(id: number, idWeek: number, orden: number, requiresCompanero = true, sala: Sala | null = null): PresentationPart {
   const tipo = requiresCompanero ? 'empiece_conversaciones' : 'lectura_biblia';
-  return new PresentationPart(id, idWeek, orden, tipo, 'TESOROS_DE_LA_BIBLIA', 4, null, new SourceRef('lmd', 1));
+  return new PresentationPart(id, idWeek, orden, tipo, 'TESOROS_DE_LA_BIBLIA', 4, null, new SourceRef('lmd', 1), sala);
+}
+
+/**
+ * Mirrored week fixture: each original (sala A) is paired with its B clone at
+ * the same orden, and clone ids are greater than original ids — exactly the
+ * shape AdoptSalaRoomsUseCase produces after adoption.
+ */
+function mirroredWeek(idWeek: number, groups: { originalId: number; cloneId: number; orden: number; twoPerson?: boolean }[]): PresentationPart[] {
+  return groups.flatMap(({ originalId, cloneId, orden, twoPerson = true }) => [
+    part(originalId, idWeek, orden, twoPerson, 'A'),
+    part(cloneId, idWeek, orden, twoPerson, 'B'),
+  ]);
 }
 
 function historyOf(map: Record<number, number[]>): HistoryView {
@@ -199,5 +211,102 @@ describe('AssignmentMatcher', () => {
     expect(result.unassigned).toHaveLength(0);
     const roles = new Set(result.assignments.map((a) => a.rol));
     expect(roles).toEqual(new Set(['presentador', 'companero']));
+  });
+});
+
+describe('AssignmentMatcher mirrored-week regression (sala mirror, R4)', () => {
+  it('fills both rooms of a mirrored week and never double-books a person across rooms', () => {
+    const persons = Array.from({ length: 8 }, (_, i) => person(i + 1, 'masculino'));
+    // Two mirrored groups: A originals + B clones → 4 two-person parts, 8 slots.
+    const parts = mirroredWeek(100, [
+      { originalId: 10, cloneId: 11, orden: 1 },
+      { originalId: 12, cloneId: 13, orden: 2 },
+    ]);
+    const { matcher } = buildMatcher();
+
+    const result = matcher.match(parts, persons, historyOf({}));
+
+    expect(result.unassigned).toEqual([]);
+    expect(result.assignments).toHaveLength(8);
+    // Both rooms filled: every original and every clone received both roles.
+    const partIds = new Set(result.assignments.map((a) => a.id_part));
+    expect(partIds).toEqual(new Set([10, 11, 12, 13]));
+    for (const idPart of partIds) {
+      const roles = result.assignments.filter((a) => a.id_part === idPart).map((a) => a.rol);
+      expect(roles.sort()).toEqual(['companero', 'presentador']);
+    }
+    // No person in both rooms: each id_usuario appears exactly once in the week.
+    const counts = new Map<number, number>();
+    for (const a of result.assignments) {
+      counts.set(a.id_usuario, (counts.get(a.id_usuario) ?? 0) + 1);
+    }
+    expect(counts.size).toBe(8);
+    for (const count of counts.values()) expect(count).toBe(1);
+  });
+
+  it('fills the A original before its B clone deterministically on every run (id_part tie-break)', () => {
+    // Clone ids > original ids ⇒ compareByTightness processes each A original
+    // before its B clone whenever tightness ties (same role count).
+    const parts = mirroredWeek(100, [{ originalId: 10, cloneId: 11, orden: 1 }]);
+    // Thin pool: exactly enough people for the part processed first.
+    const persons = [person(1, 'masculino'), person(2, 'masculino')];
+    const { matcher } = buildMatcher();
+
+    const results = Array.from({ length: 5 }, () => matcher.match(parts, persons, historyOf({})));
+
+    for (const result of results) {
+      // The A original takes the pool; its B clone is starved.
+      expect(result.assignments.map((a) => a.id_part)).toEqual([10, 10]);
+      expect(result.unassigned).toEqual([
+        { part: parts[1], role: 'presentador', reason: 'no_eligible_candidate' },
+      ]);
+    }
+    // Deterministic on every run: identical assignment output across all runs.
+    expect(new Set(results.map((r) => JSON.stringify(r.assignments))).size).toBe(1);
+  });
+
+  it('does not trip the R4 tipo rule when the same tipo runs in both rooms (history is per person)', () => {
+    const persons = Array.from({ length: 5 }, (_, i) => person(i + 1, 'masculino'));
+    // Duplicated tipo across rooms: both parts are empiece_conversaciones.
+    const parts = mirroredWeek(100, [{ originalId: 10, cloneId: 11, orden: 1 }]);
+    // Only person 1 already held this tipo in-window; NoRepeatTipoRule consults
+    // per-person history, never the current week's in-flight assignments.
+    const history: HistoryView = {
+      ...historyOf({}),
+      tipoHistoryWithin6mo: (id) => (id === 1 ? new Set(['empiece_conversaciones' as const]) : new Set()),
+    };
+    const { matcher } = buildMatcher();
+
+    const result = matcher.match(parts, persons, history);
+
+    // The room-duplicated tipo itself blocks nobody but person 1 (own history).
+    expect(result.unassigned).toEqual([]);
+    expect(result.assignments).toHaveLength(4); // both rooms filled by persons 2–5
+    expect(result.assignments.some((a) => a.id_usuario === 1)).toBe(false);
+  });
+
+  it('surfaces unassigned slots when a mirrored week has a thin pool', () => {
+    const persons = [person(1, 'masculino'), person(2, 'masculino'), person(3, 'masculino')];
+    // 4 two-person parts (8 slots) for 3 people: starvation is unavoidable.
+    const parts = mirroredWeek(100, [
+      { originalId: 10, cloneId: 11, orden: 1 },
+      { originalId: 12, cloneId: 13, orden: 2 },
+    ]);
+    const { matcher } = buildMatcher();
+
+    const result = matcher.match(parts, persons, historyOf({}));
+
+    expect(result.unassigned.length).toBeGreaterThan(0);
+    // Every unassigned slot points at a real mirrored part with a diagnostic reason.
+    for (const slot of result.unassigned) {
+      expect(parts.map((p) => p.id_part)).toContain(slot.part.id_part);
+      expect(['no_eligible_candidate', 'no_feasible_candidate']).toContain(slot.reason);
+    }
+    // Whatever got assigned still respects the double-book invariant.
+    const counts = new Map<number, number>();
+    for (const a of result.assignments) {
+      counts.set(a.id_usuario, (counts.get(a.id_usuario) ?? 0) + 1);
+    }
+    for (const count of counts.values()) expect(count).toBe(1);
   });
 });

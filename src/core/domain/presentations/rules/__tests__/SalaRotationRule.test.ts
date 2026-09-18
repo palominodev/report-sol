@@ -70,6 +70,16 @@ describe('SalaRotationRule (joint sala+acompañante repeat, soft)', () => {
     expect(rule.score(context)).toBe(-REPEAT_SALA_PARTNER_PENALTY);
   });
 
+  it('penalizes room-B repeats symmetrically (B# combos are evaluated, not just A#)', () => {
+    // Mirrored weeks put clones in sala B: the rule must rank B-room repeats
+    // exactly like A-room ones, not treat 'B' as an unknown room.
+    const history = historyWithCombos(1, ['B#2']);
+    const candidate = person(1);
+    const context = ctx(candidate, part(10, 'haga_revisitas', 'B'), history, { committedCompanions: [2] });
+
+    expect(rule.score(context)).toBe(-REPEAT_SALA_PARTNER_PENALTY);
+  });
+
   it('scores 0 when only the sala repeats (different companion)', () => {
     const history = historyWithCombos(1, ['A#3']);
     const candidate = person(1);
@@ -158,6 +168,30 @@ describe('SalaRotationRule (joint sala+acompañante repeat, soft)', () => {
     const result = matcher.match([part(10, 'haga_revisitas', 'A')], persons, history);
 
     expect(result.assignments).toHaveLength(2);
+    expect(result.unassigned).toHaveLength(0);
+  });
+
+  it('ranks a B#combo repeat out of the sala-B companion slot in favor of a fresh candidate', () => {
+    // Engine-level mirror coverage: on a sala-B (clone) part, a candidate who
+    // already lived room B with the committed presenter must lose the ranking
+    // to a fresh candidate — same behavior the A-room engine case relies on.
+    const registry = new RuleRegistry();
+    registry.register(new SalaRotationRule());
+    const matcher = new AssignmentMatcher(registry);
+
+    const persons = [person(1), person(2), person(3)];
+    // Person 1 commits as presenter (all scores tie at 0, id asc wins);
+    // candidate 2 carries the B#1 joint repeat, candidate 3 is fresh.
+    const history: HistoryView = {
+      ...historyWithCombos(1, []),
+      salaPartnerCombos: (id) => (id === 2 ? new Set<SalaPartnerKey>(['B#1']) : new Set()),
+    };
+    const result = matcher.match([part(10, 'haga_revisitas', 'B')], persons, history);
+
+    const presenter = result.assignments.find((a) => a.rol === 'presentador')!;
+    const companion = result.assignments.find((a) => a.rol === 'companero')!;
+    expect(presenter.id_usuario).toBe(1);
+    expect(companion.id_usuario).toBe(3);
     expect(result.unassigned).toHaveLength(0);
   });
 });

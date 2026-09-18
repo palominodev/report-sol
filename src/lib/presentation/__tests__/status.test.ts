@@ -5,6 +5,7 @@ import {
   presentationTypeLabel,
   meetingSectionLabel,
   salaLabel,
+  SALA_LABELS,
 } from '../status';
 
 describe('weekEstadoMeta', () => {
@@ -84,5 +85,11 @@ describe('salaLabel', () => {
 
   it('returns null for an unknown room so no badge renders', () => {
     expect(salaLabel(null)).toBeNull();
+  });
+});
+
+describe('SALA_LABELS (sala tabs and per-room print header contract)', () => {
+  it('exposes a label for every room the tabs and print view can filter by', () => {
+    expect(SALA_LABELS).toEqual({ A: 'Sala A (Principal)', B: 'Sala B (Auxiliar)' });
   });
 });
