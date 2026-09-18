@@ -3,6 +3,7 @@ import { CreateMeetingWeekUseCase } from '../use-cases/presentation/CreateMeetin
 import { GenerateWeekAssignmentsUseCase } from '../use-cases/presentation/GenerateWeekAssignmentsUseCase';
 import { GetWeekAssignmentsUseCase } from '../use-cases/presentation/GetWeekAssignmentsUseCase';
 import { OverrideAssignmentUseCase } from '../use-cases/presentation/OverrideAssignmentUseCase';
+import { SetPartSalaUseCase } from '../use-cases/presentation/SetPartSalaUseCase';
 import { ConfirmWeekAssignmentsUseCase } from '../use-cases/presentation/ConfirmWeekAssignmentsUseCase';
 import { IAssignmentsRepository } from '@/core/domain/presentations/IAssignmentsRepository';
 import { IUserRepository } from '@/core/domain/repositories/IUserRepository';
@@ -285,6 +286,60 @@ describe('Presentation Assignments — Use Cases (Slice 2)', () => {
       expect(result.assignment.estado).toBe('manual');
       expect(result.warnings).toHaveLength(1);
       expect(result.warnings[0].code).toBe('REPEAT_PAIR_6M');
+    });
+  });
+
+  describe('SetPartSalaUseCase', () => {
+    function uc() { return new SetPartSalaUseCase(assignRepo); }
+
+    function partExists() {
+      (assignRepo.findPartById as ReturnType<typeof vi.fn>).mockResolvedValue(part(10, 1, 1, true));
+    }
+
+    it('stamps sala A on an existing part', async () => {
+      partExists();
+      await uc().execute({ id_part: 10, sala: 'A' });
+      expect(assignRepo.updatePartSala).toHaveBeenCalledWith(10, 'A');
+    });
+
+    it('stamps sala B on an existing part', async () => {
+      partExists();
+      await uc().execute({ id_part: 10, sala: 'B' });
+      expect(assignRepo.updatePartSala).toHaveBeenCalledWith(10, 'B');
+    });
+
+    it('clears sala to null — clear is a valid write that must reach the port', async () => {
+      partExists();
+      await uc().execute({ id_part: 10, sala: null });
+      expect(assignRepo.updatePartSala).toHaveBeenCalledWith(10, null);
+    });
+
+    it('rejects an out-of-enum sala with ValidationError', async () => {
+      partExists();
+      await expect(
+        uc().execute({ id_part: 10, sala: 'C' as unknown as 'A' })
+      ).rejects.toThrow(ValidationError);
+      expect(assignRepo.updatePartSala).not.toHaveBeenCalled();
+    });
+
+    it('rejects a non-string garbage sala with ValidationError', async () => {
+      partExists();
+      await expect(
+        uc().execute({ id_part: 10, sala: 5 as unknown as 'A' })
+      ).rejects.toThrow(ValidationError);
+      expect(assignRepo.updatePartSala).not.toHaveBeenCalled();
+    });
+
+    it('404 when the part does not exist', async () => {
+      (assignRepo.findPartById as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+      await expect(uc().execute({ id_part: 999, sala: 'A' })).rejects.toThrow(NotFoundError);
+      expect(assignRepo.updatePartSala).not.toHaveBeenCalled();
+    });
+
+    it('404 on a NaN id (non-numeric route segment lands here)', async () => {
+      (assignRepo.findPartById as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+      await expect(uc().execute({ id_part: Number('abc'), sala: 'A' })).rejects.toThrow(NotFoundError);
+      expect(assignRepo.updatePartSala).not.toHaveBeenCalled();
     });
   });
 

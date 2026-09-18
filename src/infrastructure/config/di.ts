@@ -18,6 +18,7 @@ import { CreateMeetingWeekUseCase } from '@/core/application/use-cases/presentat
 import { GenerateWeekAssignmentsUseCase } from '@/core/application/use-cases/presentation/GenerateWeekAssignmentsUseCase';
 import { GetWeekAssignmentsUseCase } from '@/core/application/use-cases/presentation/GetWeekAssignmentsUseCase';
 import { OverrideAssignmentUseCase } from '@/core/application/use-cases/presentation/OverrideAssignmentUseCase';
+import { SetPartSalaUseCase } from '@/core/application/use-cases/presentation/SetPartSalaUseCase';
 import { ConfirmWeekAssignmentsUseCase } from '@/core/application/use-cases/presentation/ConfirmWeekAssignmentsUseCase';
 
 export function getInformeRepository(): IInformeRepository {
@@ -57,6 +58,10 @@ export function getGetWeekAssignmentsUseCase(): GetWeekAssignmentsUseCase {
 
 export function getOverrideAssignmentUseCase(): OverrideAssignmentUseCase {
   return new OverrideAssignmentUseCase(getAssignmentsRepository());
+}
+
+export function getSetPartSalaUseCase(): SetPartSalaUseCase {
+  return new SetPartSalaUseCase(getAssignmentsRepository());
 }
 
 export function getConfirmWeekAssignmentsUseCase(): ConfirmWeekAssignmentsUseCase {
