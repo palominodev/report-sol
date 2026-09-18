@@ -6,6 +6,7 @@ import WeekEstadoBadge from '../WeekEstadoBadge';
 import GenerateButton from './GenerateButton';
 import ConfirmButton from './ConfirmButton';
 import OverrideControl, { OverrideUser } from './OverrideControl';
+import SalaControl from './SalaControl';
 
 export const dynamic = 'force-dynamic';
 
@@ -152,6 +153,8 @@ export default async function AsignacionDetailPage(props: PageProps) {
                             {salaBadge}
                           </span>
                         ) : null}
+                        {/* Primitives only across the RSC boundary (class rule, L30). */}
+                        <SalaControl idPart={part.id_part} current={part.sala} />
                       </div>
                       {part.requiresCompanero() ? (
                         <div className="grid grid-cols-1 gap-4 border-t border-slate-100 pt-4 sm:grid-cols-2">
