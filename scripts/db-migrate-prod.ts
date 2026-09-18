@@ -1,6 +1,7 @@
 import { createClient } from '@libsql/client';
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
+import { pathToFileURL } from 'url';
 
 type DatabaseClient = ReturnType<typeof createClient>;
 
@@ -46,6 +47,7 @@ CREATE TABLE IF NOT EXISTS presentation_part (
   fuente TEXT NOT NULL,
   leccion INTEGER,
   punto TEXT,
+  sala TEXT CHECK(sala IS NULL OR sala IN ('A','B')),
   UNIQUE(id_week, tipo, orden),
   FOREIGN KEY (id_week) REFERENCES presentation_week(id_week) ON DELETE CASCADE
 );
@@ -122,6 +124,25 @@ async function columnNames(client: DatabaseClient, table: string): Promise<Set<s
   return new Set(r.rows.map((row) => String(row.name)));
 }
 
+const SALA_COLUMN_DDL = `ALTER TABLE presentation_part ADD COLUMN sala TEXT CHECK(sala IS NULL OR sala IN ('A','B'))`;
+
+/**
+ * Guarded sala migration (usuario.genero precedent): adds the nullable sala
+ * column to an EXISTING presentation_part table only when it is missing.
+ * Fresh databases already get it from DDL_PRESENTATION. Exported so tests
+ * can drive the same path on an in-memory old-shape table.
+ */
+export async function ensureSalaColumn(client: DatabaseClient): Promise<boolean> {
+  const partCols = await columnNames(client, 'presentation_part');
+  if (partCols.has('sala')) {
+    console.log('↩️  presentation_part.sala ya existe');
+    return false;
+  }
+  await client.execute(SALA_COLUMN_DDL);
+  console.log('✅ ALTER presentation_part ADD sala');
+  return true;
+}
+
 function sqlValue(value: unknown): string {
   if (value === null || value === undefined) return 'NULL';
   if (typeof value === 'number') return String(value);
@@ -177,6 +198,14 @@ async function verify(target: DatabaseClient): Promise<void> {
   console.log(`${checkOk ? '✅' : '❌'} presentation_part.tipo CHECK incluye escenificacion y que_diria`);
   if (!checkOk) throw new Error('presentation_part CHECK is stale');
 
+  // sala post-check mirrors the tipo-CHECK incident pattern: assert the stored
+  // table SQL really carries the column AND its 'A','B' CHECK, on every path
+  // (fresh DDL or guarded ALTER — both must leave the same constraint behind).
+  const salaOk =
+    partSql?.includes('sala') && partSql?.includes("'A'") && partSql?.includes("'B'");
+  console.log(`${salaOk ? '✅' : '❌'} presentation_part.sala CHECK incluye 'A','B'`);
+  if (!salaOk) throw new Error('presentation_part.sala CHECK is stale or missing');
+
   for (const t of ['presentation_week', 'presentation_part', 'presentation_assignment', 'presentation_sync_state']) {
     const exists = await tableExists(target, t);
     const n = exists ? Number((await target.execute(`SELECT COUNT(*) AS n FROM ${t}`)).rows[0].n) : -1;
@@ -214,6 +243,10 @@ async function main(): Promise<void> {
   await client.batch(ddl.map((sql) => ({ sql })));
   console.log(`✅ presentation_* DDL aplicado (${ddl.length} statements)`);
 
+  // Phase 2.5: guarded sala ALTER for databases whose presentation_part
+  // predates the column (fresh DDL already includes it and no-ops here).
+  await ensureSalaColumn(client);
+
   // Phase 3: seed weeks/parts from local (unless --no-seed).
   if (!noSeed) await seedFromLocal(client);
 
@@ -221,7 +254,14 @@ async function main(): Promise<void> {
   console.log('🎉 Migración completa.');
 }
 
-main().catch((err) => {
-  console.error('❌ Migration failed:', err instanceof Error ? err.message : err);
-  process.exit(1);
-});
+// Direct-run guard (migrate-presentation-types.ts precedent) so unit tests can
+// import ensureSalaColumn without triggering main()'s target resolution.
+const isDirectRun =
+  process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href;
+
+if (isDirectRun) {
+  main().catch((err) => {
+    console.error('❌ Migration failed:', err instanceof Error ? err.message : err);
+    process.exit(1);
+  });
+}
