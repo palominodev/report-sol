@@ -224,6 +224,15 @@ async function verify(target: DatabaseClient): Promise<void> {
   if (!idxOk) {
     throw new Error('ux_part_week_tipo_orden_sala is missing or not expression-based');
   }
+  // The expression index alone is NOT the invariant: the legacy table-level
+  // UNIQUE(id_week, tipo, orden) must be GONE (prod incident 2026-09-18 — the
+  // DDL created the index on the not-yet-rebuilt table and both coexisted,
+  // making every B-clone insert fail with UNIQUE constraint errors).
+  const noTableUnique = !/UNIQUE\s*\(/i.test(partSql ?? '');
+  console.log(`${noTableUnique ? '✅' : '❌'} presentation_part sin UNIQUE de tabla (solo índice expresivo)`);
+  if (!noTableUnique) {
+    throw new Error('presentation_part still carries a table-level UNIQUE — rebuild did not run');
+  }
 
   for (const t of ['presentation_week', 'presentation_part', 'presentation_assignment', 'presentation_sync_state']) {
     const exists = await tableExists(target, t);

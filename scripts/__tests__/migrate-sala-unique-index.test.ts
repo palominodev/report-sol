@@ -299,6 +299,27 @@ describe('migrate-sala-unique-index (UP)', () => {
     ).rejects.toThrow();
     expect(await foreignKeysPragma(client)).toBe(1);
   });
+  it('rebuilds when the premature expression index coexists with the table UNIQUE (db-migrate-prod DDL order)', async () => {
+    const client = await freshOldShapeClient();
+    const { idWeek } = await seedWeekAndUser(client);
+    await insertPart(client, { idWeek, orden: 1, tipo: 'lectura_biblia', sala: null });
+    // db-migrate-prod DDL-order flaw (prod incident 2026-09-18): the DDL phase
+    // created the expression index on the NOT-yet-rebuilt table, so it
+    // coexists with the legacy table UNIQUE. The guard must NOT treat that
+    // state as migrated.
+    await client.execute(
+      `CREATE UNIQUE INDEX ux_part_week_tipo_orden_sala ON presentation_part(id_week, tipo, orden, COALESCE(sala, ''))`
+    );
+
+    const rebuilt = await ensureSalaUniqueIndex(client);
+
+    expect(rebuilt).toBe(true);
+    expect(await partTableSql(client)).not.toMatch(/UNIQUE\s*\(/i);
+    expect((await indexSql(client, 'ux_part_week_tipo_orden_sala'))?.toUpperCase()).toContain(
+      'COALESCE'
+    );
+    expect(await countRows(client, 'presentation_part')).toBe(1);
+  });
 });
 
 describe('migrate-sala-unique-index-down (DOWN)', () => {

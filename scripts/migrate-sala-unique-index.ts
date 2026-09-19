@@ -68,14 +68,23 @@ async function tableExists(client: SalaUniqueIndexMigrationClient, table: string
 }
 
 /**
- * True when sqlite_master already holds ux_part_week_tipo_orden_sala with a
- * COALESCE expression (upper-cased compare: SQLite stores the CREATE text
- * as typed, but we do not want case to decide migration state).
+ * True when the migration state is complete: the expression index exists AND
+ * the table no longer carries a legacy table-level UNIQUE. A premature
+ * expression index can coexist with that UNIQUE (db-migrate-prod's DDL phase
+ * creates it before Phase 2.6 runs — prod incident 2026-09-18), and that
+ * state is NOT migrated: the rebuild must still run.
  */
 async function alreadyMigrated(client: SalaUniqueIndexMigrationClient): Promise<boolean> {
   if (!(await tableExists(client, 'presentation_part'))) {
     throw new Error('Tabla presentation_part no encontrada: la migración requiere el esquema previo');
   }
+  const table = await client.execute({
+    sql: "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'presentation_part'",
+    args: [],
+  });
+  const tableSql = (table.rows[0] as unknown as { sql: string | null }).sql ?? '';
+  if (/UNIQUE\s*\(/i.test(tableSql)) return false;
+
   const result = await client.execute({
     sql: "SELECT sql FROM sqlite_master WHERE type = 'index' AND name = ?",
     args: [UNIQUE_INDEX_NAME],
@@ -145,9 +154,10 @@ export async function ensureSalaUniqueIndex(
 }
 
 function loadEnvFile(): Record<string, string> {
-  const envPath = existsSync(join(process.cwd(), '.env.local'))
-    ? join(process.cwd(), '.env.local')
-    : join(process.cwd(), '.env');
+  // .env ONLY (mirror-dev-to-prod.ts precedent): .env.local intentionally
+  // pins the DEV database (file:data/local.db) for the app runtime and must
+  // never feed --prod credentials.
+  const envPath = join(process.cwd(), '.env');
   const envVars: Record<string, string> = {};
   if (!existsSync(envPath)) return envVars;
   const content = readFileSync(envPath, 'utf-8');
