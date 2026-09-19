@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { buildPrintSections, formatFuente, UserNameResolver } from '../printProgram';
+import { salaLabel } from '../status';
 import { PresentationPart } from '@/domain/entities/presentation/PresentationPart';
 import { Assignment } from '@/domain/entities/presentation/Assignment';
 import { SourceRef } from '@/domain/entities/presentation/SourceRef';
@@ -112,5 +113,43 @@ describe('buildPrintSections', () => {
     expect(sections[1].parts[0].sala).toBe('B');
     // graceful rendering: NULL-sala part renders without a room label
     expect(sections[1].parts[1].sala).toBeNull();
+  });
+});
+
+describe('per-room print (caller-side sala filter)', () => {
+  // Mirrored fixture: A originals + B clones sharing each orden, all printable.
+  const mirrored = [
+    part(1, 1, 'TESOROS_DE_LA_BIBLIA', 'lectura_biblia', 'A'),
+    part(2, 1, 'TESOROS_DE_LA_BIBLIA', 'lectura_biblia', 'B'),
+    part(3, 2, 'SEAMOS_MEJORES_MAESTROS', 'empiece_conversaciones', 'A'),
+    part(4, 2, 'SEAMOS_MEJORES_MAESTROS', 'empiece_conversaciones', 'B'),
+  ];
+  const mirroredAssignments = [
+    assignment(1, 1, 10, 'presentador', 'confirmed'),
+    assignment(2, 2, 20, 'presentador', 'confirmed'),
+    assignment(3, 3, 30, 'presentador', 'confirmed'),
+    assignment(4, 3, 10, 'companero', 'confirmed'),
+    assignment(5, 4, 20, 'companero', 'confirmed'),
+  ];
+
+  it('a sala-B filtered input prints only the B clones, each keeping its own room', () => {
+    // Exactly the filter imprimir/page.tsx applies before calling.
+    const room: Sala = 'B';
+    const visible = mirrored.filter((p) => p.sala === room);
+    const sections = buildPrintSections(visible, mirroredAssignments, resolve);
+
+    const printed = sections.flatMap((s) => s.parts);
+    expect(printed.map((p) => p.id_part)).toEqual([2, 4]);
+    expect(printed.every((p) => p.sala === 'B')).toBe(true);
+    // The room header source resolves for the filtered room (page renders it).
+    expect(salaLabel(room)).toBe('Sala B (Auxiliar)');
+  });
+
+  it('combined view is unchanged: unfiltered input keeps both rooms interleaved by orden', () => {
+    const sections = buildPrintSections(mirrored, mirroredAssignments, resolve);
+
+    const printed = sections.flatMap((s) => s.parts);
+    expect(printed.map((p) => p.id_part)).toEqual([1, 2, 3, 4]);
+    expect(printed.map((p) => p.sala)).toEqual(['A', 'B', 'A', 'B']);
   });
 });

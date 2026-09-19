@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { getMatchingRules, getSetPartSalaUseCase } from '../di';
+import { getMatchingRules, getSetPartSalaUseCase, getAdoptSalaRoomsUseCase } from '../di';
 import { SetPartSalaUseCase } from '@/core/application/use-cases/presentation/SetPartSalaUseCase';
+import { AdoptSalaRoomsUseCase } from '@/core/application/use-cases/presentation/AdoptSalaRoomsUseCase';
 import { TursoAssignmentsRepository } from '@/infrastructure/persistence/turso-assignments.repository';
 import { NO_REPEAT_PAIR_6MO_RULE_ID } from '@/core/domain/presentations/NoRepeatPairWithin6MonthsRule';
 import { PRESENTER_ELIGIBILITY_RULE_ID } from '@/core/domain/presentations/rules/PresenterEligibilityRule';
@@ -35,6 +36,17 @@ describe('getSetPartSalaUseCase (di.ts seam)', () => {
     expect(uc).toBeInstanceOf(SetPartSalaUseCase);
     // The private port is compile-time-only privacy; assert the adapter class
     // so a factory rewired to the wrong repository fails here, not in prod.
+    expect((uc as unknown as { assignmentsRepository: unknown }).assignmentsRepository).toBeInstanceOf(
+      TursoAssignmentsRepository
+    );
+  });
+});
+
+describe('getAdoptSalaRoomsUseCase (di.ts seam)', () => {
+  it('returns an AdoptSalaRoomsUseCase wired with the Turso assignments repository', () => {
+    const uc = getAdoptSalaRoomsUseCase();
+
+    expect(uc).toBeInstanceOf(AdoptSalaRoomsUseCase);
     expect((uc as unknown as { assignmentsRepository: unknown }).assignmentsRepository).toBeInstanceOf(
       TursoAssignmentsRepository
     );

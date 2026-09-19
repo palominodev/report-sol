@@ -2,6 +2,7 @@ import { createClient } from '@libsql/client';
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
+import { ensureSalaUniqueIndex } from './migrate-sala-unique-index';
 
 type DatabaseClient = ReturnType<typeof createClient>;
 
@@ -48,10 +49,11 @@ CREATE TABLE IF NOT EXISTS presentation_part (
   leccion INTEGER,
   punto TEXT,
   sala TEXT CHECK(sala IS NULL OR sala IN ('A','B')),
-  UNIQUE(id_week, tipo, orden),
   FOREIGN KEY (id_week) REFERENCES presentation_week(id_week) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_part_week ON presentation_part(id_week);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_part_week_tipo_orden_sala
+  ON presentation_part(id_week, tipo, orden, COALESCE(sala, ''));
 CREATE TABLE IF NOT EXISTS presentation_assignment (
   id_asignacion INTEGER PRIMARY KEY AUTOINCREMENT,
   id_part INTEGER NOT NULL,
@@ -209,6 +211,20 @@ async function verify(target: DatabaseClient): Promise<void> {
   console.log(`${salaOk ? '✅' : '❌'} presentation_part.sala CHECK incluye 'A','B'`);
   if (!salaOk) throw new Error('presentation_part.sala CHECK is stale or missing');
 
+  // Sala-aware unique index post-check: the expression index must exist and
+  // really carry the COALESCE expression (fresh DDL and Phase 2.6 rebuild
+  // must both leave the same constraint behind).
+  const idxSql = (
+    await target.execute(
+      `SELECT sql FROM sqlite_master WHERE type='index' AND name='ux_part_week_tipo_orden_sala'`
+    )
+  ).rows[0]?.sql as string | undefined;
+  const idxOk = !!idxSql && idxSql.toUpperCase().includes('COALESCE');
+  console.log(`${idxOk ? '✅' : '❌'} índice único ux_part_week_tipo_orden_sala (COALESCE)`);
+  if (!idxOk) {
+    throw new Error('ux_part_week_tipo_orden_sala is missing or not expression-based');
+  }
+
   for (const t of ['presentation_week', 'presentation_part', 'presentation_assignment', 'presentation_sync_state']) {
     const exists = await tableExists(target, t);
     const n = exists ? Number((await target.execute(`SELECT COUNT(*) AS n FROM ${t}`)).rows[0].n) : -1;
@@ -249,6 +265,11 @@ async function main(): Promise<void> {
   // Phase 2.5: guarded sala ALTER for databases whose presentation_part
   // predates the column (fresh DDL already includes it and no-ops here).
   await ensureSalaColumn(client);
+
+  // Phase 2.6: guarded sala-aware unique index swap for databases whose
+  // presentation_part still carries the table-level UNIQUE (fresh DDL above
+  // already creates the expression index and this no-ops).
+  await ensureSalaUniqueIndex(client);
 
   // Phase 3: seed weeks/parts from local (unless --no-seed).
   if (!noSeed) await seedFromLocal(client);

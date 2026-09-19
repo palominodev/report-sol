@@ -2,19 +2,25 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getWeekDetail, getAssignableUsers } from '@/lib/presentation/weeks';
 import { buildPrintSections, UserNameResolver } from '@/lib/presentation/printProgram';
-import { meetingSectionLabel, presentationTypeLabel, salaLabel } from '@/lib/presentation/status';
-import { PresentationType } from '@/domain/entities/presentation/enums';
+import { meetingSectionLabel, presentationTypeLabel, salaLabel, SALA_LABELS } from '@/lib/presentation/status';
+import { PresentationType, Sala } from '@/domain/entities/presentation/enums';
 
 export const dynamic = 'force-dynamic';
 
 interface PageProps {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 export default async function AsignacionPrintPage(props: PageProps) {
   const params = await props.params;
   const idWeek = Number(params.id);
   if (!Number.isInteger(idWeek) || idWeek <= 0) notFound();
+
+  // Per-room print: an unknown or absent value keeps the combined program.
+  const searchParams = await props.searchParams;
+  const salaParam = typeof searchParams.sala === 'string' ? searchParams.sala : undefined;
+  const salaFilter: Sala | null = salaParam === 'A' || salaParam === 'B' ? salaParam : null;
 
   const [{ week, parts, assignments }, users] = await Promise.all([
     getWeekDetail(idWeek),
@@ -24,16 +30,49 @@ export default async function AsignacionPrintPage(props: PageProps) {
   const namesById = new Map<number, string>(users.map((u) => [u.id_usuario, `${u.nombre} ${u.apellido}`]));
   const resolveName: UserNameResolver = (id) => namesById.get(id) ?? 'Sin asignar';
 
-  const sections = buildPrintSections(parts, assignments, resolveName);
+  // Caller-side filter (buildPrintSections' signature is unchanged by design):
+  // the room header replaces the per-part badge, so a room-filtered program
+  // prints one room's chronology instead of both interleaved.
+  const visibleParts = salaFilter ? parts.filter((p) => p.sala === salaFilter) : parts;
+  const sections = buildPrintSections(visibleParts, assignments, resolveName);
+
+  const roomTabs: { sala: Sala | null; label: string }[] = [
+    { sala: null, label: 'Todas' },
+    { sala: 'A', label: SALA_LABELS.A },
+    { sala: 'B', label: SALA_LABELS.B },
+  ];
+  const tabHref = (sala: Sala | null) =>
+    sala ? `/asignaciones/${week.id_week}/imprimir?sala=${sala}` : `/asignaciones/${week.id_week}/imprimir`;
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Screen-only room switcher (print CSS hides it) */}
+      <nav aria-label="Vista de sala" className="mx-auto flex max-w-3xl flex-wrap justify-end gap-2 px-6 pt-6 print:hidden">
+        {roomTabs.map(({ sala, label }) => (
+          <Link
+            key={label}
+            href={tabHref(sala)}
+            aria-current={salaFilter === sala ? 'page' : undefined}
+            className={
+              salaFilter === sala
+                ? 'rounded-lg bg-blue-800 px-4 py-2 text-sm font-semibold text-white transition-colors'
+                : 'rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50'
+            }
+          >
+            {label}
+          </Link>
+        ))}
+      </nav>
+
       {/* Print-only header */}
       <div className="mx-auto max-w-3xl px-6 py-10">
         <header className="mb-8 border-b-2 border-black pb-6 text-center print:py-0">
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">Programa de la Reunión</h1>
           <p className="mt-1 text-base text-slate-700">Reunión Vida y Ministerio</p>
           <p className="mt-1 text-sm font-medium text-slate-600">{week.semana}</p>
+          {salaFilter ? (
+            <p className="mt-1 text-sm font-semibold text-slate-800">{SALA_LABELS[salaFilter]}</p>
+          ) : null}
         </header>
 
         {sections.length === 0 ? (
@@ -48,7 +87,8 @@ export default async function AsignacionPrintPage(props: PageProps) {
               </h2>
               <ul className="space-y-6">
                 {section.parts.map((part) => {
-                  const sala = salaLabel(part.sala);
+                  // Redundant under a room filter: the header already names the room.
+                  const sala = salaFilter ? null : salaLabel(part.sala);
                   return (
                   <li key={part.id_part} className="flex items-baseline justify-between gap-6">
                     <div>

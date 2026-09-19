@@ -54,7 +54,11 @@ export function meetingSectionLabel(seccion: MeetingSection): string {
   return SECTION_LABELS[seccion];
 }
 
-const SALA_LABELS: Record<Sala, string> = {
+/**
+ * Canonical room labels. Consumed by the sala tabs (`?sala=`) and the
+ * per-room print header, so both surfaces can never drift apart.
+ */
+export const SALA_LABELS: Record<Sala, string> = {
   A: 'Sala A (Principal)',
   B: 'Sala B (Auxiliar)',
 };

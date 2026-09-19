@@ -32,9 +32,14 @@ async function freshClient(): Promise<DatabaseClient> {
     fuente TEXT NOT NULL,
     leccion INTEGER,
     punto TEXT,
-    sala TEXT,
-    UNIQUE(id_week, tipo, orden)
+    sala TEXT
   )`);
+  // Sala-aware expression unique index — mirrors the post-migration shape
+  // (no table-level UNIQUE): one row per (week, tipo, orden) per sala value,
+  // with NULL as its own slot via COALESCE, so an A original and its B clone
+  // coexist while same-slot duplicates are blocked.
+  await client.execute(`CREATE UNIQUE INDEX ux_part_week_tipo_orden_sala
+    ON presentation_part(id_week, tipo, orden, COALESCE(sala, ''))`);
   await client.execute(`CREATE TABLE presentation_assignment (
     id_asignacion INTEGER PRIMARY KEY AUTOINCREMENT,
     id_part INTEGER NOT NULL REFERENCES presentation_part(id_part),
@@ -311,5 +316,200 @@ describe('TursoAssignmentsRepository.updatePartSala (direct UPDATE write path)',
     await repo.upsertWeek(week('2026-07-01', '2026/07/01'), [part(1, 'discurso', null)]);
 
     expect(await salaOf(repo, id_part)).toBe('A');
+  });
+});
+
+describe('TursoAssignmentsRepository.upsertWeek adoption-aware merge (sala mirror)', () => {
+  function week(fecha: string, semana: string): MeetingWeek {
+    return new MeetingWeek(0, semana, 'LMD', fecha, fecha, 'no_generada');
+  }
+
+  function part(orden: number, tipo: PresentationPart['tipo'], sala: PresentationPart['sala']): PresentationPart {
+    return new PresentationPart(0, 0, orden, tipo, 'SEAMOS_MEJORES_MAESTROS', 5, null, new SourceRef('lmd'), sala);
+  }
+
+  async function countParts(client: DatabaseClient, where = ''): Promise<number> {
+    const res = await client.execute(`SELECT COUNT(*) AS c FROM presentation_part ${where}`);
+    return Number(res.rows[0].c);
+  }
+
+  it('R3-S1 GATE: re-syncing an adopted week (A original + B twin) with sala NULL posts no duplicates and leaves zero NULL-sala rows', async () => {
+    const client = await freshClient();
+    setDatabaseClient(client);
+    const repo = new TursoAssignmentsRepository();
+
+    // First scrape (no room info), then adoption: stamp the original 'A' and
+    // clone a 'B' twin — the exact post-adoption state the use case produces.
+    const id_week = await repo.upsertWeek(week('2026-07-01', '2026/07/01'), [part(1, 'discurso', null)]);
+    const original = (await repo.findPartsByWeek(id_week))[0].id_part;
+    await client.execute({
+      sql: `UPDATE presentation_part SET sala = 'A' WHERE id_part = ?`,
+      args: [original],
+    });
+    await client.execute({
+      sql: `INSERT INTO presentation_part
+        (id_week, orden, tipo, seccion, duracion_min, escenario, fuente, leccion, punto, sala)
+        VALUES (?, 1, 'discurso', 'SEAMOS_MEJORES_MAESTROS', 5, NULL, 'lmd', NULL, NULL, 'B')`,
+      args: [id_week],
+    });
+    expect(await countParts(client)).toBe(2);
+
+    // Scraper re-syncs the same week posting the same part with sala NULL.
+    await repo.upsertWeek(week('2026-07-01', '2026/07/01'), [part(1, 'discurso', null)]);
+
+    // Spike A5 regression: a naive conflict target cannot see NULL-vs-stamped,
+    // so a plain upsert would slip a NULL duplicate next to the 'A' original.
+    expect(await countParts(client)).toBe(2);
+    expect(await countParts(client, 'WHERE sala IS NULL')).toBe(0);
+    const salas = await client.execute('SELECT sala FROM presentation_part ORDER BY sala');
+    expect(salas.rows.map((r) => r.sala)).toEqual(['A', 'B']);
+  });
+
+  it('spike A2: the expression index lets a stamped A original and its B clone coexist for the same (tipo, orden)', async () => {
+    const client = await freshClient();
+    setDatabaseClient(client);
+    const repo = new TursoAssignmentsRepository();
+
+    const id_week = await repo.upsertWeek(week('2026-07-01', '2026/07/01'), [part(1, 'discurso', null)]);
+    const original = (await repo.findPartsByWeek(id_week))[0].id_part;
+    await client.execute({
+      sql: `UPDATE presentation_part SET sala = 'A' WHERE id_part = ?`,
+      args: [original],
+    });
+    await client.execute({
+      sql: `INSERT INTO presentation_part
+        (id_week, orden, tipo, seccion, duracion_min, escenario, fuente, leccion, punto, sala)
+        VALUES (?, 1, 'discurso', 'SEAMOS_MEJORES_MAESTROS', 5, NULL, 'lmd', NULL, NULL, 'B')`,
+      args: [id_week],
+    });
+
+    expect(await countParts(client)).toBe(2);
+    const twins = await client.execute({
+      sql: 'SELECT sala FROM presentation_part WHERE id_week = ? ORDER BY sala',
+      args: [id_week],
+    });
+    expect(twins.rows.map((r) => r.sala)).toEqual(['A', 'B']);
+  });
+
+  it('spike A4: the expression index blocks a second NULL-sala row for the same (tipo, orden)', async () => {
+    const client = await freshClient();
+    setDatabaseClient(client);
+    const repo = new TursoAssignmentsRepository();
+
+    // One scraped part with sala NULL already occupies the NULL slot.
+    const id_week = await repo.upsertWeek(week('2026-07-01', '2026/07/01'), [part(1, 'discurso', null)]);
+
+    // A second NULL row for the same slot must be rejected by the index.
+    await expect(
+      client.execute({
+        sql: `INSERT INTO presentation_part
+          (id_week, orden, tipo, seccion, duracion_min, escenario, fuente, leccion, punto, sala)
+          VALUES (?, 1, 'discurso', 'SEAMOS_MEJORES_MAESTROS', 5, NULL, 'lmd', NULL, NULL, NULL)`,
+        args: [id_week],
+      })
+    ).rejects.toThrow(/UNIQUE constraint failed/);
+  });
+
+  it('merge refreshes metadata on both the stamped A original and the B twin without duplicating or erasing', async () => {
+    const client = await freshClient();
+    setDatabaseClient(client);
+    const repo = new TursoAssignmentsRepository();
+
+    // Adopted week: 'A' original + 'B' twin, duracion 5, fuente lmd sin punto.
+    const id_week = await repo.upsertWeek(week('2026-07-01', '2026/07/01'), [part(1, 'discurso', null)]);
+    const original = (await repo.findPartsByWeek(id_week))[0].id_part;
+    await client.execute({
+      sql: `UPDATE presentation_part SET sala = 'A' WHERE id_part = ?`,
+      args: [original],
+    });
+    await client.execute({
+      sql: `INSERT INTO presentation_part
+        (id_week, orden, tipo, seccion, duracion_min, escenario, fuente, leccion, punto, sala)
+        VALUES (?, 1, 'discurso', 'SEAMOS_MEJORES_MAESTROS', 5, NULL, 'lmd', NULL, NULL, 'B')`,
+      args: [id_week],
+    });
+
+    // The scraper re-publishes the part with updated metadata and no room info.
+    const refreshed = new PresentationPart(
+      0, id_week, 1, 'discurso', 'SEAMOS_MEJORES_MAESTROS', 10, null,
+      new SourceRef('lmd', 4, 'punto nuevo'), null
+    );
+    await repo.upsertWeek(week('2026-07-01', '2026/07/01'), [refreshed]);
+
+    const parts = await repo.findPartsByWeek(id_week);
+    expect(parts).toHaveLength(2);
+    for (const p of parts) {
+      expect(p.duracion_min).toBe(10);
+      expect(p.fuente.leccion).toBe(4);
+      expect(p.fuente.punto).toBe('punto nuevo');
+    }
+    const salas = parts.map((p) => p.sala).sort();
+    expect(salas).toEqual(['A', 'B']);
+  });
+
+  it('insertParts performs a plain INSERT next to the A original and lets the DB assign ids', async () => {
+    const client = await freshClient();
+    setDatabaseClient(client);
+    const repo = new TursoAssignmentsRepository();
+
+    const id_week = await repo.upsertWeek(week('2026-07-01', '2026/07/01'), [part(1, 'discurso', 'A')]);
+    const original = (await repo.findPartsByWeek(id_week))[0];
+
+    // Adoption clone: same (tipo, orden), sala 'B', entity id 0 (DB assigns).
+    await repo.insertParts([
+      new PresentationPart(0, id_week, 1, 'discurso', 'SEAMOS_MEJORES_MAESTROS', 5, null, new SourceRef('lmd'), 'B'),
+    ]);
+
+    const parts = await repo.findPartsByWeek(id_week);
+    expect(parts).toHaveLength(2);
+    const clone = parts.find((p) => p.sala === 'B');
+    expect(clone).toBeDefined();
+    expect(clone!.id_part).toBeGreaterThan(original.id_part);
+    expect(clone!.orden).toBe(original.orden);
+    expect(clone!.tipo).toBe(original.tipo);
+  });
+
+  it('bulkUpdatePartSala stamps several parts in one batch, including an explicit NULL clear', async () => {
+    const client = await freshClient();
+    setDatabaseClient(client);
+    const repo = new TursoAssignmentsRepository();
+
+    const id_week = await repo.upsertWeek(week('2026-07-01', '2026/07/01'), [
+      part(1, 'discurso', null),
+      part(2, 'lectura_biblia', 'B'),
+    ]);
+    const [discurso, lectura] = await repo.findPartsByWeek(id_week);
+
+    await repo.bulkUpdatePartSala([
+      { id_part: discurso.id_part, sala: 'A' },
+      { id_part: lectura.id_part, sala: null },
+    ]);
+
+    const after = await repo.findPartsByWeek(id_week);
+    expect(after.find((p) => p.id_part === discurso.id_part)?.sala).toBe('A');
+    // Explicit clear: null overwrites the previous 'B' (no COALESCE guard here).
+    expect(after.find((p) => p.id_part === lectura.id_part)?.sala).toBeNull();
+  });
+
+  it('deletePartsByIds removes exactly the given rows in one batch; empty input is a no-op', async () => {
+    const client = await freshClient();
+    setDatabaseClient(client);
+    const repo = new TursoAssignmentsRepository();
+
+    const id_week = await repo.upsertWeek(week('2026-07-01', '2026/07/01'), [
+      part(1, 'discurso', 'A'),
+      part(2, 'lectura_biblia', 'B'),
+    ]);
+    const parts = await repo.findPartsByWeek(id_week);
+
+    // Rebuild-policy surplus removal: drop the B row, keep the A original.
+    await repo.deletePartsByIds([parts.find((p) => p.sala === 'B')!.id_part]);
+    let after = await repo.findPartsByWeek(id_week);
+    expect(after.map((p) => p.sala)).toEqual(['A']);
+
+    // Empty batch must not touch the client.
+    await repo.deletePartsByIds([]);
+    after = await repo.findPartsByWeek(id_week);
+    expect(after).toHaveLength(1);
   });
 });
