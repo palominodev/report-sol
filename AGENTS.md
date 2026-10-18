@@ -8,7 +8,26 @@
 
 ---
 
+## Product and Usability First
+
+- Lead conversations with the person's goal, the product outcome and usability. Use the user's language; use technical language only when strictly necessary or explicitly requested, and explain the practical consequence first.
+- Recommend the simplest usable solution supported by evidence. Distinguish facts from assumptions; ask only about consequential unresolved product choices.
+- Load skills selectively, not as a mandatory nine-skill checklist. Product and UX guide choices; engineering principles support implementation without overruling accessibility, safety or confirmed business requirements.
+- For product flows, use `ux`; for visual design and UI implementation, reuse the existing `ui-ux-pro-max`; for architecture, reuse `clean-ddd-hexagonal`. Do not duplicate their content or introduce new business rules through skills.
+
 ## Available Skills
+
+### Product, Usability and Engineering Decisions
+| Skill | Purpose | URL |
+|-------|---------|-----|
+| `ux` | Product outcomes, user journeys, friction, feedback and recovery | [.agents/skills/ux/SKILL.md](.agents/skills/ux/SKILL.md) |
+| `ui-ux-pro-max` | Existing visual/UI guidance with local catalogs and search tooling | [.opencode/skills/ui-ux-pro-max/SKILL.md](.opencode/skills/ui-ux-pro-max/SKILL.md) |
+| `principle-dry` | Share the same knowledge, not merely similar-looking code | [.agents/skills/principle-dry/SKILL.md](.agents/skills/principle-dry/SKILL.md) |
+| `principle-kiss` | Choose the simplest solution that meets actual needs | [.agents/skills/principle-kiss/SKILL.md](.agents/skills/principle-kiss/SKILL.md) |
+| `principle-yagni` | Avoid speculative features and abstractions | [.agents/skills/principle-yagni/SKILL.md](.agents/skills/principle-yagni/SKILL.md) |
+| `principle-reversibility` | Consider undo, recovery and irreversible consequences | [.agents/skills/principle-reversibility/SKILL.md](.agents/skills/principle-reversibility/SKILL.md) |
+| `principle-grasp` | Assign responsibilities using actual knowledge and change needs | [.agents/skills/principle-grasp/SKILL.md](.agents/skills/principle-grasp/SKILL.md) |
+| `principle-cupid` | Favor composable, predictable, idiomatic, domain-based code with focused responsibilities | [.agents/skills/principle-cupid/SKILL.md](.agents/skills/principle-cupid/SKILL.md) |
 
 Use these skills for detailed patterns on-demand:
 
@@ -39,6 +58,14 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 
 | Action | Skill |
 |--------|-------|
+| Product decisions, user journeys or usability choices | `ux` |
+| Visual design or UI implementation | `ui-ux-pro-max` (existing `.opencode` skill) |
+| Duplicated knowledge or extracting shared logic | `principle-dry` |
+| Choosing a simpler solution | `principle-kiss` |
+| Speculative features or abstractions | `principle-yagni` |
+| Undo, recovery or irreversible decisions | `principle-reversibility` |
+| Assigning responsibilities or reducing coupling | `principle-grasp` |
+| Reviewing composability, predictability or domain fit | `principle-cupid` |
 | Designing Domain Entities, Ports, or Use Cases | `clean-ddd-hexagonal` |
 | Implementing Repositories or writing SQL with LibSQL | `sqlite-database-expert` |
 | Creating or refactoring complex TypeScript types/interfaces | `typescript-advanced-types` |
