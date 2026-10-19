@@ -2,15 +2,19 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import type { AssignmentHistoryEntry } from '@/core/domain/presentations/AssignmentHistory';
+import AssignmentHistory from './AssignmentHistory';
 
 export interface OverrideUser {
   id_usuario: number;
   nombre: string;
   apellido: string;
   genero: string | null;
+  assignmentHistory?: AssignmentHistoryEntry[];
 }
 
 interface OverrideControlProps {
+  idWeek: number;
   idPart: number;
   rol: 'presentador' | 'companero';
   currentIdUsuario: number | null;
@@ -22,7 +26,7 @@ interface ApiWarning {
   message: string;
 }
 
-export default function OverrideControl({ idPart, rol, currentIdUsuario, users }: OverrideControlProps) {
+export default function OverrideControl({ idWeek, idPart, rol, currentIdUsuario, users }: OverrideControlProps) {
   const router = useRouter();
   const [selected, setSelected] = useState(currentIdUsuario?.toString() ?? '');
   const [loading, setLoading] = useState(false);
@@ -58,39 +62,51 @@ export default function OverrideControl({ idPart, rol, currentIdUsuario, users }
   }
 
   const rolLabel = rol === 'presentador' ? 'Presentador' : 'Compañero';
+  const selectedUser = users.find(user => user.id_usuario === Number(selected));
+  const showCandidateHistory = selectedUser && selectedUser.id_usuario !== currentIdUsuario;
+  const historyId = `candidate-history-${idPart}-${rol}`;
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-2 sm:flex-row sm:items-center">
-      <label htmlFor={`override-${idPart}-${rol}`} className="hidden">
-        {rolLabel}
+    <form onSubmit={handleSubmit} className="space-y-2 border-t border-line pt-3">
+      <label htmlFor={`override-${idPart}-${rol}`} className="block text-xs font-medium text-ink-muted">
+        {currentIdUsuario ? 'Cambiar' : 'Elegir'} {rolLabel.toLowerCase()}
       </label>
-      <select
-        id={`override-${idPart}-${rol}`}
-        value={selected}
-        onChange={(e) => setSelected(e.target.value)}
-        className="h-9 cursor-pointer rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 transition-colors focus:outline-none focus-visible:border-blue-800 focus-visible:ring-2 focus-visible:ring-blue-800/30"
-      >
-        <option value="">Seleccionar</option>
-        {users.map((u) => (
-          <option key={u.id_usuario} value={u.id_usuario}>
-            {u.nombre} {u.apellido}
-          </option>
-        ))}
-      </select>
-      <button
-        type="submit"
-        disabled={loading || !selected}
-        className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50"
-      >
-        {loading ? 'Guardando...' : 'Asignar'}
-      </button>
+      <div className="flex items-center gap-2">
+        <select
+          id={`override-${idPart}-${rol}`}
+          value={selected}
+          disabled={loading}
+          aria-describedby={showCandidateHistory ? historyId : undefined}
+          onChange={(e) => setSelected(e.target.value)}
+          className="min-h-11 min-w-0 flex-1 cursor-pointer border border-line bg-surface px-3 text-sm text-ink transition-colors focus:outline-none focus-visible:border-brand-light focus-visible:ring-2 focus-visible:ring-brand-light/40 disabled:opacity-50"
+        >
+          <option value="">Seleccionar</option>
+          {users.map((u) => (
+            <option key={u.id_usuario} value={u.id_usuario}>
+              {u.nombre} {u.apellido}
+            </option>
+          ))}
+        </select>
+        <button
+          type="submit"
+          disabled={loading || !selected}
+          className="inline-flex min-h-11 shrink-0 items-center justify-center border border-line bg-surface px-3 py-2 text-sm font-semibold text-ink-muted transition-colors hover:bg-nav focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-light disabled:opacity-50"
+        >
+          {loading ? 'Guardando...' : 'Asignar'}
+        </button>
+      </div>
+      {showCandidateHistory && (
+        <div id={historyId} aria-live="polite" aria-atomic="true">
+          <AssignmentHistory history={selectedUser.assignmentHistory ?? []} idWeek={idWeek} />
+        </div>
+      )}
       {error && (
-        <p role="alert" className="text-sm text-red-700 sm:col-span-2">
+        <p role="alert" className="text-sm text-danger-light">
           {error}
         </p>
       )}
       {warnings.map((w) => (
-        <p key={w.code} className="text-sm text-amber-700 sm:col-span-2">
+        <p key={w.code} className="text-sm text-amber-300">
           {w.message}
         </p>
       ))}

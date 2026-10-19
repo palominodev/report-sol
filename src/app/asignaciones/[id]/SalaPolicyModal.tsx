@@ -51,25 +51,25 @@ export default function SalaPolicyModal({
         aria-modal="true"
         aria-labelledby="sala-policy-title"
         tabIndex={-1}
-        className="w-full max-w-md rounded-xl border border-slate-200 bg-white shadow-sm outline-none"
+        className="max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto border border-line bg-surface text-ink outline-none"
       >
-        <div className="border-b border-slate-200 bg-slate-50 px-6 py-4">
-          <h2 id="sala-policy-title" className="text-lg font-semibold text-slate-900">
+        <div className="border-b border-line bg-page px-6 py-4">
+          <h2 id="sala-policy-title" className="text-lg font-semibold text-ink">
             Partes sin sala asignada
           </h2>
         </div>
 
         <div className="px-6 py-5">
-          <p id="sala-policy-context" className="text-sm text-slate-600">
+          <p id="sala-policy-context" className="text-sm text-ink-muted">
             Esta semana hay{' '}
-            <span className="font-semibold text-slate-900">{nullSalaParts}</span> parte(s) sin sala
+            <span className="font-semibold text-ink">{nullSalaParts}</span> parte(s) sin sala
             asignada. Selecciona cómo proceder antes de regenerar.
           </p>
 
           {error && (
             <p
               role="alert"
-              className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+              className="mt-3 border border-danger-light bg-danger/10 px-3 py-2 text-sm text-danger-light"
             >
               {error}
             </p>
@@ -79,10 +79,10 @@ export default function SalaPolicyModal({
             {POLICY_OPTIONS.map((option) => (
               <label
                 key={option.value}
-                className={`flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors ${
+                className={`flex cursor-pointer items-start gap-3 border p-4 transition-colors ${
                   policy === option.value
-                    ? 'border-blue-800 bg-blue-50'
-                    : 'border-slate-200 hover:bg-slate-50'
+                    ? 'border-brand-light bg-brand-highlight'
+                    : 'border-line hover:bg-nav'
                 } ${isSubmitting ? 'cursor-not-allowed opacity-70' : ''}`}
               >
                 <input
@@ -92,22 +92,22 @@ export default function SalaPolicyModal({
                   checked={policy === option.value}
                   onChange={() => setPolicy(option.value)}
                   disabled={isSubmitting}
-                  className="mt-0.5 h-4 w-4 shrink-0 accent-blue-800"
+                  className="mt-0.5 h-4 w-4 shrink-0 accent-brand-light"
                 />
                 <span>
-                  <span className="block text-sm font-semibold text-slate-900">{option.label}</span>
-                  <span className="mt-1 block text-xs text-slate-500">{option.help}</span>
+                  <span className="block text-sm font-semibold text-ink">{option.label}</span>
+                  <span className="mt-1 block text-xs text-ink-muted">{option.help}</span>
                 </span>
               </label>
             ))}
           </div>
 
-          <div className="mt-5 flex justify-end gap-2 border-t border-slate-200 pt-4">
+          <div className="mt-5 flex justify-end gap-2 border-t border-line pt-4">
             <button
               type="button"
               onClick={onCancel}
               disabled={isSubmitting}
-              className="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+              className="border border-line bg-surface px-4 py-2.5 text-sm font-semibold text-ink-muted transition-colors hover:bg-nav focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-light disabled:cursor-not-allowed disabled:opacity-50"
             >
               Cancelar
             </button>
@@ -115,7 +115,7 @@ export default function SalaPolicyModal({
               type="button"
               onClick={() => onConfirm(policy)}
               disabled={isSubmitting}
-              className="rounded-lg bg-blue-800 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-900 disabled:cursor-not-allowed disabled:opacity-50"
+              className="bg-brand px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-light disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSubmitting ? 'Generando...' : 'Regenerar'}
             </button>

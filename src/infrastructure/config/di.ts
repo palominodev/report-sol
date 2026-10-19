@@ -16,10 +16,12 @@ import { RoleRotationRule } from '@/core/domain/presentations/rules/RoleRotation
 import { SalaRotationRule } from '@/core/domain/presentations/rules/SalaRotationRule';
 import { CreateMeetingWeekUseCase } from '@/core/application/use-cases/presentation/CreateMeetingWeekUseCase';
 import { GenerateWeekAssignmentsUseCase } from '@/core/application/use-cases/presentation/GenerateWeekAssignmentsUseCase';
+import { GetAssignmentHistoryUseCase } from '@/core/application/use-cases/presentation/GetAssignmentHistoryUseCase';
 import { GetWeekAssignmentsUseCase } from '@/core/application/use-cases/presentation/GetWeekAssignmentsUseCase';
 import { AdoptSalaRoomsUseCase } from '@/core/application/use-cases/presentation/AdoptSalaRoomsUseCase';
 import { OverrideAssignmentUseCase } from '@/core/application/use-cases/presentation/OverrideAssignmentUseCase';
 import { SetPartSalaUseCase } from '@/core/application/use-cases/presentation/SetPartSalaUseCase';
+import { DiscardWeekAssignmentsUseCase } from '@/core/application/use-cases/presentation/DiscardWeekAssignmentsUseCase';
 import { ConfirmWeekAssignmentsUseCase } from '@/core/application/use-cases/presentation/ConfirmWeekAssignmentsUseCase';
 
 export function getInformeRepository(): IInformeRepository {
@@ -53,6 +55,10 @@ export function getGenerateWeekAssignmentsUseCase(): GenerateWeekAssignmentsUseC
   return new GenerateWeekAssignmentsUseCase(getUserRepository(), getAssignmentsRepository(), getMatchingRules());
 }
 
+export function getAssignmentHistoryUseCase(): GetAssignmentHistoryUseCase {
+  return new GetAssignmentHistoryUseCase(getAssignmentsRepository());
+}
+
 export function getGetWeekAssignmentsUseCase(): GetWeekAssignmentsUseCase {
   return new GetWeekAssignmentsUseCase(getAssignmentsRepository());
 }
@@ -67,6 +73,10 @@ export function getOverrideAssignmentUseCase(): OverrideAssignmentUseCase {
 
 export function getSetPartSalaUseCase(): SetPartSalaUseCase {
   return new SetPartSalaUseCase(getAssignmentsRepository());
+}
+
+export function getDiscardWeekAssignmentsUseCase(): DiscardWeekAssignmentsUseCase {
+  return new DiscardWeekAssignmentsUseCase(getAssignmentsRepository());
 }
 
 export function getConfirmWeekAssignmentsUseCase(): ConfirmWeekAssignmentsUseCase {
