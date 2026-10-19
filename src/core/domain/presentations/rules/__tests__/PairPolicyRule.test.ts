@@ -92,6 +92,42 @@ describe('PairPolicyRule (R2 per-tipo pair policy)', () => {
     });
   });
 
+  describe('two ancianos never share a part', () => {
+    it.each([
+      'empiece_conversaciones',
+      'haga_revisitas',
+      'haga_discipulos',
+      'explique_sus_creencias',
+    ] as const)('blocks anciano + anciano on %s', (tipo) => {
+      const candidate = person(2, 'masculino', null, 'anciano');
+      const presenter = person(1, 'masculino', null, 'anciano');
+      expect(rule.isAllowed(companionCtx(candidate, presenter, tipo))).toBe(false);
+    });
+
+    it.each([
+      ['anciano + siervo', 'anciano', 'siervo'],
+      ['anciano + publicador (NULL cargo)', 'anciano', null],
+      ['siervo + siervo', 'siervo', 'siervo'],
+      ['publicador + publicador', null, null],
+    ] as const)('allows %s', (_label, presenterCargo, candidateCargo) => {
+      const candidate = person(2, 'masculino', null, candidateCargo);
+      const presenter = person(1, 'masculino', null, presenterCargo);
+      expect(rule.isAllowed(companionCtx(candidate, presenter, 'haga_revisitas'))).toBe(true);
+    });
+
+    it('blocks anciano + anciano even when the mixed-gender family exception would apply', () => {
+      const candidate = person(2, 'femenino', 7, 'anciano');
+      const presenter = person(1, 'masculino', 7, 'anciano');
+      expect(rule.isAllowed(companionCtx(candidate, presenter, 'empiece_conversaciones'))).toBe(false);
+    });
+
+    it('does not affect one-person parts', () => {
+      const candidate = person(2, 'masculino', null, 'anciano');
+      const presenter = person(1, 'masculino', null, 'anciano');
+      expect(rule.isAllowed(companionCtx(candidate, presenter, 'discurso'))).toBe(true);
+    });
+  });
+
   describe('defensive edges', () => {
     it('allows when no presenter has been committed yet (presenter slot, single-person part)', () => {
       const candidate = person(2, 'femenino');

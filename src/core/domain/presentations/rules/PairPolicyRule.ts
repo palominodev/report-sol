@@ -12,6 +12,8 @@ export const PAIR_POLICY_RULE_ID = 'pair_policy';
  * - `never_mixed` (haga_revisitas, haga_discipulos): a mixed-gender pair is
  *   never allowed, regardless of familia.
  * - Same-gender pairs are always allowed. One-person parts are a no-op.
+ * - On every two-person part, two ancianos never share the part (checked
+ *   first, so it also overrides the same-familia exception above).
  */
 export class PairPolicyRule implements MatchingRule {
   readonly id = PAIR_POLICY_RULE_ID;
@@ -26,6 +28,8 @@ export class PairPolicyRule implements MatchingRule {
 
     const other = ctx.personsById.get(presenterId);
     if (!other) return true; // uncommitted or unresolvable co-person: nothing to police
+
+    if (ctx.person.cargo === 'anciano' && other.cargo === 'anciano') return false;
 
     if (ctx.person.genero === other.genero) return true; // same-gender pair unaffected
     if (policy.pair === 'never_mixed') return false;
