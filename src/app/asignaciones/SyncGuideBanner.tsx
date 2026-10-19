@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { formatCheckedAt } from '@/lib/presentation/formatCheckedAt';
 
 export interface GuideSyncState {
   hasNewer: boolean;
@@ -20,6 +21,7 @@ export default function SyncGuideBanner({ initialState }: SyncGuideBannerProps) 
   const [isSyncing, setIsSyncing] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const lastCheckedLabel = syncState.lastCheckedAt ? formatCheckedAt(syncState.lastCheckedAt) : null;
 
   const handleSync = async (issueToSync?: string) => {
     setIsSyncing(true);
@@ -175,10 +177,8 @@ export default function SyncGuideBanner({ initialState }: SyncGuideBannerProps) 
                 : 'Sin guía de actividades cargada'}
             </div>
             <div className="text-xs text-slate-500">
-              {syncState.lastCheckedAt
-                ? `Última comprobación: ${new Date(syncState.lastCheckedAt).toLocaleDateString()} ${new Date(
-                    syncState.lastCheckedAt
-                  ).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+              {lastCheckedLabel
+                ? `Última comprobación: ${lastCheckedLabel}`
                 : 'No se ha comprobado recientemente'}
             </div>
           </div>
