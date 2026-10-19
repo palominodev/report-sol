@@ -42,10 +42,12 @@ describe('PresenterEligibilityRule (R1 cargo + R3 gender data-driven)', () => {
     ['que_diria allows a siervo', 2, 'que_diria' as const, 'femenino' as const, 'siervo' as const, true],
     ['que_diria blocks a publicador (NULL cargo)', 3, 'que_diria' as const, 'masculino' as const, null, false],
     ['que_diria is gender-neutral', 4, 'que_diria' as const, 'femenino' as const, null, false],
-    ['lectura allows an anciano', 5, 'lectura_biblia' as const, 'masculino' as const, 'anciano' as const, true],
-    ['lectura allows a publicador (no cargo restriction)', 6, 'lectura_biblia' as const, 'masculino' as const, null, true],
+    ['lectura blocks an anciano', 5, 'lectura_biblia' as const, 'masculino' as const, 'anciano' as const, false],
+    ['lectura allows a siervo', 10, 'lectura_biblia' as const, 'masculino' as const, 'siervo' as const, true],
+    ['lectura allows a publicador (NULL cargo)', 6, 'lectura_biblia' as const, 'masculino' as const, null, true],
     ['lectura blocks femenino', 7, 'lectura_biblia' as const, 'femenino' as const, null, false],
     ['discurso allows a masculino', 8, 'discurso' as const, 'masculino' as const, null, true],
+    ['discurso still allows an anciano (ban is lectura-only)', 11, 'discurso' as const, 'masculino' as const, 'anciano' as const, true],
     ['discurso blocks femenino', 9, 'discurso' as const, 'femenino' as const, null, false],
   ])('%s', (_label, id: number, tipo: PresentationType, genero: Genero | null, cargo: Cargo | null, expected: boolean) => {
     expect(rule.isAllowed(ctx(person(id, genero, cargo), tipo))).toBe(expected);

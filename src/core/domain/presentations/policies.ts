@@ -6,8 +6,13 @@ import { PresentationType } from '@/domain/entities/presentation/enums';
  */
 export type Arity = 1 | 2;
 
-/** R1: who may present (and generally hold) this tipo. */
-export type CargoPolicy = 'only_anciano_siervo' | 'any_cargo';
+/**
+ * R1: who may present (and generally hold) this tipo.
+ * - only_anciano_siervo: ancianos and siervos only (NULL cargo = publicador, blocked).
+ * - not_anciano: everyone except ancianos (siervos and publicadores allowed).
+ * - any_cargo: no cargo restriction.
+ */
+export type CargoPolicy = 'only_anciano_siervo' | 'not_anciano' | 'any_cargo';
 
 /** R3: gender gate for who may hold this tipo. */
 export type GenderPolicy = 'masculino_only' | 'any_gender';
@@ -38,7 +43,7 @@ export const PART_TYPE_POLICIES: Readonly<Record<PresentationType, PartTypePolic
   },
   lectura_biblia: {
     arity: 1,
-    presenterCargo: 'any_cargo',
+    presenterCargo: 'not_anciano',
     presenterGender: 'masculino_only',
     pair: 'none',
   },

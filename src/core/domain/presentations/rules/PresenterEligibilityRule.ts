@@ -7,7 +7,9 @@ export const PRESENTER_ELIGIBILITY_RULE_ID = 'presenter_eligibility';
  * Hard rule (R1 cargo + R3 gender, collapsed into one generic gate over the
  * `PART_TYPE_POLICIES` matrix):
  * - que_diria: cargo must be anciano or siervo (NULL cargo = publicador, blocked).
- * - lectura_biblia and discurso: masculino only, no cargo restriction.
+ * - lectura_biblia: masculino only, and ancianos are excluded (siervos and
+ *   publicadores may read).
+ * - discurso: masculino only, no cargo restriction.
  * The gate is role-agnostic: it applies to whoever candidatizes for the tipo
  * (one-person parts only ever evaluate the presenter).
  */
@@ -24,6 +26,9 @@ export class PresenterEligibilityRule implements MatchingRule {
       ctx.person.cargo !== 'anciano' &&
       ctx.person.cargo !== 'siervo'
     ) {
+      return false;
+    }
+    if (policy.presenterCargo === 'not_anciano' && ctx.person.cargo === 'anciano') {
       return false;
     }
     return true;
