@@ -3,6 +3,7 @@ import { MeetingWeek } from '@/domain/entities/presentation/MeetingWeek';
 import { PresentationPart } from '@/domain/entities/presentation/PresentationPart';
 import { Sala } from '@/domain/entities/presentation/enums';
 import { AssignmentHistoryRow } from './types';
+import { AssignmentHistoryEntry, AssignmentHistoryDetail } from './AssignmentHistory';
 
 export interface IAssignmentsRepository {
   /**
@@ -24,9 +25,15 @@ export interface IAssignmentsRepository {
   findPartById(id: number): Promise<PresentationPart | null>;
   findAssignmentsByWeek(id_week: number): Promise<Assignment[]>;
   findRecentAssignments(opts: { desde: string }): Promise<AssignmentHistoryRow[]>;
+  /** All confirmed/manual summaries before the selected week; newest first per person, no age cutoff. */
+  findAssignmentHistoryBefore(fechaInicio: string): Promise<AssignmentHistoryEntry[]>;
+  /** Detail lookup applies the same prior-week/state scope as the summary list. */
+  findAssignmentHistoryDetail(idAsignacion: number, fechaInicio: string): Promise<AssignmentHistoryDetail | null>;
   upsertAssignment(a: Omit<Assignment, 'id_asignacion'>): Promise<Assignment>;
   deleteNonManualByWeek(id_week: number): Promise<number>;
   confirmWeek(id_week: number): Promise<number>;
+  /** Atomically delete ALL assignments (including manual/confirmed) and reset the week to no_generada. Preserve parts and salas. */
+  discardWeek(id_week: number): Promise<number>;
   /**
    * Writes a part's sala directly (null = explicit clear). Must NOT go through
    * upsertWeek: its COALESCE guard keeps the old value when incoming is NULL,

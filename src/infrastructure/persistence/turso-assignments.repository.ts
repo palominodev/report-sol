@@ -1,6 +1,7 @@
 import { getDatabaseClient } from './database.client';
 import { IAssignmentsRepository } from '@/core/domain/presentations/IAssignmentsRepository';
 import { AssignmentHistoryRow } from '@/core/domain/presentations/types';
+import { AssignmentHistoryEntry, AssignmentHistoryDetail } from '@/core/domain/presentations/AssignmentHistory';
 import { MeetingWeek } from '@/domain/entities/presentation/MeetingWeek';
 import { PresentationPart } from '@/domain/entities/presentation/PresentationPart';
 import { Assignment } from '@/domain/entities/presentation/Assignment';
@@ -278,6 +279,47 @@ export class TursoAssignmentsRepository implements IAssignmentsRepository {
     return result.rows.map((r) => toAssignment(r as Record<string, unknown>));
   }
 
+  async findAssignmentHistoryBefore(fechaInicio: string): Promise<AssignmentHistoryEntry[]> {
+    const result = await getDatabaseClient().execute({
+      sql: `SELECT a.id_asignacion, a.id_usuario, a.id_week, w.fecha_inicio, w.fecha_fin
+        FROM presentation_assignment a
+        JOIN presentation_week w ON w.id_week = a.id_week
+        WHERE w.fecha_inicio < ? AND a.estado IN ('confirmed', 'manual')
+        ORDER BY a.id_usuario, w.fecha_inicio DESC, a.id_asignacion DESC`,
+      args: [fechaInicio],
+    });
+    return result.rows.map(row => ({
+      id_asignacion: Number(row.id_asignacion),
+      id_usuario: Number(row.id_usuario),
+      id_week: Number(row.id_week),
+      fecha_inicio: String(row.fecha_inicio),
+      fecha_fin: String(row.fecha_fin),
+    }));
+  }
+
+  async findAssignmentHistoryDetail(idAsignacion: number, fechaInicio: string): Promise<AssignmentHistoryDetail | null> {
+    const result = await getDatabaseClient().execute({
+      sql: `SELECT a.id_asignacion, a.id_usuario, a.id_week, w.fecha_inicio, w.fecha_fin,
+          p.tipo, a.rol, p.sala
+        FROM presentation_assignment a
+        JOIN presentation_week w ON w.id_week = a.id_week
+        JOIN presentation_part p ON p.id_part = a.id_part
+        WHERE a.id_asignacion = ? AND w.fecha_inicio < ? AND a.estado IN ('confirmed', 'manual')`,
+      args: [idAsignacion, fechaInicio],
+    });
+    const row = result.rows[0];
+    return row ? {
+      id_asignacion: Number(row.id_asignacion),
+      id_usuario: Number(row.id_usuario),
+      id_week: Number(row.id_week),
+      fecha_inicio: String(row.fecha_inicio),
+      fecha_fin: String(row.fecha_fin),
+      tipo: row.tipo as PresentationType,
+      rol: row.rol as AssignmentRole,
+      sala: (row.sala as Sala | null) ?? null,
+    } : null;
+  }
+
   async findRecentAssignments(opts: { desde: string }): Promise<AssignmentHistoryRow[]> {
     const client = getDatabaseClient();
     const result = await client.execute({
@@ -315,6 +357,15 @@ export class TursoAssignmentsRepository implements IAssignmentsRepository {
       args: [id_week],
     });
     return result.rows.length;
+  }
+
+  async discardWeek(id_week: number): Promise<number> {
+    const client = getDatabaseClient();
+    const [deleted] = await client.batch([
+      { sql: 'DELETE FROM presentation_assignment WHERE id_week = ?', args: [id_week] },
+      { sql: "UPDATE presentation_week SET estado = 'no_generada' WHERE id_week = ?", args: [id_week] },
+    ], 'write');
+    return deleted.rowsAffected;
   }
 
   async confirmWeek(id_week: number): Promise<number> {

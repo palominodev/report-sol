@@ -1,4 +1,4 @@
-import { getGetWeekAssignmentsUseCase } from '@/infrastructure/config/di';
+import { getGetWeekAssignmentsUseCase, getAssignmentHistoryUseCase } from '@/infrastructure/config/di';
 import { getAssignmentsRepository } from '@/infrastructure/config/di';
 import { getUserRepository } from '@/infrastructure/config/di';
 import { MeetingWeek } from '@/domain/entities/presentation/MeetingWeek';
@@ -19,6 +19,10 @@ export interface WeekDetail {
 export async function getWeekDetail(idWeek: number): Promise<WeekDetail> {
   const result = await getGetWeekAssignmentsUseCase().execute({ id_week: idWeek });
   return { week: result.week, parts: result.parts, assignments: result.assignments };
+}
+
+export async function getAssignmentHistory(idWeek: number) {
+  return getAssignmentHistoryUseCase().execute({ id_week: idWeek });
 }
 
 export async function getAssignableUsers(): Promise<AssignablePerson[]> {

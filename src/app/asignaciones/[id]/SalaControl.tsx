@@ -47,8 +47,8 @@ export default function SalaControl({ idPart, current }: SalaControlProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-center gap-2">
-      <label htmlFor={`sala-${idPart}`} className="text-sm font-medium text-slate-500">
+    <form onSubmit={handleSubmit} className="flex flex-wrap items-center gap-2">
+      <label htmlFor={`sala-${idPart}`} className="text-sm font-medium text-ink-muted">
         Sala
       </label>
       <select
@@ -56,7 +56,7 @@ export default function SalaControl({ idPart, current }: SalaControlProps) {
         value={loading ? (current ?? '') : selected}
         onChange={(e) => setSelected(e.target.value)}
         disabled={loading}
-        className="h-9 cursor-pointer rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 transition-colors focus:outline-none focus-visible:border-blue-800 focus-visible:ring-2 focus-visible:ring-blue-800/30 disabled:opacity-50"
+        className="min-h-11 cursor-pointer border border-line bg-surface px-3 text-sm text-ink transition-colors focus:outline-none focus-visible:border-brand-light focus-visible:ring-2 focus-visible:ring-brand-light/40 disabled:opacity-50"
       >
         <option value="">—</option>
         <option value="A">A</option>
@@ -65,12 +65,12 @@ export default function SalaControl({ idPart, current }: SalaControlProps) {
       <button
         type="submit"
         disabled={loading}
-        className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50"
+        className="inline-flex min-h-11 items-center justify-center border border-line bg-surface px-3 py-1.5 text-sm font-semibold text-ink-muted transition-colors hover:bg-nav focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-light disabled:opacity-50"
       >
         {loading ? 'Guardando...' : 'Guardar'}
       </button>
       {error && (
-        <p role="alert" className="text-sm text-red-700">
+        <p role="alert" className="text-sm text-danger-light">
           {error}
         </p>
       )}
