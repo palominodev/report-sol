@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { AssignmentHistoryEntry } from '@/core/domain/presentations/AssignmentHistory';
 import AssignmentHistory from './AssignmentHistory';
+import ParticipantPicker from './ParticipantPicker';
 
 export interface OverrideUser {
   id_usuario: number;
@@ -11,6 +12,8 @@ export interface OverrideUser {
   apellido: string;
   genero: string | null;
   assignmentHistory?: AssignmentHistoryEntry[];
+  /** e.g. "Hace 3 meses y 12 días que no participa"; shown next to the name. */
+  participationLabel?: string;
 }
 
 interface OverrideControlProps {
@@ -68,25 +71,19 @@ export default function OverrideControl({ idWeek, idPart, rol, currentIdUsuario,
 
   return (
     <form onSubmit={handleSubmit} className="space-y-2 border-t border-line pt-3">
-      <label htmlFor={`override-${idPart}-${rol}`} className="block text-xs font-medium text-ink-muted">
+      <label id={`override-${idPart}-${rol}-label`} htmlFor={`override-${idPart}-${rol}`} className="block text-xs font-medium text-ink-muted">
         {currentIdUsuario ? 'Cambiar' : 'Elegir'} {rolLabel.toLowerCase()}
       </label>
       <div className="flex items-center gap-2">
-        <select
+        <ParticipantPicker
           id={`override-${idPart}-${rol}`}
+          users={users}
           value={selected}
+          currentId={currentIdUsuario}
           disabled={loading}
-          aria-describedby={showCandidateHistory ? historyId : undefined}
-          onChange={(e) => setSelected(e.target.value)}
-          className="min-h-11 min-w-0 flex-1 cursor-pointer border border-line bg-surface px-3 text-sm text-ink transition-colors focus:outline-none focus-visible:border-brand-light focus-visible:ring-2 focus-visible:ring-brand-light/40 disabled:opacity-50"
-        >
-          <option value="">Seleccionar</option>
-          {users.map((u) => (
-            <option key={u.id_usuario} value={u.id_usuario}>
-              {u.nombre} {u.apellido}
-            </option>
-          ))}
-        </select>
+          describedBy={showCandidateHistory ? historyId : undefined}
+          onChange={setSelected}
+        />
         <button
           type="submit"
           disabled={loading || !selected}

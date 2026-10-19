@@ -9,7 +9,7 @@ vi.mock('next/link', () => ({
 vi.mock('next/navigation', () => ({ notFound: () => { throw new Error('Not found'); } }));
 vi.mock('@/lib/presentation/weeks', () => ({
   getWeekDetail: async () => ({
-    week: { id_week: 1, semana: 'Test week', estado: 'borrador' },
+    week: { id_week: 1, semana: 'Test week', fecha_inicio: '2026-10-05', fecha_fin: '2026-10-11', estado: 'borrador' },
     parts: [
       { id_part: 1, sala: 'A', tipo: 'lectura_biblia', seccion: 'TESOROS_DE_LA_BIBLIA', duracion_min: 11, orden: 1, requiresCompanero: () => false },
       { id_part: 2, sala: 'B', tipo: 'lectura_biblia', seccion: 'TESOROS_DE_LA_BIBLIA', duracion_min: 22, orden: 2, requiresCompanero: () => false },

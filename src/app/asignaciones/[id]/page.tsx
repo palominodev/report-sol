@@ -12,6 +12,7 @@ import {
 import { Sala } from '@/domain/entities/presentation/enums';
 import WeekActions from './WeekActions';
 import OverrideControl, { OverrideUser } from './OverrideControl';
+import { sortByParticipation } from '@/lib/presentation/participationOrder';
 import SalaControl from './SalaControl';
 import AssignmentHistory from './AssignmentHistory';
 import type { AssignmentHistoryEntry } from '@/core/domain/presentations/AssignmentHistory';
@@ -57,6 +58,9 @@ export default async function AsignacionDetailPage(props: PageProps) {
     genero: u.genero,
     assignmentHistory: historyByUser.get(u.id_usuario) ?? [],
   }));
+
+  // Selector order: longest without participating first, measured against the week being assigned.
+  const sortedUsers: OverrideUser[] = sortByParticipation(plainUsers, week.fecha_inicio);
 
   const usersById = new Map<number, OverrideUser>(plainUsers.map((u) => [u.id_usuario, u]));
   const userFullName = (id: number) => {
@@ -106,7 +110,7 @@ export default async function AsignacionDetailPage(props: PageProps) {
           idPart={partId}
           rol={rol}
           currentIdUsuario={slot?.id_usuario ?? null}
-          users={plainUsers}
+          users={sortedUsers}
         />
       </div>
     );
