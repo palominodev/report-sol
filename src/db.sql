@@ -141,3 +141,24 @@ CREATE TABLE IF NOT EXISTS presentation_sync_state (
   latest_known_published TEXT,
   last_checked_at TEXT
 );
+
+-- Authentication: accounts and server-side sessions.
+-- Only a hash of the session token is stored, never the token itself.
+CREATE TABLE IF NOT EXISTS cuenta (
+  id_cuenta INTEGER PRIMARY KEY AUTOINCREMENT,
+  username TEXT NOT NULL UNIQUE COLLATE NOCASE,
+  password_hash TEXT NOT NULL,
+  rol TEXT NOT NULL CHECK(rol IN ('administrador', 'normal')),
+  activa INTEGER NOT NULL DEFAULT 1 CHECK(activa IN (0, 1)),
+  creada_en TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS sesion (
+  token_hash TEXT PRIMARY KEY,
+  id_cuenta INTEGER NOT NULL,
+  expira_en TEXT NOT NULL,
+  creada_en TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (id_cuenta) REFERENCES cuenta(id_cuenta) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_sesion_cuenta ON sesion(id_cuenta);
