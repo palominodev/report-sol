@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import type { SalaPolicy } from '@/core/application/use-cases/presentation/AdoptSalaRoomsUseCase';
 import SalaPolicyModal from './SalaPolicyModal';
 import type { WeekActionCallbacks } from './week-action-types';
+import { authedFetch } from '@/lib/auth/authed-fetch';
 
 interface GenerateButtonProps extends WeekActionCallbacks {
   idWeek: number;
@@ -26,7 +27,7 @@ export default function GenerateButton({ idWeek, label, nullSalaParts, disabled,
     setError(null);
     setNotice(null);
     try {
-      const res = await fetch(`/api/asignaciones/semana/${idWeek}/generar`, {
+      const res = await authedFetch(`/api/asignaciones/semana/${idWeek}/generar`, {
         method: 'POST',
         ...(policy && {
           headers: { 'Content-Type': 'application/json' },

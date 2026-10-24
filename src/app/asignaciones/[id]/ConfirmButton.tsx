@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { WeekActionCallbacks } from './week-action-types';
+import { authedFetch } from '@/lib/auth/authed-fetch';
 
 interface ConfirmButtonProps extends WeekActionCallbacks {
   idWeek: number;
@@ -29,7 +30,7 @@ export default function ConfirmButton({ idWeek, hasAssignments, missingLabels, d
     onFeedback?.(null);
     setMessage(null);
     try {
-      const res = await fetch(`/api/asignaciones/semana/${idWeek}/confirmar`, { method: 'POST' });
+      const res = await authedFetch(`/api/asignaciones/semana/${idWeek}/confirmar`, { method: 'POST' });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         const is409 = res.status === 409;

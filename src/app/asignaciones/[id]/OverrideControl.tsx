@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import type { AssignmentHistoryEntry } from '@/core/domain/presentations/AssignmentHistory';
 import AssignmentHistory from './AssignmentHistory';
 import ParticipantPicker from './ParticipantPicker';
+import { authedFetch } from '@/lib/auth/authed-fetch';
 
 export interface OverrideUser {
   id_usuario: number;
@@ -43,7 +44,7 @@ export default function OverrideControl({ idWeek, idPart, rol, currentIdUsuario,
     setError(null);
     setWarnings([]);
     try {
-      const res = await fetch(`/api/asignacion/${idPart}`, {
+      const res = await authedFetch(`/api/asignacion/${idPart}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rol, id_usuario: Number(selected) }),

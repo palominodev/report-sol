@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import GenerateButton from './GenerateButton';
 import ConfirmButton from './ConfirmButton';
 import type { WeekActionFeedback } from './week-action-types';
+import { authedFetch } from '@/lib/auth/authed-fetch';
 
 interface WeekActionsProps {
   idWeek: number;
@@ -33,7 +34,7 @@ export default function WeekActions({ idWeek, weekLabel, hasAssignments, isConfi
     setDiscarding(true);
     setFeedback(null);
     try {
-      const response = await fetch(`/api/asignaciones/semana/${idWeek}/descartar`, { method: 'DELETE' });
+      const response = await authedFetch(`/api/asignaciones/semana/${idWeek}/descartar`, { method: 'DELETE' });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || 'Error al descartar la generación');
       discardDialog.current?.close();

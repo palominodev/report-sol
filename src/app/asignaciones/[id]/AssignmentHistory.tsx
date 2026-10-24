@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react';
 import type { AssignmentHistoryEntry, AssignmentHistoryDetail } from '@/core/domain/presentations/AssignmentHistory';
 import { presentationTypeLabel, salaLabel } from '@/lib/presentation/status';
+import { authedFetch } from '@/lib/auth/authed-fetch';
 
 function dateLabel(date: string) {
   return date.split('-').reverse().join('/');
@@ -20,7 +21,7 @@ function HistoryEntry({ entry, idWeek }: { entry: AssignmentHistoryEntry; idWeek
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/asignaciones/semana/${idWeek}/historial/${entry.id_asignacion}`, { cache: 'no-store' });
+      const response = await authedFetch(`/api/asignaciones/semana/${idWeek}/historial/${entry.id_asignacion}`, { cache: 'no-store' });
       const data = await response.json().catch(() => null);
       if (!response.ok || !data) throw new Error(data?.error || 'No se pudo cargar esta asignación');
       setDetail(data);

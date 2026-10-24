@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { formatCheckedAt } from '@/lib/presentation/formatCheckedAt';
+import { authedFetch } from '@/lib/auth/authed-fetch';
 
 export interface GuideSyncState {
   hasNewer: boolean;
@@ -28,7 +29,7 @@ export default function SyncGuideBanner({ initialState }: SyncGuideBannerProps) 
     setFeedback(null);
 
     try {
-      const response = await fetch('/api/asignaciones/sync', {
+      const response = await authedFetch('/api/asignaciones/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(issueToSync ? { issue: issueToSync } : {}),
@@ -69,7 +70,7 @@ export default function SyncGuideBanner({ initialState }: SyncGuideBannerProps) 
     setFeedback(null);
 
     try {
-      const response = await fetch('/api/asignaciones/guide-check?force=true');
+      const response = await authedFetch('/api/asignaciones/guide-check?force=true');
       const data: GuideSyncState = await response.json();
 
       if (!response.ok) {

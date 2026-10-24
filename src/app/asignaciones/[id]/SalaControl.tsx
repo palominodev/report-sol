@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { authedFetch } from '@/lib/auth/authed-fetch';
 
 interface SalaControlProps {
   idPart: number;
@@ -28,7 +29,7 @@ export default function SalaControl({ idPart, current }: SalaControlProps) {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/asignacion/${idPart}/sala`, {
+      const res = await authedFetch(`/api/asignacion/${idPart}/sala`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sala: selected === '' ? null : selected }),
