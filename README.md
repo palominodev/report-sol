@@ -117,7 +117,17 @@ Cambia la contraseña y cierra todas las sesiones abiertas de esa cuenta.
 
 ### Base de datos de destino
 
-Por defecto el comando usa la base local (`data/local.db`). Para producción hay que pasar `--prod` explícitamente: usa `TURSO_URL` y `TURSO_TOKEN` de `.env`, muestra el destino y pide escribir `yes` antes de escribir. Para uso no interactivo, la contraseña puede venir de la variable de entorno `ACCOUNT_PASSWORD`.
+Por defecto el comando usa la base local (`data/local.db`). Para producción hay que pasar `--prod` explícitamente: usa `TURSO_URL` y `TURSO_TOKEN` de `.env`, muestra el destino y pide escribir `yes` antes de escribir. Para uso no interactivo (sin terminal, por ejemplo un script de despliegue), la contraseña puede venir de la variable de entorno `ACCOUNT_PASSWORD`. **No la escribas delante del comando** (`ACCOUNT_PASSWORD=... pnpm account ...`): queda guardada en el historial del shell. Cargala desde un secreto o un archivo con permisos restringidos, o usá el pedido por teclado, que es lo recomendado. La contraseña debe tener entre 10 y 256 caracteres; el inicio de sesión rechaza lo que supere ese máximo.
+
+### Respuestas de la API sin sesión
+
+Todas las rutas `/api` (salvo `POST /api/auth/login` y `POST /api/auth/logout`) responden:
+
+- `401 { error: "Necesitás iniciar sesión." }` si no hay sesión, si venció o si la cuenta fue desactivada. Las pantallas del dashboard, de publicadores y de informes llevan a `/login?next=<pantalla actual>` cuando reciben un `401`.
+- `403 { error: "No tenés permiso para hacer esto." }` si la cuenta no es administradora y la ruta lo exige (`/api/cuentas`).
+- `500` si no se pudo verificar la sesión (se rechaza el pedido, nunca se deja pasar).
+
+`GET /api/auth/session` devuelve `200 { account }` con la cuenta de la sesión actual, o `401`. Después de un inicio de sesión correcto, la pantalla de login lo consulta para confirmar que el navegador guardó la cookie; si no la guardó, avisa en vez de volver a `/login` en silencio. `POST /api/auth/login` devuelve `413` si el cuerpo supera 4096 caracteres.
 
 ### Notas de despliegue
 
