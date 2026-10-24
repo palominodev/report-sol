@@ -11,6 +11,9 @@ interface PageProps {
 }
 
 // Public (S7): a publisher opens their group and sends their report.
+// Rendered on every request: "report sent" must reflect the database, not the last build.
+export const dynamic = 'force-dynamic';
+
 export default async function Page(props: PageProps) {
   const params = await props.params;
   const now = new Date();

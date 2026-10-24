@@ -6,6 +6,9 @@ import { GrupoDetails } from '@/core/domain/repositories/IGrupoRepository';
 import BuscadorPublicadores from '@/components/BuscadorPublicadores';
 
 // Public (S7): anyone can open the home page to pick their group and send their report.
+// Rendered on every request: the group list and roster must never be frozen at build time.
+export const dynamic = 'force-dynamic';
+
 export default async function Home() {
   const [grupos, publicadores] = await Promise.all([getGrupos(), getPublicadores()]);
 

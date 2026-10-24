@@ -130,6 +130,15 @@ describe('every page is guarded', () => {
     expect(analysis.selfGuarded, `${page} is public in the access policy but calls requireAccount()`).toBe(false);
   });
 
+  // Without the guard, nothing in these pages reads request data any more, so Next could render them
+  // once at build time and serve a stale group list and roster until the next deploy.
+  it.each(pages.filter((p) => isPublicPage(p)))('%s is rendered on every request, never at build time', (page) => {
+    const source = stripComments(readFileSync(join(APP_DIR, page), 'utf8'));
+    expect(source, `${page} is public and must export dynamic = 'force-dynamic'`).toMatch(
+      /export\s+const\s+dynamic\s*=\s*['"]force-dynamic['"]/
+    );
+  });
+
   it('makes public only the sign-in page and the data-entry pages, nothing else', () => {
     const publicPages = pages.filter((p) => isPublicPage(p)).map(pagePath);
     expect(publicPages.sort()).toEqual(['/', '/grupo', '/grupo/1', '/login'].sort());
