@@ -9,6 +9,11 @@ import { CryptoSessionTokenService } from '../auth/crypto-session-token-service'
 import { LoginUseCase } from '@/core/application/use-cases/auth/LoginUseCase';
 import { LogoutUseCase } from '@/core/application/use-cases/auth/LogoutUseCase';
 import { ValidateSessionUseCase } from '@/core/application/use-cases/auth/ValidateSessionUseCase';
+import { CreateAccountUseCase } from '@/core/application/use-cases/auth/CreateAccountUseCase';
+import { ResetPasswordUseCase } from '@/core/application/use-cases/auth/ResetPasswordUseCase';
+import { DeactivateAccountUseCase } from '@/core/application/use-cases/auth/DeactivateAccountUseCase';
+import { ReactivateAccountUseCase } from '@/core/application/use-cases/auth/ReactivateAccountUseCase';
+import type { IAccountRepository } from '@/core/domain/auth/IAccountRepository';
 import { IInformeRepository } from '@/core/domain/repositories/IInformeRepository';
 import { IGrupoRepository } from '@/core/domain/repositories/IGrupoRepository';
 import { IUserRepository } from '@/core/domain/repositories/IUserRepository';
@@ -117,4 +122,28 @@ export function getLogoutUseCase(): LogoutUseCase {
 
 export function getValidateSessionUseCase(): ValidateSessionUseCase {
   return new ValidateSessionUseCase(new TursoSessionRepository(), new CryptoSessionTokenService());
+}
+
+export function getAccountRepository(): IAccountRepository {
+  return new TursoAccountRepository();
+}
+
+export function getCreateAccountUseCase(): CreateAccountUseCase {
+  return new CreateAccountUseCase(new TursoAccountRepository(), new ScryptPasswordHasher());
+}
+
+export function getResetPasswordUseCase(): ResetPasswordUseCase {
+  return new ResetPasswordUseCase(
+    new TursoAccountRepository(),
+    new TursoSessionRepository(),
+    new ScryptPasswordHasher()
+  );
+}
+
+export function getDeactivateAccountUseCase(): DeactivateAccountUseCase {
+  return new DeactivateAccountUseCase(new TursoAccountRepository(), new TursoSessionRepository());
+}
+
+export function getReactivateAccountUseCase(): ReactivateAccountUseCase {
+  return new ReactivateAccountUseCase(new TursoAccountRepository());
 }
