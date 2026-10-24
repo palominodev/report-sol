@@ -45,7 +45,10 @@ Stack: Next.js 15 (App Router), libsql/Turso, hexagonal (core/domain, core/appli
 - Slice 6: T4b (dcef3ff); T4c, T3d findings, T6 follow in slice 7.
 - Slice 5: T3c (67aaba4) + T3b (c35664d); T3d verification, T4b/T4c, T6 start slice 6.
 - Slice 4: T5b (2c123a8) + T3a guards (42941b4) + T4a (4029070); T3b/T3c/T4b/T4c start slice 5.
-- Slice 8: F1 (b79edea) + F4 (48a1dab); F2, F3, F5, F6 and the second verification follow in slice 9.
+- Slice 8: F1 (b79edea) + F4 (48a1dab).
+- Slice 9: F5 (d9749bc), F3 (65a9bd0) + password limit (39fe173), F2 (f4861df), F6 (db1fd03), F7 (3c21f9e). Closes the feature work; T3e second verification done, T6 cleanup done.
+- Open, not fixed (see L12 and the final report): structural test bypass via destructured exports; no structural check that /api/cuentas requires role administrador; no Origin check on POST/PATCH; deactivate not atomic with session deletion; logout with the network down does not clear the cookie; .env.example comment not updated (access was blocked).
+- Open user decisions: login rate limit; Secure cookie over plain http; db:push --prod; merge/push order.
 
 ## Log
 - L1: "vamos a crear un login para iniciar sesión en /dashboard"
