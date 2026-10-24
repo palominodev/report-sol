@@ -23,6 +23,15 @@ function setup(initial: Account[]) {
     async countActiveAdmins() {
       return accounts.filter((a) => a.rol === 'administrador' && a.activa).length;
     },
+    // Same rule as the real repository: refuse only the last ACTIVE administrator.
+    async deactivateUnlessLastAdmin(id: number) {
+      const found = accounts.find((a) => a.id === id);
+      if (!found) return false;
+      const activeAdmins = accounts.filter((a) => a.rol === 'administrador' && a.activa).length;
+      if (found.rol === 'administrador' && found.activa && activeAdmins <= 1) return false;
+      found.activa = false;
+      return true;
+    },
   } as unknown as IAccountRepository;
 
   const sessionRepo = {

@@ -17,13 +17,14 @@ export class DeactivateAccountUseCase {
     const account = await this.accounts.findById(id);
     if (!account) throw new NotFoundError('No existe esa cuenta.');
 
-    if (account.activa && account.rol === 'administrador' && (await this.accounts.countActiveAdmins()) <= 1) {
+    // One atomic step: counting first and writing after would let two administrators remove each other.
+    const deactivated = await this.accounts.deactivateUnlessLastAdmin(id);
+    if (!deactivated) {
       throw new UnprocessableError(
         'No se puede desactivar al último administrador activo: nadie podría administrar las cuentas.'
       );
     }
 
-    await this.accounts.setActive(id, false);
     await this.sessions.deleteByAccount(id);
   }
 }

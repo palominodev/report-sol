@@ -67,6 +67,20 @@ export class TursoAccountRepository implements IAccountRepository {
     });
   }
 
+  async deactivateUnlessLastAdmin(id: number): Promise<boolean> {
+    // Check and write in ONE statement: two simultaneous requests cannot both see "another
+    // administrator is left" and then each remove the other.
+    const result = await getDatabaseClient().execute({
+      sql: `UPDATE cuenta SET activa = 0
+            WHERE id_cuenta = ?
+              AND (rol <> 'administrador'
+                   OR activa = 0
+                   OR (SELECT COUNT(*) FROM cuenta WHERE rol = 'administrador' AND activa = 1) > 1)`,
+      args: [id],
+    });
+    return result.rowsAffected > 0;
+  }
+
   async setPasswordHash(id: number, passwordHash: string): Promise<void> {
     await getDatabaseClient().execute({
       sql: 'UPDATE cuenta SET password_hash = ? WHERE id_cuenta = ?',
