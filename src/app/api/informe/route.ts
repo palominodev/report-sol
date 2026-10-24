@@ -42,7 +42,9 @@ export const GET = withAuth(async (request: Request) => {
   }
 });
 
-export const POST = withAuth(async (request: Request) => {
+// Public on purpose (S7): anyone can send a report. This is the ONLY unguarded method on this route;
+// the access policy (src/lib/auth/access-policy.ts) lists exactly `POST /api/informe`.
+export async function POST(request: Request) {
   try {
     const data = await request.json();
 
@@ -59,4 +61,4 @@ export const POST = withAuth(async (request: Request) => {
     }
     return NextResponse.json({ error: 'Error interno del servidor al crear el informe' }, { status: 500 });
   }
-});
+}

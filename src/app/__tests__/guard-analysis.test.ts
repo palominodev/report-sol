@@ -67,6 +67,34 @@ describe('analyzeRoute', () => {
   });
 });
 
+describe('analyzeRoute with a public method (S7)', () => {
+  const MIXED =
+    `${GOOD_IMPORT}export const GET = withAuth(async () => new Response('ok'));\n` +
+    "export async function POST() { return new Response('ok'); }";
+
+  it('accepts a method the policy makes public when it is NOT wrapped, and still requires the rest wrapped', () => {
+    expect(analyzeRoute(MIXED, ['POST'])).toEqual([]);
+  });
+
+  it('flags a public method that is wrapped in withAuth: the policy and the server would disagree', () => {
+    const source = `${GOOD_IMPORT}export const POST = withAuth(async () => new Response('ok'));`;
+    expect(analyzeRoute(source, ['POST']).join(' ')).toMatch(/POST.*public.*withAuth/i);
+  });
+
+  it('still flags a private method left unwrapped next to a public one', () => {
+    const source = `${GOOD_IMPORT}export async function GET() { return new Response('x'); }\nexport async function POST() { return new Response('x'); }`;
+    expect(analyzeRoute(source, ['POST']).join(' ')).toMatch(/GET is not wrapped/);
+  });
+
+  it('does not accept an unwrapped method just because it is named like a public one', () => {
+    expect(analyzeRoute(MIXED).join(' ')).toMatch(/POST is not wrapped/);
+  });
+
+  it('still needs an exported handler at all', () => {
+    expect(analyzeRoute("export const dynamic = 'force-dynamic';", ['POST']).join(' ')).toMatch(/no HTTP handler/i);
+  });
+});
+
 describe('analyzePage', () => {
   const IMPORT = "import { requireAccount } from '@/lib/auth/server';\n";
 

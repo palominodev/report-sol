@@ -55,8 +55,14 @@ function importsFromGuardModule(code: string, name: string): boolean {
   return pattern.test(code);
 }
 
-/** Problems found in a route.ts source; an empty list means every handler is guarded. */
-export function analyzeRoute(source: string): string[] {
+/**
+ * Problems found in a route.ts source; an empty list means every handler is guarded.
+ *
+ * `publicMethods` are the methods the access policy makes public for this route. They must
+ * NOT be wrapped in withAuth (otherwise the policy and the server disagree and the public
+ * call would still be refused); every other method must be wrapped.
+ */
+export function analyzeRoute(source: string, publicMethods: readonly string[] = []): string[] {
   const code = stripComments(source);
   const problems: string[] = [];
 
@@ -76,12 +82,16 @@ export function analyzeRoute(source: string): string[] {
   if (exported.length === 0) problems.push('no HTTP handler exported');
 
   for (const method of exported) {
-    if (!new RegExp(`export\\s+const\\s+${method}\\s*=\\s*withAuth\\(`).test(code)) {
+    const wrapped = new RegExp(`export\\s+const\\s+${method}\\s*=\\s*withAuth\\(`).test(code);
+    if (publicMethods.includes(method)) {
+      if (wrapped) problems.push(`${method} is public in the access policy but wrapped in withAuth`);
+    } else if (!wrapped) {
       problems.push(`${method} is not wrapped in withAuth`);
     }
   }
 
-  if (exported.length > 0 && !importsFromGuardModule(code, 'withAuth')) {
+  const needsWithAuthImport = exported.some((method) => !publicMethods.includes(method));
+  if (needsWithAuthImport && !importsFromGuardModule(code, 'withAuth')) {
     problems.push(`withAuth must be imported from '${GUARD_MODULE}'`);
   }
   return problems;

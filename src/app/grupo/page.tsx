@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation';
-import { requireAccount } from '@/lib/auth/server';
 
+// Public (S7): the group list is the home page.
 export default async function GrupoPage() {
-  await requireAccount();
   redirect('/');
 }

@@ -30,10 +30,32 @@ describe('middleware: anonymous visitors', () => {
     expect(await res.json()).toEqual({ error: 'Necesitás iniciar sesión.' });
   });
 
-  it.each(['/login', '/api/auth/login', '/api/auth/logout'])('lets %s through', (path) => {
-    const res = run(path);
+  it.each([
+    ['GET', '/login'],
+    ['POST', '/api/auth/login'],
+    ['POST', '/api/auth/logout'],
+  ])('lets %s %s through', (method, path) => {
+    const res = middleware(new NextRequest(`${BASE}${path}`, { method }));
     expect(res.headers.get('x-middleware-next')).toBe('1');
   });
+
+  it('answers 401 to GET /api/informe but lets POST /api/informe through (the public report)', async () => {
+    expect(run('/api/informe').status).toBe(401);
+    expect(middleware(new NextRequest(`${BASE}/api/informe`, { method: 'DELETE' })).status).toBe(401);
+    const post = middleware(new NextRequest(`${BASE}/api/informe`, { method: 'POST' }));
+    expect(post.headers.get('x-middleware-next')).toBe('1');
+  });
+
+  it.each(['/', '/grupo', '/grupo/3'])('lets the public page %s through without a session', (path) => {
+    expect(run(path).headers.get('x-middleware-next')).toBe('1');
+  });
+
+  it.each(['/dashboard', '/asignaciones', '/usuario', '/dashboard/cuentas'])(
+    'still redirects the private page %s to /login',
+    (path) => {
+      expect(run(path).status).toBe(307);
+    }
+  );
 });
 
 describe('middleware: with a session cookie', () => {

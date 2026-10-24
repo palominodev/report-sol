@@ -4,10 +4,9 @@ import { getGrupos } from '@/lib/getGrupos';
 import { getPublicadores } from '@/lib/getUsuarios';
 import { GrupoDetails } from '@/core/domain/repositories/IGrupoRepository';
 import BuscadorPublicadores from '@/components/BuscadorPublicadores';
-import { requireAccount } from '@/lib/auth/server';
 
+// Public (S7): anyone can open the home page to pick their group and send their report.
 export default async function Home() {
-  await requireAccount();
   const [grupos, publicadores] = await Promise.all([getGrupos(), getPublicadores()]);
 
   const publicadorOptions = publicadores.flatMap((publicador) =>

@@ -10,6 +10,7 @@ import { SESSION_COOKIE_NAME } from '@/lib/auth/session-cookie';
 export function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   const decision = decideAccess({
+    method: request.method,
     pathname,
     search,
     hasSessionCookie: request.cookies.has(SESSION_COOKIE_NAME),

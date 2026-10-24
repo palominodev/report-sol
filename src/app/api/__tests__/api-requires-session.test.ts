@@ -13,6 +13,8 @@ type Handler = (request: NextRequest, context: { params: Promise<Record<string, 
 const METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
 const API_DIR = join(process.cwd(), 'src', 'app', 'api');
 const PUBLIC_ROUTES = ['auth/login/route.ts', 'auth/logout/route.ts'];
+/** The one public API call (S7): sending a report. The other methods of the same route stay private. */
+const PUBLIC_CALLS = ['POST /api/informe'];
 
 function walk(dir: string, prefix = ''): string[] {
   return readdirSync(dir).flatMap((entry) => {
@@ -27,7 +29,7 @@ const modules = await Promise.all(
   protectedRoutes.map(async (route) => [route, (await import(/* @vite-ignore */ join(API_DIR, route))) as Record<string, unknown>] as const)
 );
 
-const cases = modules.flatMap(([route, mod]) =>
+const allCases = modules.flatMap(([route, mod]) =>
   METHODS.filter((method) => typeof mod[method] === 'function').map((method) => ({
     label: `${method} /api/${route.replace(/\/?route\.ts$/, '')}`,
     route,
@@ -35,6 +37,7 @@ const cases = modules.flatMap(([route, mod]) =>
     handler: mod[method] as Handler,
   }))
 );
+const cases = allCases.filter((c) => !PUBLIC_CALLS.includes(c.label));
 
 const COUNTED_TABLES = [
   'usuario',
