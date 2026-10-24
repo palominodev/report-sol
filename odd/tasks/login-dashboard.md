@@ -26,6 +26,8 @@ Stack: Next.js 15 (App Router), libsql/Turso, hexagonal (core/domain, core/appli
 - T5b (S4,S5) Terminal command: first admin / reset password — route: inline — commit: 2c123a8
 - T6 (S1-S6) Schema in src/db.sql, .env.example, docs, end-to-end check — route: inline — commit: pending
 
+- F1 (S2) Client screens must send the person to /login when an /api call answers 401 (session expired or account deactivated mid-use) instead of crashing — route: worker (surface: src/components, src/app/components, src/app/dashboard/{page,publicadores}, src/lib/auth/authed-fetch*) — commit: pending
+
 ## Slices
 - Slice 1: T1 (af84f1c, 484 lines incl. feature doc and tests) — past the ~400 guide; boundary recorded here, later tasks start slice 2.
 - Slice 2: T2a (00707a5) + T2b (7bbd582), ~600 authored lines incl. tests; boundary recorded, T2c starts slice 3.
@@ -44,3 +46,5 @@ Stack: Next.js 15 (App Router), libsql/Turso, hexagonal (core/domain, core/appli
 - L6: Q "¿Quién puede crear y desactivar cuentas?" -> "Solo administradores (recomendado)"
 - Note: applying the new tables to production Turso (db:push --prod) is NOT authorized yet; ask before doing it.
 - L7 (design, agent): two layers. (1) Edge middleware = cookie-presence gate only (no DB in Edge on Next 15.3): pages without cookie redirect to /login?next=<path>, /api without cookie answer 401; public = /login, /api/auth/login, /api/auth/logout, static assets. (2) The real check is server-side: withAuth(handler) on every route (401 no session, 403 wrong role, 500 fail-closed if validation errors) and requireAccount() on server pages; client pages sit under a section layout that calls requireAccount(). Structural tests scan src/app and fail on any unguarded route.ts / page.tsx. Server pages must self-guard (layouts and pages render in parallel in Next).
+- L8 (verifier finding 2, independent security review of main...c35664d): "When a session expires or an account is deactivated mid-use, every /api call returns a 401 object. These pages store it as array state, so .map or .filter throws and the screen crashes (by code reading)." Affected: dashboard/publicadores/page.tsx, GestionGruposModal.tsx, Filtro.tsx, dashboard/page.tsx, src/components/{ListaIntegrantes,InformeCard,TablaInformes,ListaInformes}.tsx, src/app/components/FormularioUsuario.tsx. Out of scope here: src/app/asignaciones/** belongs to another session (01a16ef9).
+- L9 (user decisions still open, do not implement): login rate limiting; Secure cookie when served over plain http; db:push --prod; merge/push order.
