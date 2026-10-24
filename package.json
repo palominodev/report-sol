@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
+    "account": "tsx scripts/account.ts",
     "db:push": "tsx scripts/db-push.ts",
     "db:seed": "tsx scripts/seed.ts",
     "scrape:mwb": "tsx scripts/scrape-meeting-workbook.ts"
