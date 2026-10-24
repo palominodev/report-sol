@@ -1,5 +1,6 @@
 import ListaIntegrantes from '../../../components/ListaIntegrantes';
 import { getGrupoDetail } from '@/lib/getGrupoDetail';
+import { requireAccount } from '@/lib/auth/server';
 
 interface PageProps {
   params: Promise<{
@@ -11,6 +12,7 @@ interface PageProps {
 }
 
 export default async function Page(props: PageProps) {
+  await requireAccount();
   const params = await props.params;
   const now = new Date();
   let mesIdx = now.getMonth();

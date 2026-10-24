@@ -7,6 +7,7 @@ import ParticipationTable from '@/components/stats/ParticipationTable';
 import StatsCharts from '@/components/stats/StatsCharts';
 
 import type { Metadata } from 'next';
+import { requireAccount } from '@/lib/auth/server';
 
 export const metadata: Metadata = {
   title: 'Estadísticas del Publicador — Report Sol',
@@ -18,6 +19,7 @@ interface PageProps {
 }
 
 export default async function PublisherStatsPage({ params }: PageProps) {
+  await requireAccount();
   const { id } = await params;
   const userId = parseInt(id, 10);
 

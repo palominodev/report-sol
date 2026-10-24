@@ -7,6 +7,7 @@ vi.mock('next/link', () => ({
     React.createElement('a', props, children),
 }));
 vi.mock('next/navigation', () => ({ notFound: () => { throw new Error('Not found'); } }));
+vi.mock('@/lib/auth/server', () => ({ requireAccount: async () => ({ id: 1, username: 'test', rol: 'administrador', activa: true }), withAuth: (h: unknown) => h }));
 vi.mock('@/lib/presentation/weeks', () => ({
   getWeekDetail: async () => ({
     week: { id_week: 1, semana: 'Test week', fecha_inicio: '2026-10-05', fecha_fin: '2026-10-11', estado: 'borrador' },

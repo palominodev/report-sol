@@ -4,6 +4,7 @@ import { getWeekDetail, getAssignableUsers } from '@/lib/presentation/weeks';
 import { buildPrintSections, UserNameResolver } from '@/lib/presentation/printProgram';
 import { meetingSectionLabel, presentationTypeLabel, salaLabel, SALA_LABELS } from '@/lib/presentation/status';
 import { PresentationType, Sala } from '@/domain/entities/presentation/enums';
+import { requireAccount } from '@/lib/auth/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,6 +14,7 @@ interface PageProps {
 }
 
 export default async function AsignacionPrintPage(props: PageProps) {
+  await requireAccount();
   const params = await props.params;
   const idWeek = Number(params.id);
   if (!Number.isInteger(idWeek) || idWeek <= 0) notFound();

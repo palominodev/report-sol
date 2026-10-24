@@ -3,10 +3,12 @@ import { getWeeks } from '@/lib/presentation/weeks';
 import { checkGuideUpdate, getSyncState } from '@/infrastructure/scraper/sync-service';
 import WeekEstadoBadge from './WeekEstadoBadge';
 import SyncGuideBanner from './SyncGuideBanner';
+import { requireAccount } from '@/lib/auth/server';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AsignacionesPage() {
+  await requireAccount();
   const [weeks, syncState] = await Promise.all([
     getWeeks(),
     checkGuideUpdate().catch(async () => {

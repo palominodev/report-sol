@@ -4,8 +4,10 @@ import { getGrupos } from '@/lib/getGrupos';
 import { getPublicadores } from '@/lib/getUsuarios';
 import { GrupoDetails } from '@/core/domain/repositories/IGrupoRepository';
 import BuscadorPublicadores from '@/components/BuscadorPublicadores';
+import { requireAccount } from '@/lib/auth/server';
 
 export default async function Home() {
+  await requireAccount();
   const [grupos, publicadores] = await Promise.all([getGrupos(), getPublicadores()]);
 
   const publicadorOptions = publicadores.flatMap((publicador) =>

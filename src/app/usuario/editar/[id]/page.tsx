@@ -2,6 +2,7 @@ import FormularioUsuario from '../../../components/FormularioUsuario';
 import { notFound } from 'next/navigation';
 import { getGruposSummary } from '@/lib/getGrupos';
 import { getUsuarioDetails } from '@/lib/getUsuarioDetails';
+import { requireAccount } from '@/lib/auth/server';
 
 interface PageProps {
   params: Promise<{
@@ -10,6 +11,7 @@ interface PageProps {
 }
 
 export default async function Page(props: PageProps) {
+  await requireAccount();
   const params = await props.params;
   const id = Number(params.id);
 

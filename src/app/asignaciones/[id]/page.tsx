@@ -16,6 +16,7 @@ import { sortByParticipation } from '@/lib/presentation/participationOrder';
 import SalaControl from './SalaControl';
 import AssignmentHistory from './AssignmentHistory';
 import type { AssignmentHistoryEntry } from '@/core/domain/presentations/AssignmentHistory';
+import { requireAccount } from '@/lib/auth/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,6 +30,7 @@ interface AssignmentBySlot {
 }
 
 export default async function AsignacionDetailPage(props: PageProps) {
+  await requireAccount();
   const params = await props.params;
   const idWeek = Number(params.id);
   if (!Number.isInteger(idWeek) || idWeek <= 0) notFound();

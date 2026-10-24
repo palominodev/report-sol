@@ -8,6 +8,7 @@ import { SourceRef } from '@/domain/entities/presentation/SourceRef';
 const state = vi.hoisted(() => ({ empty: false }));
 vi.mock('next/link', () => ({ default: ({ children, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => React.createElement('a', props, children) }));
 vi.mock('next/navigation', () => ({ notFound: () => { throw new Error('Not found'); } }));
+vi.mock('@/lib/auth/server', () => ({ requireAccount: async () => ({ id: 1, username: 'test', rol: 'administrador', activa: true }), withAuth: (h: unknown) => h }));
 vi.mock('@/lib/presentation/weeks', () => ({
   getWeekDetail: async () => ({
     week: { id_week: 1, semana: 'Test week' },
