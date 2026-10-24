@@ -90,20 +90,32 @@ export class TursoInformeRepository implements IInformeRepository {
       throw new ValidationError('Ya existe un informe para este publicador en el mes indicado.');
     }
 
-    await client.execute({
-      sql: `INSERT INTO informe (horas, cursos, año, mes, participacion, id_usuario, trabajo_como_auxiliar, notas)
+    try {
+      await client.execute({
+        sql: `INSERT INTO informe (horas, cursos, año, mes, participacion, id_usuario, trabajo_como_auxiliar, notas)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      args: [
-        data.horas,
-        data.cursos,
-        data.año,
-        data.mes,
-        data.participacion ? 1 : 0,
-        data.id_usuario,
-        data.trabajo_como_auxiliar ? 1 : 0,
-        data.notas,
-      ],
-    });
+        args: [
+          data.horas,
+          data.cursos,
+          data.año,
+          data.mes,
+          data.participacion ? 1 : 0,
+          data.id_usuario,
+          data.trabajo_como_auxiliar ? 1 : 0,
+          data.notas,
+        ],
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '';
+      // Two simultaneous sends can both pass the check above; the unique index decides who wins.
+      if (message.includes('UNIQUE constraint failed')) {
+        throw new ValidationError('Ya existe un informe para este publicador en el mes indicado.');
+      }
+      if (message.includes('FOREIGN KEY constraint failed')) {
+        throw new ValidationError('El publicador no existe.');
+      }
+      throw error;
+    }
 
     // Fetch the newly created record
     const createdResult = await client.execute({

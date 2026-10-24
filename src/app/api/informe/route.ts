@@ -3,6 +3,7 @@ import { withAuth } from '@/lib/auth/server';
 import { CreateInformeUseCase, GetInformesUseCase } from '@/core/application/use-cases';
 import { getInformeRepository } from '@/infrastructure/config/di';
 import { ValidationError } from '@/core/domain/errors/ValidationError';
+import type { InformeCreateData } from '@/core/domain/repositories/IInformeRepository';
 
 export const GET = withAuth(async (request: Request) => {
   try {
@@ -46,12 +47,20 @@ export const GET = withAuth(async (request: Request) => {
 // the access policy (src/lib/auth/access-policy.ts) lists exactly `POST /api/informe`.
 export async function POST(request: Request) {
   try {
-    const data = await request.json();
+    let data: unknown;
+    try {
+      data = await request.json();
+    } catch {
+      return NextResponse.json({ error: 'La solicitud no es válida.' }, { status: 400 });
+    }
+    if (!data || typeof data !== 'object' || Array.isArray(data)) {
+      return NextResponse.json({ error: 'La solicitud no es válida.' }, { status: 400 });
+    }
 
     const informeRepository = getInformeRepository();
     const createInformeUseCase = new CreateInformeUseCase(informeRepository);
 
-    const createdInforme = await createInformeUseCase.execute(data);
+    const createdInforme = await createInformeUseCase.execute(data as InformeCreateData);
 
     return NextResponse.json(createdInforme, { status: 201 });
   } catch (error) {
