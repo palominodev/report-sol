@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { CreateAccountUseCase } from '../use-cases/auth/CreateAccountUseCase';
 import { ResetPasswordUseCase } from '../use-cases/auth/ResetPasswordUseCase';
 import { ValidationError } from '@/core/domain/errors/ValidationError';
+import { MAX_PASSWORD_LENGTH } from '../use-cases/auth/password-policy';
 import { NotFoundError } from '@/core/domain/errors/NotFoundError';
 import { ConflictError } from '@/core/domain/errors/ConflictError';
 import type { Account, AccountWithHash, NewAccount } from '@/core/domain/auth/Account';
@@ -106,6 +107,26 @@ describe('CreateAccountUseCase', () => {
     expect(accounts).toHaveLength(0);
   });
 
+  it('rejects a password longer than the login limit, which would lock the person out', async () => {
+    const { create, accounts } = setup();
+
+    await expect(
+      create.execute({ username: 'maria', password: 'a'.repeat(MAX_PASSWORD_LENGTH + 1), rol: 'normal' })
+    ).rejects.toThrow(`La contraseña no puede tener más de ${MAX_PASSWORD_LENGTH} caracteres.`);
+    expect(accounts).toHaveLength(0);
+  });
+
+  it('accepts a password of exactly the maximum length', async () => {
+    const { create } = setup();
+
+    const account = await create.execute({
+      username: 'maria',
+      password: 'a'.repeat(MAX_PASSWORD_LENGTH),
+      rol: 'normal',
+    });
+    expect(account.username).toBe('maria');
+  });
+
   it('accepts a password of exactly 10 characters', async () => {
     const { create } = setup();
 
@@ -149,6 +170,16 @@ describe('ResetPasswordUseCase', () => {
 
     expect(accounts[0].passwordHash).toBe('hashed:nueva-clave-segura');
     expect(closedFor).toEqual([7]);
+  });
+
+  it('rejects a new password longer than the login limit and changes nothing', async () => {
+    const { reset, accounts, closedFor } = setup([{ ...existing }]);
+
+    await expect(
+      reset.execute({ username: 'ana', newPassword: 'a'.repeat(MAX_PASSWORD_LENGTH + 1) })
+    ).rejects.toBeInstanceOf(ValidationError);
+    expect(accounts[0].passwordHash).toBe('hashed:vieja-clave-123');
+    expect(closedFor).toEqual([]);
   });
 
   it('rejects a short new password and changes nothing', async () => {

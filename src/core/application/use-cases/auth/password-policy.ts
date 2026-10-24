@@ -12,4 +12,8 @@ export function assertValidPassword(password: string): void {
   if (password.length < MIN_PASSWORD_LENGTH) {
     throw new ValidationError(`La contraseña debe tener al menos ${MIN_PASSWORD_LENGTH} caracteres.`);
   }
+  // Login refuses anything longer, so an account created with it could never sign in.
+  if (password.length > MAX_PASSWORD_LENGTH) {
+    throw new ValidationError(`La contraseña no puede tener más de ${MAX_PASSWORD_LENGTH} caracteres.`);
+  }
 }
