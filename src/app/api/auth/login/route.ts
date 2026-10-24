@@ -3,10 +3,18 @@ import { getLoginUseCase } from '@/infrastructure/config/di';
 import { AuthenticationError } from '@/core/domain/errors/AuthenticationError';
 import { SESSION_COOKIE_NAME, sessionCookieOptions } from '@/lib/auth/session-cookie';
 
+/** Username (32) + password (256) fit in a fraction of this; anything bigger is not a login. */
+const MAX_BODY_CHARS = 4096;
+
 export async function POST(request: NextRequest) {
+  const tooLarge = () => NextResponse.json({ error: 'La solicitud es demasiado grande.' }, { status: 413 });
+  if (Number(request.headers.get('content-length')) > MAX_BODY_CHARS) return tooLarge();
+
   let body: unknown;
   try {
-    body = await request.json();
+    const raw = await request.text();
+    if (raw.length > MAX_BODY_CHARS) return tooLarge();
+    body = JSON.parse(raw);
   } catch {
     return NextResponse.json({ error: 'La solicitud no es válida.' }, { status: 400 });
   }

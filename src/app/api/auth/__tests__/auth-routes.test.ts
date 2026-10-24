@@ -125,6 +125,25 @@ describe('POST /api/auth/login', () => {
     expect(await sessionRows()).toHaveLength(0);
   });
 
+  it('rejects an oversized body with 413 before reading credentials, and opens no session', async () => {
+    const huge = JSON.stringify({ username: 'ana', password: 'x'.repeat(100_000) });
+    const response = await login(loginRequest(huge, true));
+
+    expect(response.status).toBe(413);
+    expect(await response.json()).toEqual({ error: 'La solicitud es demasiado grande.' });
+    expect(response.headers.get('set-cookie')).toBeNull();
+    expect(await sessionRows()).toHaveLength(0);
+  });
+
+  it('answers a too-long password with the same generic 401 as a wrong one', async () => {
+    const response = await login(loginRequest({ username: 'ana', password: 'x'.repeat(2_000) }));
+
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({ error: GENERIC_MESSAGE });
+    expect(response.headers.get('set-cookie')).toBeNull();
+    expect(await sessionRows()).toHaveLength(0);
+  });
+
   it('rejects non-text credentials with 400 instead of failing', async () => {
     const response = await login(loginRequest({ username: 123, password: ['x'] }));
 

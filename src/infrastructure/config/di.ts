@@ -107,11 +107,14 @@ export function getDashboardStatsUseCase(): GetDashboardStatsUseCase {
   return new GetDashboardStatsUseCase(new TursoInformeRepository());
 }
 
+// One hasher for login: LoginUseCase caches its stand-in hash per hasher instance.
+const loginPasswordHasher = new ScryptPasswordHasher();
+
 export function getLoginUseCase(): LoginUseCase {
   return new LoginUseCase(
     new TursoAccountRepository(),
     new TursoSessionRepository(),
-    new ScryptPasswordHasher(),
+    loginPasswordHasher,
     new CryptoSessionTokenService()
   );
 }

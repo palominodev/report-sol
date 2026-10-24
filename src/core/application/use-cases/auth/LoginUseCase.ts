@@ -5,7 +5,25 @@ import type { IPasswordHasher } from '@/core/domain/auth/IPasswordHasher';
 import type { ISessionTokenService } from '@/core/domain/auth/ISessionTokenService';
 import { AuthenticationError } from '@/core/domain/errors/AuthenticationError';
 
+import { MAX_PASSWORD_LENGTH, MAX_USERNAME_LENGTH } from './password-policy';
+
 export const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
+
+/**
+ * A real hash of a throwaway secret, used to spend the same time on an unknown username as on a
+ * known one. Built once per hasher (the first unknown-user attempt pays for it) so later attempts
+ * do exactly one verify, like a known user. It is never compared against a stored account.
+ */
+const standInHashes = new WeakMap<IPasswordHasher, Promise<string>>();
+
+function standInHashFor(hasher: IPasswordHasher): Promise<string> {
+  let promise = standInHashes.get(hasher);
+  if (!promise) {
+    promise = hasher.hash(`stand-in:${Math.random().toString(36)}:${Date.now()}`);
+    standInHashes.set(hasher, promise);
+  }
+  return promise;
+}
 
 /** One message for every failure, so the screen never reveals which usernames exist. */
 export const INVALID_CREDENTIALS_MESSAGE = 'Usuario o contraseña incorrectos.';
@@ -29,10 +47,19 @@ export class LoginUseCase {
   async execute(username: string, password: string): Promise<LoginResult> {
     const normalized = username.trim();
     if (!normalized || !password) throw new AuthenticationError(INVALID_CREDENTIALS_MESSAGE);
+    // No real account can have input this long, so do not spend a lookup or a hash on it.
+    if (normalized.length > MAX_USERNAME_LENGTH || password.length > MAX_PASSWORD_LENGTH) {
+      throw new AuthenticationError(INVALID_CREDENTIALS_MESSAGE);
+    }
 
     const found = await this.accounts.findWithHashByUsername(normalized);
-    // A session is opened only when the account exists, is active AND the password matches.
-    const passwordOk = found ? await this.hasher.verify(password, found.passwordHash) : false;
+    // Always one verify, even for an unknown user, so the response time does not reveal which
+    // usernames exist. A session is opened only when the account exists, is active AND the
+    // password matches: the stand-in result is discarded.
+    const passwordOk = await this.hasher.verify(
+      password,
+      found ? found.passwordHash : await standInHashFor(this.hasher)
+    );
     if (!found || !found.activa || !passwordOk) {
       throw new AuthenticationError(INVALID_CREDENTIALS_MESSAGE);
     }

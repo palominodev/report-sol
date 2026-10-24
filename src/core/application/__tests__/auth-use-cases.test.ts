@@ -3,6 +3,7 @@ import { LoginUseCase } from '../use-cases/auth/LoginUseCase';
 import { LogoutUseCase } from '../use-cases/auth/LogoutUseCase';
 import { ValidateSessionUseCase } from '../use-cases/auth/ValidateSessionUseCase';
 import { AuthenticationError } from '@/core/domain/errors/AuthenticationError';
+import { MAX_PASSWORD_LENGTH, MAX_USERNAME_LENGTH } from '../use-cases/auth/password-policy';
 import type { Account, AccountWithHash } from '@/core/domain/auth/Account';
 import type { IAccountRepository } from '@/core/domain/auth/IAccountRepository';
 import type { ISessionRepository, NewSession } from '@/core/domain/auth/ISessionRepository';
@@ -33,7 +34,7 @@ class FakeTokens implements ISessionTokenService {
   }
 }
 
-function setup(accounts: AccountWithHash[]) {
+function setup(accounts: AccountWithHash[], hasher: IPasswordHasher = new FakeHasher()) {
   const sessions = new Map<string, NewSession>();
 
   const accountRepo = {
@@ -63,7 +64,6 @@ function setup(accounts: AccountWithHash[]) {
   };
 
   const tokens = new FakeTokens();
-  const hasher = new FakeHasher();
   const clock = () => NOW;
 
   return {
@@ -145,6 +145,92 @@ describe('LoginUseCase', () => {
     await expect(login.execute('', 'secreto-ana')).rejects.toThrow(GENERIC_MESSAGE);
     await expect(login.execute('ana', '')).rejects.toThrow(GENERIC_MESSAGE);
     expect(sessions.size).toBe(0);
+  });
+});
+
+class CountingHasher extends FakeHasher {
+  hashCalls = 0;
+  verifyCalls: Array<{ password: string; storedHash: string }> = [];
+  async hash(password: string) {
+    this.hashCalls += 1;
+    return super.hash(password);
+  }
+  async verify(password: string, storedHash: string) {
+    this.verifyCalls.push({ password, storedHash });
+    return super.verify(password, storedHash);
+  }
+}
+
+describe('LoginUseCase: same work for every failure, bounded input', () => {
+  it('checks the password against a stand-in hash when the user does not exist', async () => {
+    const hasher = new CountingHasher();
+    const { login } = setup([ana], hasher);
+
+    await expect(login.execute('nadie', 'secreto-ana')).rejects.toThrow(GENERIC_MESSAGE);
+
+    expect(hasher.verifyCalls).toHaveLength(1);
+    expect(hasher.verifyCalls[0].password).toBe('secreto-ana');
+    expect(hasher.verifyCalls[0].storedHash).not.toBe(ana.passwordHash);
+  });
+
+  it('never lets the stand-in hash open a session, even with the password it was made from', async () => {
+    const hasher = new CountingHasher();
+    const { login, sessions } = setup([ana], hasher);
+
+    await expect(login.execute('nadie', 'secreto-ana')).rejects.toThrow(GENERIC_MESSAGE);
+    await expect(login.execute('nadie', 'otra-clave')).rejects.toThrow(GENERIC_MESSAGE);
+    expect(sessions.size).toBe(0);
+  });
+
+  it('builds the stand-in hash once, not on every failed attempt', async () => {
+    const hasher = new CountingHasher();
+    const { login } = setup([ana], hasher);
+
+    await expect(login.execute('nadie', 'x1234567890')).rejects.toThrow(GENERIC_MESSAGE);
+    await expect(login.execute('otro', 'x1234567890')).rejects.toThrow(GENERIC_MESSAGE);
+    await expect(login.execute('otro', 'x1234567890')).rejects.toThrow(GENERIC_MESSAGE);
+
+    expect(hasher.hashCalls).toBe(1);
+    expect(hasher.verifyCalls).toHaveLength(3);
+  });
+
+  it('still checks the real hash exactly once for a known user (wrong password and deactivated)', async () => {
+    const hasher = new CountingHasher();
+    const { login } = setup([ana, beto], hasher);
+
+    await expect(login.execute('ana', 'otra')).rejects.toThrow(GENERIC_MESSAGE);
+    await expect(login.execute('beto', 'secreto-beto')).rejects.toThrow(GENERIC_MESSAGE);
+
+    expect(hasher.verifyCalls.map((c) => c.storedHash)).toEqual([ana.passwordHash, beto.passwordHash]);
+    expect(hasher.hashCalls).toBe(0);
+  });
+
+  it('rejects a password longer than the limit without looking up the user or hashing', async () => {
+    const hasher = new CountingHasher();
+    const { login, sessions } = setup([ana], hasher);
+
+    await expect(login.execute('ana', 'a'.repeat(MAX_PASSWORD_LENGTH + 1))).rejects.toThrow(GENERIC_MESSAGE);
+    await expect(login.execute('ana', 'a'.repeat(MAX_PASSWORD_LENGTH + 1))).rejects.toBeInstanceOf(AuthenticationError);
+
+    expect(hasher.verifyCalls).toHaveLength(0);
+    expect(hasher.hashCalls).toBe(0);
+    expect(sessions.size).toBe(0);
+  });
+
+  it('rejects a username longer than the limit without hashing', async () => {
+    const hasher = new CountingHasher();
+    const { login } = setup([ana], hasher);
+
+    await expect(login.execute('a'.repeat(MAX_USERNAME_LENGTH + 1), 'secreto-ana')).rejects.toThrow(GENERIC_MESSAGE);
+    expect(hasher.verifyCalls).toHaveLength(0);
+  });
+
+  it('accepts a password exactly at the limit', async () => {
+    const longPassword = 'p'.repeat(MAX_PASSWORD_LENGTH);
+    const { login } = setup([{ ...ana, passwordHash: `hashed:${longPassword}` }]);
+
+    const result = await login.execute('ana', longPassword);
+    expect(result.account.username).toBe('ana');
   });
 });
 
