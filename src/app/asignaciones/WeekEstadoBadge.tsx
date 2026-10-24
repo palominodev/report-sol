@@ -5,7 +5,7 @@ export default function WeekEstadoBadge({ estado }: { estado: WeekState }) {
   const meta = weekEstadoMeta(estado);
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${meta.badgeClass}`}
+      className={`inline-flex items-center border px-2.5 py-0.5 text-xs font-semibold ${meta.badgeClass}`}
     >
       {meta.label}
     </span>

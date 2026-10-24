@@ -12,13 +12,24 @@ export interface BadgeMeta {
 }
 
 const WEEK_ESTADO_META: Record<WeekState, BadgeMeta> = {
-  no_generada: { label: 'No generada', badgeClass: 'bg-gray-100 text-gray-700 border-gray-200' },
-  borrador: { label: 'Borrador', badgeClass: 'bg-amber-100 text-amber-700 border-amber-200' },
-  confirmada: { label: 'Confirmada', badgeClass: 'bg-green-100 text-green-700 border-green-200' },
+  no_generada: { label: 'No generada', badgeClass: 'bg-nav text-ink-muted border-line' },
+  borrador: { label: 'Borrador', badgeClass: 'bg-amber-300/10 text-amber-300 border-amber-300/40' },
+  confirmada: { label: 'Confirmada', badgeClass: 'bg-emerald-300/10 text-emerald-300 border-emerald-300/40' },
 };
 
 export function weekEstadoMeta(estado: WeekState): BadgeMeta {
   return WEEK_ESTADO_META[estado];
+}
+
+const WEEK_NEXT_STEP: Record<WeekState, string> = {
+  no_generada: 'Falta generar',
+  borrador: 'Revisar y confirmar',
+  confirmada: 'Lista para imprimir',
+};
+
+/** Short hint of what the person should do next with a week, shown in the weeks list. */
+export function weekNextStep(estado: WeekState): string {
+  return WEEK_NEXT_STEP[estado];
 }
 
 const ASSIGNMENT_ESTADO_LABELS: Record<AssignmentState, string> = {

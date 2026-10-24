@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   weekEstadoMeta,
+  weekNextStep,
   assignmentEstadoLabel,
   presentationTypeLabel,
   meetingSectionLabel,
@@ -9,22 +10,39 @@ import {
 } from '../status';
 
 describe('weekEstadoMeta', () => {
-  it('maps no_generada to a neutral "No generada" badge', () => {
+  it('maps no_generada to a neutral "No generada" badge on the dark theme', () => {
     const meta = weekEstadoMeta('no_generada');
     expect(meta.label).toBe('No generada');
-    expect(meta.badgeClass).toContain('gray');
+    expect(meta.badgeClass).toContain('bg-nav');
+    expect(meta.badgeClass).not.toContain('gray');
   });
 
-  it('maps borrador to an amber "Borrador" badge', () => {
+  it('maps borrador to an amber "Borrador" badge on the dark theme', () => {
     const meta = weekEstadoMeta('borrador');
     expect(meta.label).toBe('Borrador');
-    expect(meta.badgeClass).toContain('amber');
+    expect(meta.badgeClass).toContain('amber-300');
+    expect(meta.badgeClass).not.toContain('amber-100');
   });
 
-  it('maps confirmada to a green "Confirmada" badge', () => {
+  it('maps confirmada to a green "Confirmada" badge on the dark theme', () => {
     const meta = weekEstadoMeta('confirmada');
     expect(meta.label).toBe('Confirmada');
-    expect(meta.badgeClass).toContain('green');
+    expect(meta.badgeClass).toContain('emerald-300');
+    expect(meta.badgeClass).not.toContain('green-100');
+  });
+});
+
+describe('weekNextStep', () => {
+  it('tells the user to generate when the week has no assignments', () => {
+    expect(weekNextStep('no_generada')).toBe('Falta generar');
+  });
+
+  it('tells the user to review and confirm a draft week', () => {
+    expect(weekNextStep('borrador')).toBe('Revisar y confirmar');
+  });
+
+  it('tells the user a confirmed week is ready to print', () => {
+    expect(weekNextStep('confirmada')).toBe('Lista para imprimir');
   });
 });
 
