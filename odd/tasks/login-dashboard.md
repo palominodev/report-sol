@@ -14,14 +14,16 @@ Stack: Next.js 15 (App Router), libsql/Turso, hexagonal (core/domain, core/appli
 - T1 (S1,S6) Account + session persistence, password hashing, tests — route: inline — commit: af84f1c
 - T2a (S1,S6) Login/logout/validate use cases + token service — route: inline — commit: 00707a5
 - T2b (S1,S6) DI wiring, session cookie, /api/auth routes — route: inline — commit: 7bbd582
-- T2c (S1) /login page + browser check — route: inline — commit: pending
+- T2c (S1) /login page + browser check — route: inline — commit: ee9c52b (code only; browser check pending, needs T5b account)
 - T3 (S2) Guard all pages and /api routes (middleware + server check) — route: inline — commit: pending
 - T4 (S3,S4) Accounts admin screen + API, admin-only — route: inline — commit: pending
-- T5 (S4,S5) Command: create first admin / reset password — route: inline — commit: pending
+- T5a (S3,S4,S5) Create-account and reset-password use cases — route: inline — commit: e771593
+- T5b (S4,S5) Terminal command: first admin / reset password — route: inline — commit: pending
 - T6 (S1-S6) Schema in src/db.sql, .env.example, docs, end-to-end check — route: inline — commit: pending
 
 ## Slices
 - Slice 1: T1 (af84f1c, 484 lines incl. feature doc and tests) — past the ~400 guide; boundary recorded here, later tasks start slice 2.
+- Slice 2: T2a (00707a5) + T2b (7bbd582), ~600 authored lines incl. tests; boundary recorded, T2c starts slice 3.
 
 ## Log
 - L1: "vamos a crear un login para iniciar sesión en /dashboard"
