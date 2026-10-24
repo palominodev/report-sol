@@ -39,6 +39,8 @@ Stack: Next.js 15 (App Router), libsql/Turso, hexagonal (core/domain, core/appli
 
 - F7 (S4, second verification T3e) Two administrators deactivating each other at the same moment must leave one active: the last-administrator check and the write become one SQL statement — route: inline — commit: 3c21f9e
 
+- T7 (S7) Public data entry: one policy function `isPublicRequest(method, path)` in src/lib/auth/access-policy.ts; middleware and the structural test read it; pages `/`, `/grupo`, `/grupo/<id>` and `POST /api/informe` no longer call the guard; everything else unchanged — route: inline — commit: 85c82e8
+
 ## Slices
 - Slice 1: T1 (af84f1c, 484 lines incl. feature doc and tests) — past the ~400 guide; boundary recorded here, later tasks start slice 2.
 - Slice 2: T2a (00707a5) + T2b (7bbd582), ~600 authored lines incl. tests; boundary recorded, T2c starts slice 3.
