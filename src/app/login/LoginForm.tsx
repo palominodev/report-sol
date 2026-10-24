@@ -1,6 +1,7 @@
 'use client';
 
 import { useId, useRef, useState } from 'react';
+import { signInWithPassword } from './login-client';
 
 const inputClasses =
   'h-11 w-full border border-line bg-surface px-3 text-sm text-ink placeholder:text-ink-muted ' +
@@ -32,25 +33,18 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
     setError(null);
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
+      const result = await signInWithPassword(username, password);
 
-      if (response.ok) {
+      if (result.ok) {
         // Full navigation so the server renders the protected page with the new session.
         window.location.assign(redirectTo);
         return;
       }
 
-      const data = (await response.json().catch(() => null)) as { error?: string } | null;
-      setError(data?.error ?? 'No se pudo iniciar sesión. Intentá de nuevo.');
+      setError(result.message);
       // Keep the username so only the password has to be retyped.
       setPassword('');
       passwordRef.current?.focus();
-    } catch {
-      setError('No hay conexión con el servidor. Revisá tu conexión e intentá de nuevo.');
     } finally {
       setLoading(false);
     }
