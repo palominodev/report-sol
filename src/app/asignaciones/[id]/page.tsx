@@ -9,6 +9,7 @@ import {
   salaLabel,
   SALA_LABELS,
 } from '@/lib/presentation/status';
+import { computeSlotCoverage, describeMissingSlots } from '@/lib/presentation/missingSlots';
 import { Sala } from '@/domain/entities/presentation/enums';
 import WeekActions from './WeekActions';
 import OverrideControl, { OverrideUser } from './OverrideControl';
@@ -81,6 +82,10 @@ export default async function AsignacionDetailPage(props: PageProps) {
 
   const isConfirmed = week.estado === 'confirmada';
   const hasAssignments = assignments.length > 0;
+  // Same rule as the server's confirm check, so the UI never blocks/allows differently.
+  const coverage = computeSlotCoverage(parts, assignments);
+  // Primitives only (string[]) cross the RSC boundary.
+  const missingLabels: string[] = describeMissingSlots(parts, coverage.missing);
   // Primitive across the RSC boundary: how many parts still have no sala (drives the policy modal).
   // Deliberately computed on the UNFILTERED parts: switching tabs must not change the ask.
   const nullSalaParts = parts.filter((p) => p.sala === null).length;
@@ -123,7 +128,7 @@ export default async function AsignacionDetailPage(props: PageProps) {
       <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6">
         <header className="border border-line bg-surface p-6">
           <nav aria-label="Navegación" className="mb-4">
-            <Link href="/asignaciones" className="text-sm font-medium text-brand-light hover:underline">
+            <Link href="/asignaciones" className="inline-flex min-h-11 items-center text-sm font-medium text-brand-light hover:underline">
               ← Volver a semanas
             </Link>
           </nav>
@@ -136,6 +141,13 @@ export default async function AsignacionDetailPage(props: PageProps) {
               <p className="mt-1 text-sm text-ink-muted">
                 {week.fecha_inicio} — {week.fecha_fin}
               </p>
+              {!isConfirmed && parts.length > 0 && (
+                <p className="mt-1 text-sm font-medium text-ink">
+                  {hasAssignments
+                    ? `${coverage.assigned} de ${coverage.total} lugares asignados`
+                    : 'Todavía no hay asignaciones: generá la semana para empezar.'}
+                </p>
+              )}
             </div>
             <WeekActions
               idWeek={week.id_week}
@@ -143,6 +155,7 @@ export default async function AsignacionDetailPage(props: PageProps) {
               hasAssignments={hasAssignments}
               isConfirmed={isConfirmed}
               nullSalaParts={nullSalaParts}
+              missingLabels={missingLabels}
             />
           </div>
         </header>

@@ -13,9 +13,11 @@ interface WeekActionsProps {
   hasAssignments: boolean;
   isConfirmed: boolean;
   nullSalaParts: number;
+  /** Readable labels of uncovered slots; defaults to none. */
+  missingLabels?: string[];
 }
 
-export default function WeekActions({ idWeek, weekLabel, hasAssignments, isConfirmed, nullSalaParts }: WeekActionsProps) {
+export default function WeekActions({ idWeek, weekLabel, hasAssignments, isConfirmed, nullSalaParts, missingLabels = [] }: WeekActionsProps) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [discarding, setDiscarding] = useState(false);
@@ -56,7 +58,7 @@ export default function WeekActions({ idWeek, weekLabel, hasAssignments, isConfi
             Ver programa imprimible
           </Link>
         </div>
-        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-start sm:gap-4">
           {hasAssignments && (
             <button type="button" onClick={() => {
               setDiscardError(null);
@@ -65,7 +67,11 @@ export default function WeekActions({ idWeek, weekLabel, hasAssignments, isConfi
               {discarding ? 'Descartando...' : 'Descartar generación'}
             </button>
           )}
-          <ConfirmButton idWeek={idWeek} {...callbacks} />
+          {isConfirmed ? (
+            <p className="text-sm font-semibold text-emerald-300">Semana confirmada. Lista para imprimir.</p>
+          ) : (
+            <ConfirmButton idWeek={idWeek} hasAssignments={hasAssignments} missingLabels={missingLabels} {...callbacks} />
+          )}
         </div>
       </div>
       <dialog
