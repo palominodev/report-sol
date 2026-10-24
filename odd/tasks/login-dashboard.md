@@ -18,7 +18,7 @@ Stack: Next.js 15 (App Router), libsql/Turso, hexagonal (core/domain, core/appli
 - T3 (S2) Guard all pages and /api routes (middleware + server check) — route: inline — commit: pending
 - T4 (S3,S4) Accounts admin screen + API, admin-only — route: inline — commit: pending
 - T5a (S3,S4,S5) Create-account and reset-password use cases — route: inline — commit: e771593
-- T5b (S4,S5) Terminal command: first admin / reset password — route: inline — commit: pending
+- T5b (S4,S5) Terminal command: first admin / reset password — route: inline — commit: 2c123a8
 - T6 (S1-S6) Schema in src/db.sql, .env.example, docs, end-to-end check — route: inline — commit: pending
 
 ## Slices
