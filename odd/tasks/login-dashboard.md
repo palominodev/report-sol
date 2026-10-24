@@ -41,6 +41,10 @@ Stack: Next.js 15 (App Router), libsql/Turso, hexagonal (core/domain, core/appli
 
 - T7 (S7) Public data entry: one policy function `isPublicRequest(method, path)` in src/lib/auth/access-policy.ts; middleware and the structural test read it; pages `/`, `/grupo`, `/grupo/<id>` and `POST /api/informe` no longer call the guard; everything else unchanged — route: inline — commit: 85c82e8
 
+- F8 (S7, L15) Bound what a public report may contain: year = current or previous, month not in the future, hours 0-744, courses whole 0-200, notes <= 1000 chars, publisher id a positive whole number; invalid JSON, unknown publisher and the simultaneous duplicate answer 400 instead of 500 — route: inline, tests first (30 of 37 RED) — commit: 7215e50
+- F9 (S7, L15) The three public pages export `dynamic = 'force-dynamic'`, and the structural test requires it — route: inline, tests first (3 RED) — commit: 2889f3c. Not confirmed with `next build`: closed as prevention.
+- F11 (S7, L15) Structural scan rejects `export const { POST } = ...` and evaluates `[id]` API segments like pages do — route: inline, tests first (2 RED); mutation (public PATCH /api/informe/<id> without withAuth) fails 2 tests — commit: 865082f
+
 ## Slices
 - Slice 1: T1 (af84f1c, 484 lines incl. feature doc and tests) — past the ~400 guide; boundary recorded here, later tasks start slice 2.
 - Slice 2: T2a (00707a5) + T2b (7bbd582), ~600 authored lines incl. tests; boundary recorded, T2c starts slice 3.
@@ -54,6 +58,8 @@ Stack: Next.js 15 (App Router), libsql/Turso, hexagonal (core/domain, core/appli
 - Open, not fixed (see L12 and the final report): structural test bypass via destructured exports; no structural check that /api/cuentas requires role administrador; no Origin check on POST/PATCH; deactivate not atomic with session deletion; logout with the network down does not clear the cookie; .env.example comment not updated (access was blocked).
 - Open user decisions: login rate limit; Secure cookie over plain http; db:push --prod; merge/push order.
 - Slice 10: 5473c58 command `scripts/migrate-auth-tables.ts` (only cuenta, sesion, idx_sesion_cuenta). Production tables created by session 01a16ef9 at the user's request ("crea esas tablas"); the user's read-only `--check` afterwards: "Existen: cuenta, sesion, idx_sesion_cuenta / No falta nada."
+
+- Slice 11: S7 public data entry: 22b4b03 (S7, L14), 85c82e8 + 8e7b774 (T7), 7215e50 (F8), 2889f3c (F9), 865082f (F11). ~700 authored lines incl. tests, past the ~400 guide; boundary recorded here, nothing else is pending in this slice.
 
 ## Log
 - L1: "vamos a crear un login para iniciar sesión en /dashboard"
@@ -71,3 +77,4 @@ Stack: Next.js 15 (App Router), libsql/Turso, hexagonal (core/domain, core/appli
 - L12 (second verification T3e, quoted): "S4 is not met under concurrency: two administrators who deactivate each other at the same moment leave the system with zero active administrators. I reproduced this." I reproduced it myself with the real repositories (RED: 0 active administrators, 2 tests), then fixed it (GREEN).
 - L13 (user, before the merge to main): "ya existe una cuenta y usa sesión no hace falta nada". Target branch is main only; develop does not exist (checked against origin). Merge to main is a fast-forward over bd2b130.
 - L14 (user, after the merge to main): "la vista para ingresar los datos debe estar publica para todos y cualquiera que entre". Asked what to open, the user picked "Todo menos administración" and, for abuse protection, "Ninguna". Asked to confirm (it would also open the dashboard and editing/deleting reports), the user cancelled the question and wrote: "asignaciones tambien debe estar libre", and right after: "perdon, tambien debe estar protegida". Reading used: only the data-entry flow is public; assignments stay protected (so the extra "asignaciones libre" only makes sense if the scope was narrow). Assumption, easy to widen: one list in src/lib/auth/access-policy.ts.
+- L15 (independent verification of S7, quoted): "The public/private split is correct for every path I could reason about, and I found no way to reach anything outside the S7 list. The public POST is the weak point: an anonymous caller can write junk reports that break the dashboard's default period." Confirmed by me in code: `findUltimo` orders by `fecha_registro` and the dashboard uses it as its default period. Fixed in F8 (limits on the data) without adding abuse protection, which the user declined (L14). Also reported and NOT changed: `roles` and `informe_enviado` of a whole group are visible to anyone; a fake report for a publisher locks the real one out (there is no update path, only an admin DELETE); there is still no limit on how many reports can be sent; no Origin check anywhere; real Next runtime behaviour of `//` and encoded paths and whether the production schema has `idx_informe_usuario_periodo` were not verified.
