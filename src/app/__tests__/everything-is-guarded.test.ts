@@ -19,7 +19,8 @@ const API_DIR = join(APP_DIR, 'api');
  * route or page is public only if it is listed there AND does not call the guard, and private
  * only if it calls it: the policy and the code cannot drift apart.
  */
-const routePath = (route: string) => `/api/${route.replace(/\/?route\.ts$/, '')}`;
+/** Dynamic segments get a plausible value (/api/informe/[id] -> /api/informe/1), as pages do, so a dynamic policy entry is actually evaluated. */
+const routePath = (route: string) => `/api/${route.replace(/\/?route\.ts$/, '').replace(/\[[^\]]+\]/g, '1')}`;
 /** Pages with a dynamic segment get a plausible value, e.g. /grupo/[id_grupo] -> /grupo/1. */
 const pagePath = (page: string) => `/${page.replace(/\/?page\.tsx$/, '').replace(/\[[^\]]+\]/g, '1')}`.replace(/^\/\/$/, '/');
 

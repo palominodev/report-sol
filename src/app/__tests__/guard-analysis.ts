@@ -75,6 +75,9 @@ export function analyzeRoute(source: string, publicMethods: readonly string[] = 
   if (/export\s+default\b/.test(code)) {
     problems.push('default export in a route file');
   }
+  if (/export\s+(?:const|let|var)\s*[{[]/.test(code)) {
+    problems.push('handler exported through destructuring: it cannot be checked one method at a time');
+  }
 
   const exported = HTTP_METHODS.filter((method) =>
     new RegExp(`export\\s+(?:async\\s+)?function\\s+${method}\\b|export\\s+(?:const|let|var)\\s+${method}\\b`).test(code)

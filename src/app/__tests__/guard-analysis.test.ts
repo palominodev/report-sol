@@ -52,6 +52,16 @@ describe('analyzeRoute', () => {
     expect(analyzeRoute(source).join(' ')).toMatch(/@\/lib\/auth\/server/);
   });
 
+  it('flags a handler exported through destructuring, which the per-method check cannot see', () => {
+    const source = `${GOOD_IMPORT}export const GET = withAuth(async () => new Response());\nexport const { POST } = makeHandlers();`;
+    expect(analyzeRoute(source).join(' ')).toMatch(/destructur/i);
+  });
+
+  it('flags a handler exported through array destructuring or a named function expression list', () => {
+    const source = `${GOOD_IMPORT}export const [GET, POST] = makeHandlers();`;
+    expect(analyzeRoute(source).join(' ')).toMatch(/destructur/i);
+  });
+
   it('flags a route with no exported handler at all', () => {
     expect(analyzeRoute(`${GOOD_IMPORT}export const dynamic = 'force-dynamic';`).join(' ')).toMatch(/no HTTP handler/i);
   });
