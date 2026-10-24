@@ -88,11 +88,47 @@ La API de descarte es `DELETE /api/asignaciones/semana/:id/descartar`: devuelve 
    - Acceso completo al sistema
    - Puede gestionar todos los aspectos
 
+## Acceso y cuentas
+
+Toda la aplicación (páginas y API) exige iniciar sesión. Sin sesión solo se ve `/login`.
+
+- Cada persona tiene su propio usuario y contraseña. Hay dos tipos de cuenta: **administrador** y **normal**.
+- Solo los administradores ven la pantalla **Cuentas** (`/dashboard/cuentas`), donde crean y desactivan cuentas. Desactivar una cuenta le corta el acceso al instante y cierra sus sesiones. El último administrador activo no se puede desactivar.
+- La sesión dura 7 días. Se cierra con **Cerrar sesión** en la barra superior del dashboard.
+- No hay recuperación de contraseña por correo: la restablece una persona con acceso a la terminal (ver abajo).
+
+### Crear la primera cuenta administradora
+
+La primera cuenta se crea una sola vez desde la terminal, después de aplicar el esquema (`pnpm db:push`):
+
+```bash
+pnpm account create <usuario>
+```
+
+La contraseña (mínimo 10 caracteres) se pide por teclado, sin mostrarla, y nunca se pasa como argumento para que no quede en el historial del shell. Si no existe ninguna cuenta, la primera es administradora; usá `--role administrador|normal` para elegir.
+
+### Restablecer una contraseña olvidada
+
+```bash
+pnpm account reset-password <usuario>
+```
+
+Cambia la contraseña y cierra todas las sesiones abiertas de esa cuenta.
+
+### Base de datos de destino
+
+Por defecto el comando usa la base local (`data/local.db`). Para producción hay que pasar `--prod` explícitamente: usa `TURSO_URL` y `TURSO_TOKEN` de `.env`, muestra el destino y pide escribir `yes` antes de escribir. Para uso no interactivo, la contraseña puede venir de la variable de entorno `ACCOUNT_PASSWORD`.
+
+### Notas de despliegue
+
+- En producción la cookie de sesión se marca `Secure`: el navegador solo la envía por **HTTPS**. Detrás de HTTP plano (por ejemplo `docker compose` en `http://localhost:3000` o una IP de red local) no se puede iniciar sesión. Poné un proxy con HTTPS delante.
+- Las tablas `cuenta` y `sesion` se crean con `pnpm db:push` (local) o `pnpm db:push --prod`.
+
 ## Tecnologías Utilizadas
 
 - **Frontend**: Next.js 14, React, Tailwind CSS
 - **Base de Datos**: SQLite (Turso)
-- **Autenticación**: NextAuth.js
+- **Autenticación**: sesiones propias con cookie (ver [Acceso y cuentas](#acceso-y-cuentas))
 - **Estilos**: Tailwind CSS
 - **Tipado**: TypeScript
 
