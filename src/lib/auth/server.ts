@@ -1,0 +1,18 @@
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { getValidateSessionUseCase } from '@/infrastructure/config/di';
+import { SESSION_COOKIE_NAME } from './session-cookie';
+import { createWithAuth } from './with-auth';
+import { createRequireAccount } from './require-account';
+
+const validate = (token: string | undefined) => getValidateSessionUseCase().execute(token);
+
+/** Wrap every API route handler: `export const GET = withAuth(async (request, context, account) => ...)`. */
+export const withAuth = createWithAuth(validate);
+
+/** Call at the top of every server page: `await requireAccount()`. */
+export const requireAccount = createRequireAccount({
+  readToken: async () => (await cookies()).get(SESSION_COOKIE_NAME)?.value,
+  validate,
+  redirect,
+});
