@@ -20,7 +20,7 @@ Stack: Next.js 15 (App Router), libsql/Turso, hexagonal (core/domain, core/appli
 - T3c (S2) Guard pages (server: requireAccount; client: guarded section layout) and wire the fast cookie gate (middleware) — route: worker — commit: 67aaba4
 - T3d (S2) Independent security verification + differential check vs base — route: gentle-ai-verify (Risk items 2,3) — commit: n/a
 - T4a (S3,S4,S6) Deactivate/reactivate use cases, last-active-admin rule — route: inline — commit: 4029070
-- T4b (S3,S4) /api/cuentas routes (withAuth role administrador) + DI wiring — route: inline, after T3b releases src/app/api — commit: pending
+- T4b (S3,S4) /api/cuentas routes (withAuth role administrador) + DI wiring — route: inline, after T3b releases src/app/api — commit: dcef3ff
 - T4c (S3,S4) Accounts screen (admin only) — route: inline, after T3c — commit: pending
 - T4 (S3,S4) Accounts admin screen + API, admin-only — route: inline — commit: pending
 - T5a (S3,S4,S5) Create-account and reset-password use cases — route: inline — commit: e771593
