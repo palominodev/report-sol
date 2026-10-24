@@ -26,7 +26,9 @@ Stack: Next.js 15 (App Router), libsql/Turso, hexagonal (core/domain, core/appli
 - T5b (S4,S5) Terminal command: first admin / reset password — route: inline — commit: 2c123a8
 - T6 (S1-S6) Schema in src/db.sql, .env.example, docs, end-to-end check — route: inline — commit: pending
 
-- F1 (S2) Client screens must send the person to /login when an /api call answers 401 (session expired or account deactivated mid-use) instead of crashing — route: worker (surface: src/components, src/app/components, src/app/dashboard/{page,publicadores}, src/lib/auth/authed-fetch*) — commit: pending
+- F1 (S2) Client screens must send the person to /login when an /api call answers 401 (session expired or account deactivated mid-use) instead of crashing — route: worker (surface: src/components, src/app/components, src/app/dashboard/{page,publicadores}, src/lib/auth/authed-fetch*) — commit: b79edea
+
+- F4 (S2, verifier finding 4) Stricter structural test: re-exports, route/page variants, await requireAccount, import source, Pages Router, Server Actions, special content files — route: inline — commit: 48a1dab
 
 ## Slices
 - Slice 1: T1 (af84f1c, 484 lines incl. feature doc and tests) — past the ~400 guide; boundary recorded here, later tasks start slice 2.
@@ -36,6 +38,7 @@ Stack: Next.js 15 (App Router), libsql/Turso, hexagonal (core/domain, core/appli
 - Slice 6: T4b (dcef3ff); T4c, T3d findings, T6 follow in slice 7.
 - Slice 5: T3c (67aaba4) + T3b (c35664d); T3d verification, T4b/T4c, T6 start slice 6.
 - Slice 4: T5b (2c123a8) + T3a guards (42941b4) + T4a (4029070); T3b/T3c/T4b/T4c start slice 5.
+- Slice 8: F1 (b79edea) + F4 (48a1dab); F2, F3, F5, F6 and the second verification follow in slice 9.
 
 ## Log
 - L1: "vamos a crear un login para iniciar sesión en /dashboard"
