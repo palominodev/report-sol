@@ -16,8 +16,8 @@ Stack: Next.js 15 (App Router), libsql/Turso, hexagonal (core/domain, core/appli
 - T2b (S1,S6) DI wiring, session cookie, /api/auth routes — route: inline — commit: 7bbd582
 - T2c (S1) /login page + browser check — route: inline — commit: ee9c52b (code only; browser check pending, needs T5b account)
 - T3a (S2) Shared guards (access policy, withAuth, requireAccount) + structural tests that fail on any unguarded route/page — route: inline — commit: 42941b4 (guards); structural test lands with T3b/T3c
-- T3b (S2) Guard the 18 non-auth /api routes, adapt existing route tests — route: worker (disjoint surface: src/app/api) — commit: pending
-- T3c (S2) Guard pages (server: requireAccount; client: guarded section layout) and wire the fast cookie gate (middleware) — route: worker — commit: pending
+- T3b (S2) Guard the 18 non-auth /api routes, adapt existing route tests — route: worker (disjoint surface: src/app/api) — commit: c35664d
+- T3c (S2) Guard pages (server: requireAccount; client: guarded section layout) and wire the fast cookie gate (middleware) — route: worker — commit: 67aaba4
 - T3d (S2) Independent security verification + differential check vs base — route: gentle-ai-verify (Risk items 2,3) — commit: n/a
 - T4a (S3,S4,S6) Deactivate/reactivate use cases, last-active-admin rule — route: inline — commit: 4029070
 - T4b (S3,S4) /api/cuentas routes (withAuth role administrador) + DI wiring — route: inline, after T3b releases src/app/api — commit: pending
@@ -31,6 +31,7 @@ Stack: Next.js 15 (App Router), libsql/Turso, hexagonal (core/domain, core/appli
 - Slice 1: T1 (af84f1c, 484 lines incl. feature doc and tests) — past the ~400 guide; boundary recorded here, later tasks start slice 2.
 - Slice 2: T2a (00707a5) + T2b (7bbd582), ~600 authored lines incl. tests; boundary recorded, T2c starts slice 3.
 - Slice 3: T2c code (ee9c52b) + T5a (e771593), ~330 authored lines incl. tests; boundary recorded, T5b starts slice 4.
+- Slice 5: T3c (67aaba4) + T3b (c35664d); T3d verification, T4b/T4c, T6 start slice 6.
 - Slice 4: T5b (2c123a8) + T3a guards (42941b4) + T4a (4029070); T3b/T3c/T4b/T4c start slice 5.
 
 ## Log
