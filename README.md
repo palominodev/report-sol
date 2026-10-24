@@ -121,7 +121,7 @@ Por defecto el comando usa la base local (`data/local.db`). Para producción hay
 
 ### Notas de despliegue
 
-- En producción la cookie de sesión se marca `Secure`: el navegador solo la envía por **HTTPS**. Detrás de HTTP plano (por ejemplo `docker compose` en `http://localhost:3000` o una IP de red local) no se puede iniciar sesión. Poné un proxy con HTTPS delante.
+- En producción la cookie de sesión se marca `Secure`: el navegador solo la envía por **HTTPS**. La imagen de Docker corre con `NODE_ENV=production`, así que si la app se sirve por HTTP plano desde otra máquina (por ejemplo `http://192.168.x.x:3000`), el inicio de sesión no va a funcionar. Poné un proxy con HTTPS delante. Servida en `http://localhost` depende del navegador (no está verificado).
 - Las tablas `cuenta` y `sesion` se crean con `pnpm db:push` (local) o `pnpm db:push --prod`.
 
 ## Tecnologías Utilizadas
