@@ -86,6 +86,7 @@ describe('Presentation Assignments — Use Cases (Slice 2)', () => {
       deleteNonManualByWeek: vi.fn().mockResolvedValue(0),
       discardWeek: vi.fn().mockResolvedValue(0),
       confirmWeek: vi.fn().mockResolvedValue(0),
+      markWeekGenerated: vi.fn().mockResolvedValue(undefined),
       updatePartSala: vi.fn().mockResolvedValue(undefined),
       bulkUpdatePartSala: vi.fn().mockResolvedValue(undefined),
       insertParts: vi.fn().mockResolvedValue(undefined),
@@ -201,6 +202,35 @@ describe('Presentation Assignments — Use Cases (Slice 2)', () => {
       const uc = build(parts, persons);
       const result = await uc.execute({ id_week: 1 });
       expect(result.unassigned.length).toBeGreaterThan(0);
+    });
+
+    it('marks the week as generated (borrador) once at least one assignment was written', async () => {
+      const uc = build([part(10, 1, 1, true), part(11, 1, 2, false)], [person(1), person(2), person(3), person(4)]);
+      (assignRepo.upsertAssignment as ReturnType<typeof vi.fn>).mockImplementation((a) =>
+        Promise.resolve(new Assignment(100 + a.id_part, a.id_part, a.id_week, a.id_usuario, a.rol, a.estado))
+      );
+
+      const result = await uc.execute({ id_week: 1 });
+
+      expect(result.assignments.length).toBeGreaterThan(0);
+      expect(assignRepo.markWeekGenerated).toHaveBeenCalledTimes(1);
+      expect(assignRepo.markWeekGenerated).toHaveBeenCalledWith(1);
+    });
+
+    it('leaves the week untouched when generating produced no assignment at all', async () => {
+      const uc = build([], [person(1), person(2)]);
+
+      const result = await uc.execute({ id_week: 1 });
+
+      expect(result.assignments).toEqual([]);
+      expect(assignRepo.markWeekGenerated).not.toHaveBeenCalled();
+    });
+
+    it('PIN: still rejects an unknown week without touching its state', async () => {
+      (assignRepo.findWeekById as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+      const uc = new GenerateWeekAssignmentsUseCase(userRepo, assignRepo, defaultRegistry());
+      await expect(uc.execute({ id_week: 999 })).rejects.toThrow(NotFoundError);
+      expect(assignRepo.markWeekGenerated).not.toHaveBeenCalled();
     });
   });
 

@@ -76,6 +76,11 @@ export class GenerateWeekAssignmentsUseCase {
       written.push(saved);
     }
 
+    // A week with generated drafts is in borrador; one that produced nothing stays as it was.
+    if (written.length > 0) {
+      await this.assignmentsRepository.markWeekGenerated(input.id_week);
+    }
+
     return { assignments: written, unassigned: result.unassigned };
   }
 }

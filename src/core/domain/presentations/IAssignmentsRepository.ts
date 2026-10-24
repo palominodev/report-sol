@@ -32,6 +32,11 @@ export interface IAssignmentsRepository {
   upsertAssignment(a: Omit<Assignment, 'id_asignacion'>): Promise<Assignment>;
   deleteNonManualByWeek(id_week: number): Promise<number>;
   confirmWeek(id_week: number): Promise<number>;
+  /**
+   * Moves a no_generada week to borrador after assignments were generated for it.
+   * Never downgrades: a borrador or confirmada week keeps its state.
+   */
+  markWeekGenerated(id_week: number): Promise<void>;
   /** Atomically delete ALL assignments (including manual/confirmed) and reset the week to no_generada. Preserve parts and salas. */
   discardWeek(id_week: number): Promise<number>;
   /**

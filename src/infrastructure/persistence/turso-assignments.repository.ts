@@ -368,6 +368,14 @@ export class TursoAssignmentsRepository implements IAssignmentsRepository {
     return deleted.rowsAffected;
   }
 
+  async markWeekGenerated(id_week: number): Promise<void> {
+    const client = getDatabaseClient();
+    await client.execute({
+      sql: `UPDATE presentation_week SET estado = 'borrador' WHERE id_week = ? AND estado = 'no_generada'`,
+      args: [id_week],
+    });
+  }
+
   async confirmWeek(id_week: number): Promise<number> {
     const client = getDatabaseClient();
     const result = await client.execute({

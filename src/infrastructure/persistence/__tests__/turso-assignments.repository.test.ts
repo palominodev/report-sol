@@ -513,3 +513,88 @@ describe('TursoAssignmentsRepository.upsertWeek adoption-aware merge (sala mirro
     expect(after).toHaveLength(1);
   });
 });
+
+describe('TursoAssignmentsRepository.markWeekGenerated (week state after generating)', () => {
+  async function seedWeek(client: DatabaseClient, estado: string): Promise<number> {
+    const week = await client.execute({
+      sql: `INSERT INTO presentation_week (semana, issue, fecha_inicio, fecha_fin, estado)
+        VALUES (?, 'LMD', '2026-09-07', '2026-09-13', ?) RETURNING id_week`,
+      args: [`semana-${estado}`, estado],
+    });
+    return Number(week.rows[0].id_week);
+  }
+
+  async function estadoOf(client: DatabaseClient, id_week: number): Promise<string> {
+    const r = await client.execute({ sql: 'SELECT estado FROM presentation_week WHERE id_week = ?', args: [id_week] });
+    return String(r.rows[0].estado);
+  }
+
+  it('moves a no_generada week to borrador', async () => {
+    const client = await freshClient();
+    setDatabaseClient(client);
+    const repo = new TursoAssignmentsRepository();
+    const id = await seedWeek(client, 'no_generada');
+
+    await repo.markWeekGenerated(id);
+
+    expect(await estadoOf(client, id)).toBe('borrador');
+    expect((await repo.findWeekById(id))?.estado).toBe('borrador');
+  });
+
+  it('never downgrades a confirmada week', async () => {
+    const client = await freshClient();
+    setDatabaseClient(client);
+    const repo = new TursoAssignmentsRepository();
+    const id = await seedWeek(client, 'confirmada');
+
+    await repo.markWeekGenerated(id);
+
+    expect(await estadoOf(client, id)).toBe('confirmada');
+  });
+
+  it('only touches the given week', async () => {
+    const client = await freshClient();
+    setDatabaseClient(client);
+    const repo = new TursoAssignmentsRepository();
+    const target = await seedWeek(client, 'no_generada');
+    const other = (await client.execute({
+      sql: `INSERT INTO presentation_week (semana, issue, fecha_inicio, fecha_fin, estado)
+        VALUES ('otra', 'LMD', '2026-09-14', '2026-09-20', 'no_generada') RETURNING id_week`,
+    })).rows[0].id_week as number;
+
+    await repo.markWeekGenerated(target);
+
+    expect(await estadoOf(client, Number(other))).toBe('no_generada');
+  });
+
+  it('PIN: discardWeek still resets a borrador week to no_generada and removes its assignments', async () => {
+    const client = await freshClient();
+    setDatabaseClient(client);
+    const repo = new TursoAssignmentsRepository();
+    const { id_week, id_part } = await seedWeekWithPart(client, '2026/09/07', '2026-09-07', 'discurso');
+    await client.execute({ sql: "UPDATE presentation_week SET estado = 'no_generada' WHERE id_week = ?", args: [id_week] });
+    await assign(client, id_part, id_week, 1, 'presentador');
+    await repo.markWeekGenerated(id_week);
+    expect(await estadoOf(client, id_week)).toBe('borrador');
+
+    const deleted = await repo.discardWeek(id_week);
+
+    expect(deleted).toBe(1);
+    expect(await estadoOf(client, id_week)).toBe('no_generada');
+  });
+
+  it('PIN: confirmWeek still promotes a borrador week to confirmada and its drafts to confirmed', async () => {
+    const client = await freshClient();
+    setDatabaseClient(client);
+    const repo = new TursoAssignmentsRepository();
+    const { id_week, id_part } = await seedWeekWithPart(client, '2026/09/07', '2026-09-07', 'discurso');
+    await client.execute({ sql: "UPDATE presentation_week SET estado = 'no_generada' WHERE id_week = ?", args: [id_week] });
+    await assign(client, id_part, id_week, 1, 'presentador');
+    await repo.markWeekGenerated(id_week);
+
+    const confirmed = await repo.confirmWeek(id_week);
+
+    expect(confirmed).toBe(1);
+    expect(await estadoOf(client, id_week)).toBe('confirmada');
+  });
+});
