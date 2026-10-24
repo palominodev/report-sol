@@ -10,6 +10,8 @@ Stack: Next.js 15 (App Router), libsql/Turso, hexagonal (core/domain, core/appli
 - S5: "Se cambia a mano, sin pantalla (Recomendado)" — forgotten password: reset by hand with a command, no self-service recovery screen, no email.
 - S6: Deactivating an account must cut access (no valid session survives deactivation).
 
+- S7 Public data entry: "la vista para ingresar los datos debe estar publica para todos y cualquiera que entre". Public = `/`, `/grupo`, `/grupo/<id>` and `POST /api/informe`. Everything else keeps requiring a session, including every other method on `/api/informe`, `/dashboard/**`, `/usuario/**`, `/asignaciones/**` ("también debe estar protegida") and `/api/cuentas`. The public list lives in ONE place and both the middleware and the structural test read it.
+
 ## Tasks
 - T1 (S1,S6) Account + session persistence, password hashing, tests — route: inline — commit: af84f1c
 - T2a (S1,S6) Login/logout/validate use cases + token service — route: inline — commit: 00707a5
@@ -66,3 +68,4 @@ Stack: Next.js 15 (App Router), libsql/Turso, hexagonal (core/domain, core/appli
 - L11 (scope split): the rate limit (finding 3) and making Secure configurable (finding 1) are product/deployment decisions and are NOT implemented until the user decides.
 - L12 (second verification T3e, quoted): "S4 is not met under concurrency: two administrators who deactivate each other at the same moment leave the system with zero active administrators. I reproduced this." I reproduced it myself with the real repositories (RED: 0 active administrators, 2 tests), then fixed it (GREEN).
 - L13 (user, before the merge to main): "ya existe una cuenta y usa sesión no hace falta nada". Target branch is main only; develop does not exist (checked against origin). Merge to main is a fast-forward over bd2b130.
+- L14 (user, after the merge to main): "la vista para ingresar los datos debe estar publica para todos y cualquiera que entre". Asked what to open, the user picked "Todo menos administración" and, for abuse protection, "Ninguna". Asked to confirm (it would also open the dashboard and editing/deleting reports), the user cancelled the question and wrote: "asignaciones tambien debe estar libre", and right after: "perdon, tambien debe estar protegida". Reading used: only the data-entry flow is public; assignments stay protected (so the extra "asignaciones libre" only makes sense if the scope was narrow). Assumption, easy to widen: one list in src/lib/auth/access-policy.ts.
