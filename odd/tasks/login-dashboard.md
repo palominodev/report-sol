@@ -22,7 +22,6 @@ Stack: Next.js 15 (App Router), libsql/Turso, hexagonal (core/domain, core/appli
 - T4a (S3,S4,S6) Deactivate/reactivate use cases, last-active-admin rule — route: inline — commit: 4029070
 - T4b (S3,S4) /api/cuentas routes (withAuth role administrador) + DI wiring — route: inline, after T3b releases src/app/api — commit: dcef3ff
 - T4c (S3,S4) Accounts screen (admin only) — route: inline, after T3c — commit: pending
-- T4 (S3,S4) Accounts admin screen + API, admin-only — route: inline — commit: pending
 - T5a (S3,S4,S5) Create-account and reset-password use cases — route: inline — commit: e771593
 - T5b (S4,S5) Terminal command: first admin / reset password — route: inline — commit: 2c123a8
 - T6 (S1-S6) Schema in src/db.sql, .env.example, docs, end-to-end check — route: inline — commit: pending
@@ -31,6 +30,7 @@ Stack: Next.js 15 (App Router), libsql/Turso, hexagonal (core/domain, core/appli
 - Slice 1: T1 (af84f1c, 484 lines incl. feature doc and tests) — past the ~400 guide; boundary recorded here, later tasks start slice 2.
 - Slice 2: T2a (00707a5) + T2b (7bbd582), ~600 authored lines incl. tests; boundary recorded, T2c starts slice 3.
 - Slice 3: T2c code (ee9c52b) + T5a (e771593), ~330 authored lines incl. tests; boundary recorded, T5b starts slice 4.
+- Slice 6: T4b (dcef3ff); T4c, T3d findings, T6 follow in slice 7.
 - Slice 5: T3c (67aaba4) + T3b (c35664d); T3d verification, T4b/T4c, T6 start slice 6.
 - Slice 4: T5b (2c123a8) + T3a guards (42941b4) + T4a (4029070); T3b/T3c/T4b/T4c start slice 5.
 
