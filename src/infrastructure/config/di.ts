@@ -2,6 +2,13 @@ import { TursoInformeRepository } from '../persistence/turso-informe.repository'
 import { TursoGrupoRepository } from '../persistence/turso-grupo.repository';
 import { TursoUserRepository } from '../persistence/turso-user.repository';
 import { TursoAssignmentsRepository } from '../persistence/turso-assignments.repository';
+import { TursoAccountRepository } from '../persistence/turso-account.repository';
+import { TursoSessionRepository } from '../persistence/turso-session.repository';
+import { ScryptPasswordHasher } from '../auth/scrypt-password-hasher';
+import { CryptoSessionTokenService } from '../auth/crypto-session-token-service';
+import { LoginUseCase } from '@/core/application/use-cases/auth/LoginUseCase';
+import { LogoutUseCase } from '@/core/application/use-cases/auth/LogoutUseCase';
+import { ValidateSessionUseCase } from '@/core/application/use-cases/auth/ValidateSessionUseCase';
 import { IInformeRepository } from '@/core/domain/repositories/IInformeRepository';
 import { IGrupoRepository } from '@/core/domain/repositories/IGrupoRepository';
 import { IUserRepository } from '@/core/domain/repositories/IUserRepository';
@@ -93,4 +100,21 @@ export function getUserRepository(): IUserRepository {
 
 export function getDashboardStatsUseCase(): GetDashboardStatsUseCase {
   return new GetDashboardStatsUseCase(new TursoInformeRepository());
+}
+
+export function getLoginUseCase(): LoginUseCase {
+  return new LoginUseCase(
+    new TursoAccountRepository(),
+    new TursoSessionRepository(),
+    new ScryptPasswordHasher(),
+    new CryptoSessionTokenService()
+  );
+}
+
+export function getLogoutUseCase(): LogoutUseCase {
+  return new LogoutUseCase(new TursoSessionRepository(), new CryptoSessionTokenService());
+}
+
+export function getValidateSessionUseCase(): ValidateSessionUseCase {
+  return new ValidateSessionUseCase(new TursoSessionRepository(), new CryptoSessionTokenService());
 }
