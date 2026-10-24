@@ -33,7 +33,7 @@ Stack: Next.js 15 (App Router), libsql/Turso, hexagonal (core/domain, core/appli
 - F2 (S1, verifier finding 1, part without a product decision) After a successful login, confirm the browser really stored the session (GET /api/auth/session wrapped in withAuth); if not, show a clear message instead of bouncing silently to /login. Does NOT change the Secure rule — route: inline — commit: f4861df
 - F3 (S1, verifier finding 3, part without a product decision) Equal work for unknown usernames (dummy scrypt verify) and length caps on username and password; the rate limit itself is a user decision, not implemented — route: inline — commit: 65a9bd0
 - F5 (S2, verifier finding 8) One cookie reader everywhere: withAuth, requireAccount, logout and the login page must pick the same token when the cookie name is duplicated — route: inline — commit: d9749bc
-- F6 (docs, verifier finding 11) Document that ACCOUNT_PASSWORD inline leaves the password in shell history; document the 401 behavior — route: inline — commit: pending
+- F6 (docs, verifier finding 11) Document that ACCOUNT_PASSWORD inline leaves the password in shell history; document the 401 behavior — route: inline — commit: db1fd03
 
 ## Slices
 - Slice 1: T1 (af84f1c, 484 lines incl. feature doc and tests) — past the ~400 guide; boundary recorded here, later tasks start slice 2.
