@@ -1,7 +1,7 @@
-import { cookies } from 'next/headers';
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getValidateSessionUseCase } from '@/infrastructure/config/di';
-import { SESSION_COOKIE_NAME } from './session-cookie';
+import { readSessionToken } from './session-cookie';
 import { createWithAuth } from './with-auth';
 import { createRequireAccount } from './require-account';
 
@@ -12,7 +12,7 @@ export const withAuth = createWithAuth(validate);
 
 /** Call at the top of every server page: `await requireAccount()`. */
 export const requireAccount = createRequireAccount({
-  readToken: async () => (await cookies()).get(SESSION_COOKIE_NAME)?.value,
+  readToken: async () => readSessionToken((await headers()).get('cookie')),
   validate,
   redirect,
 });

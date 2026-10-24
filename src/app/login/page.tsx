@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
-import { cookies } from 'next/headers';
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getValidateSessionUseCase } from '@/infrastructure/config/di';
-import { SESSION_COOKIE_NAME } from '@/lib/auth/session-cookie';
+import { readSessionToken } from '@/lib/auth/session-cookie';
 import { safeRedirectPath } from '@/lib/auth/safe-redirect';
 import LoginForm from './LoginForm';
 
@@ -22,7 +22,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const redirectTo = safeRedirectPath(Array.isArray(next) ? next[0] : next);
 
   // Someone who is already signed in has nothing to do here.
-  const token = (await cookies()).get(SESSION_COOKIE_NAME)?.value;
+  const token = readSessionToken((await headers()).get('cookie'));
   if (await getValidateSessionUseCase().execute(token)) {
     redirect(redirectTo);
   }

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getLogoutUseCase } from '@/infrastructure/config/di';
-import { SESSION_COOKIE_NAME, clearedSessionCookieOptions } from '@/lib/auth/session-cookie';
+import { SESSION_COOKIE_NAME, clearedSessionCookieOptions, readSessionToken } from '@/lib/auth/session-cookie';
 
 export async function POST(request: NextRequest) {
-  const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
+  const token = readSessionToken(request.headers.get('cookie'));
 
   try {
     await getLogoutUseCase().execute(token);
