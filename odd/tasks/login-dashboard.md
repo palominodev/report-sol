@@ -13,7 +13,7 @@ Stack: Next.js 15 (App Router), libsql/Turso, hexagonal (core/domain, core/appli
 ## Tasks
 - T1 (S1,S6) Account + session persistence, password hashing, tests — route: inline — commit: af84f1c
 - T2a (S1,S6) Login/logout/validate use cases + token service — route: inline — commit: 00707a5
-- T2b (S1,S6) DI wiring, session cookie, /api/auth routes — route: inline — commit: pending
+- T2b (S1,S6) DI wiring, session cookie, /api/auth routes — route: inline — commit: 7bbd582
 - T2c (S1) /login page + browser check — route: inline — commit: pending
 - T3 (S2) Guard all pages and /api routes (middleware + server check) — route: inline — commit: pending
 - T4 (S3,S4) Accounts admin screen + API, admin-only — route: inline — commit: pending
