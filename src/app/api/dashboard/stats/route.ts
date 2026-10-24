@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth/server';
 import { getDashboardStatsUseCase } from '@/infrastructure/config/di';
 
 const MESES_VALIDOS = [
@@ -6,7 +7,7 @@ const MESES_VALIDOS = [
   'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC',
 ];
 
-export async function GET(request: NextRequest) {
+export const GET = withAuth(async (request: NextRequest) => {
   try {
     const { searchParams } = new URL(request.url);
     const añoParam = searchParams.get('año');
@@ -67,4 +68,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

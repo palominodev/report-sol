@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth/server';
 import { UpdateInformeUseCase } from '@/core/application/use-cases/UpdateInformeUseCase';
 import { DeleteInformeUseCase } from '@/core/application/use-cases/DeleteInformeUseCase';
 import { getInformeRepository } from '@/infrastructure/config/di';
@@ -10,10 +11,10 @@ interface RouteParams {
   }>;
 }
 
-export async function PATCH(
+export const PATCH = withAuth(async (
   request: Request,
   { params }: RouteParams
-) {
+) => {
   try {
     const data = await request.json();
     const { id } = await params;
@@ -35,12 +36,12 @@ export async function PATCH(
     }
     return NextResponse.json({ error: 'Error interno del servidor al actualizar informe' }, { status: 500 });
   }
-}
+});
 
-export async function DELETE(
+export const DELETE = withAuth(async (
   request: Request,
   { params }: RouteParams
-) {
+) => {
   try {
     const { id } = await params;
     const informeRepository = getInformeRepository();
@@ -56,4 +57,4 @@ export async function DELETE(
     }
     return NextResponse.json({ error: 'Error interno del servidor al eliminar informe' }, { status: 500 });
   }
-}
+});

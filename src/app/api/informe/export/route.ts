@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth/server';
 import * as XLSX from 'xlsx';
 import { getInformeRepository } from '@/infrastructure/config/di';
 import { GetInformesUseCase } from '@/core/application/use-cases/GetInformesUseCase';
 
-export async function GET(request: NextRequest) {
+export const GET = withAuth(async (request: NextRequest) => {
   try {
     const { searchParams } = new URL(request.url);
     const año = searchParams.get('año');
@@ -56,4 +57,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

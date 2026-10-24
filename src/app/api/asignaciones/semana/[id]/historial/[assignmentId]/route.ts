@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth/server';
 import { getAssignmentHistoryUseCase } from '@/infrastructure/config/di';
 import { httpStatusForError, errorPayload } from '@/lib/presentation/apiError';
 
@@ -10,7 +11,7 @@ export const dynamic = 'force-dynamic';
  * 200: AssignmentHistoryDetail; 400: invalid identifiers; 404: missing/out-of-scope record; 500: failure.
  * Read-only. Details are requested only when the person opens a history entry.
  */
-export async function GET(_request: Request, { params }: { params: Promise<{ id: string; assignmentId: string }> }) {
+export const GET = withAuth(async (_request: Request, { params }: { params: Promise<{ id: string; assignmentId: string }> }) => {
   try {
     const { id, assignmentId } = await params;
     const detail = await getAssignmentHistoryUseCase().getDetail({ id_week: Number(id), id_asignacion: Number(assignmentId) });
@@ -18,4 +19,4 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   } catch (error) {
     return NextResponse.json(errorPayload(error), { status: httpStatusForError(error) });
   }
-}
+});

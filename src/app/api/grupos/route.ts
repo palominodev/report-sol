@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth/server';
 import { GetGruposUseCase } from '@/core/application/use-cases/GetGruposUseCase';
 import { CreateGrupoUseCase } from '@/core/application/use-cases/CreateGrupoUseCase';
 import { DeleteGrupoUseCase } from '@/core/application/use-cases/DeleteGrupoUseCase';
 import { getGrupoRepository } from '@/infrastructure/config/di';
 
-export async function GET() {
+export const GET = withAuth(async () => {
   try {
     const grupoRepository = getGrupoRepository();
     const getGruposUseCase = new GetGruposUseCase(grupoRepository);
@@ -14,9 +15,9 @@ export async function GET() {
     const message = error instanceof Error ? error.message : 'Error desconocido';
     return NextResponse.json({ error: message }, { status: 500 });
   }
-}
+});
 
-export async function POST(request: Request) {
+export const POST = withAuth(async (request: Request) => {
   try {
     const { nombre } = await request.json();
     const grupoRepository = getGrupoRepository();
@@ -27,9 +28,9 @@ export async function POST(request: Request) {
     const message = error instanceof Error ? error.message : 'Error desconocido';
     return NextResponse.json({ error: message }, { status: 400 });
   }
-}
+});
 
-export async function DELETE(request: Request) {
+export const DELETE = withAuth(async (request: Request) => {
   try {
     const { id } = await request.json();
     const grupoRepository = getGrupoRepository();
@@ -40,4 +41,4 @@ export async function DELETE(request: Request) {
     const message = error instanceof Error ? error.message : 'Error desconocido';
     return NextResponse.json({ error: message }, { status: 400 });
   }
-}
+});

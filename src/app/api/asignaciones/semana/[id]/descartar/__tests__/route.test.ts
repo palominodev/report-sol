@@ -3,9 +3,11 @@ import { createClient } from '@libsql/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { setDatabaseClient } from '@/infrastructure/persistence/database.client';
 import { TursoAssignmentsRepository } from '@/infrastructure/persistence/turso-assignments.repository';
+import { signIn } from '../../../../../__tests__/auth-helpers';
 import { DELETE } from '../route';
 
 let client: ReturnType<typeof createClient>;
+let sessionCookie: string;
 const repo = new TursoAssignmentsRepository();
 
 async function snapshot() {
@@ -20,6 +22,7 @@ async function snapshot() {
 async function discard(id = '1') {
   return DELETE(new Request(`http://localhost/api/asignaciones/semana/${id}/descartar`, {
     method: 'DELETE',
+    headers: { cookie: sessionCookie },
   }), { params: Promise.resolve({ id }) });
 }
 
@@ -28,6 +31,7 @@ beforeEach(async () => {
   await client.executeMultiple(readFileSync('src/db.sql', 'utf8'));
   setDatabaseClient(client);
   vi.spyOn(console, 'error').mockImplementation(() => {});
+  sessionCookie = (await signIn()).cookie;
   await client.execute("INSERT INTO usuario (nombre, apellido, genero) VALUES ('Test', 'Person', 'masculino')");
   for (const id of [1, 2]) {
     await client.execute({

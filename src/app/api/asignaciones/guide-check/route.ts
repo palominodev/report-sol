@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth/server';
 import { checkGuideUpdate } from '@/infrastructure/scraper/sync-service';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(req: NextRequest) {
+export const GET = withAuth(async (req: NextRequest) => {
   try {
     const searchParams = req.nextUrl.searchParams;
     const force = searchParams.get('force') === 'true';
@@ -14,4 +15,4 @@ export async function GET(req: NextRequest) {
     const message = error instanceof Error ? error.message : 'Error al verificar guía';
     return NextResponse.json({ error: message }, { status: 500 });
   }
-}
+});

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth/server';
 import { getDiscardWeekAssignmentsUseCase } from '@/infrastructure/config/di';
 import { httpStatusForError, errorPayload } from '@/lib/presentation/apiError';
 
@@ -10,7 +11,7 @@ export const dynamic = 'force-dynamic';
  * Parts and rooms are preserved; the week returns to no_generada.
  * 200 { discarded: number }; invalid ID 400; unknown week 404; failure 500.
  */
-export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export const DELETE = withAuth(async (_request: Request, { params }: { params: Promise<{ id: string }> }) => {
   try {
     const { id } = await params;
     const result = await getDiscardWeekAssignmentsUseCase().execute({ id_week: Number(id) });
@@ -19,4 +20,4 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
     console.error('Error al descartar generación:', error);
     return NextResponse.json(errorPayload(error), { status: httpStatusForError(error) });
   }
-}
+});

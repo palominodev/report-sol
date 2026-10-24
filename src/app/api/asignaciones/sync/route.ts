@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth/server';
 import { syncMeetingWorkbook } from '@/infrastructure/scraper/sync-service';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(req: NextRequest) {
+export const POST = withAuth(async (req: NextRequest) => {
   try {
     let issue: string | undefined;
     try {
@@ -27,4 +28,4 @@ export async function POST(req: NextRequest) {
     const message = error instanceof Error ? error.message : 'Error al sincronizar la guía';
     return NextResponse.json({ error: message }, { status: 502 });
   }
-}
+});

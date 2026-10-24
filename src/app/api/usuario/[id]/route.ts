@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth/server';
 import { UpdateUserUseCase } from '@/core/application/use-cases/UpdateUserUseCase';
 import { DeleteUserUseCase } from '@/core/application/use-cases/DeleteUserUseCase';
 import { getUserRepository } from '@/infrastructure/config/di';
@@ -10,10 +11,10 @@ interface RouteParams {
   }>;
 }
 
-export async function PUT(
+export const PUT = withAuth(async (
   request: Request,
   { params }: RouteParams
-) {
+) => {
   try {
     const data = await request.json();
     const { id } = await params;
@@ -30,12 +31,12 @@ export async function PUT(
     }
     return NextResponse.json({ error: 'Error interno del servidor al actualizar usuario' }, { status: 500 });
   }
-}
+});
 
-export async function DELETE(
+export const DELETE = withAuth(async (
   request: Request,
   { params }: RouteParams
-) {
+) => {
   try {
     const { id } = await params;
     const userRepository = getUserRepository();
@@ -51,4 +52,4 @@ export async function DELETE(
     }
     return NextResponse.json({ error: 'Error interno del servidor al eliminar usuario' }, { status: 500 });
   }
-}
+});

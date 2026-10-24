@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth/server';
 import {
   getAdoptSalaRoomsUseCase,
   getGenerateWeekAssignmentsUseCase,
@@ -59,7 +60,7 @@ function parseBody(raw: string): { salaPolicy?: SalaPolicy } {
  * The NULL-sala part count is computed through GetWeekAssignmentsUseCase —
  * routes never touch repositories directly.
  */
-export async function POST(request: Request, { params }: RouteParams) {
+export const POST = withAuth(async (request: Request, { params }: RouteParams) => {
   try {
     const { id } = await params;
     const idWeek = Number(id);
@@ -88,4 +89,4 @@ export async function POST(request: Request, { params }: RouteParams) {
       status: httpStatusForError(error),
     });
   }
-}
+});

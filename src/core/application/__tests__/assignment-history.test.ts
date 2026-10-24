@@ -5,6 +5,7 @@ import { setDatabaseClient } from '@/infrastructure/persistence/database.client'
 import { TursoAssignmentsRepository } from '@/infrastructure/persistence/turso-assignments.repository';
 import { GetAssignmentHistoryUseCase } from '../use-cases/presentation/GetAssignmentHistoryUseCase';
 import { GET } from '@/app/api/asignaciones/semana/[id]/historial/[assignmentId]/route';
+import { signIn } from '@/app/api/__tests__/auth-helpers';
 
 let client: ReturnType<typeof createClient>;
 const repo = new TursoAssignmentsRepository();
@@ -32,10 +33,13 @@ async function snapshot() {
   })));
 }
 
+let cookie = '';
+
 beforeEach(async () => {
   client = createClient({ url: ':memory:' });
   await client.executeMultiple(readFileSync('src/db.sql', 'utf8'));
   setDatabaseClient(client);
+  cookie = (await signIn()).cookie;
   await client.execute(`INSERT INTO usuario (id_usuario, nombre, apellido) VALUES
     (1, 'Manual', 'Person'), (2, 'Confirmed', 'Person'), (3, 'Draft', 'Person'), (4, 'Never', 'Assigned'), (5, 'Old', 'History')`);
   await add(1, '2026-02-02', 5, 'confirmed', 'presentador', null);
@@ -79,7 +83,7 @@ describe('assignment history before a selected week', () => {
 
   it('loads one assignment detail through the public GET endpoint', async () => {
     const before = await snapshot();
-    const response = await GET(new Request('http://localhost/api/asignaciones/semana/5/historial/4'), {
+    const response = await GET(new Request('http://localhost/api/asignaciones/semana/5/historial/4', { headers: { cookie } }), {
       params: Promise.resolve({ id: '5', assignmentId: '4' }),
     });
     expect(response.status).toBe(200);
@@ -92,7 +96,7 @@ describe('assignment history before a selected week', () => {
 
   it('returns 404 for a missing reference week without changing data', async () => {
     const before = await snapshot();
-    const response = await GET(new Request('http://localhost/'), { params: Promise.resolve({ id: '999', assignmentId: '4' }) });
+    const response = await GET(new Request('http://localhost/', { headers: { cookie } }), { params: Promise.resolve({ id: '999', assignmentId: '4' }) });
     expect(response.status).toBe(404);
     expect(await response.json()).toEqual({ error: 'Semana 999 no encontrada' });
     expect(await snapshot()).toEqual(before);
@@ -102,7 +106,7 @@ describe('assignment history before a selected week', () => {
     const before = await snapshot();
     const query = vi.spyOn(TursoAssignmentsRepository.prototype, 'findAssignmentHistoryDetail').mockRejectedValueOnce(new Error('History unavailable'));
     try {
-      const response = await GET(new Request('http://localhost/'), { params: Promise.resolve({ id: '5', assignmentId: '4' }) });
+      const response = await GET(new Request('http://localhost/', { headers: { cookie } }), { params: Promise.resolve({ id: '5', assignmentId: '4' }) });
       expect(response.status).toBe(500);
       expect(await response.json()).toEqual({ error: 'History unavailable' });
       expect(await snapshot()).toEqual(before);
@@ -117,7 +121,7 @@ describe('assignment history before a selected week', () => {
 
   it.each(['5', '7', '8', '999'])('does not expose draft, current, future or missing detail %s', async assignmentId => {
     const before = await snapshot();
-    const response = await GET(new Request('http://localhost/'), { params: Promise.resolve({ id: '5', assignmentId }) });
+    const response = await GET(new Request('http://localhost/', { headers: { cookie } }), { params: Promise.resolve({ id: '5', assignmentId }) });
     expect(response.status).toBe(404);
     expect(await response.json()).toEqual({ error: 'Asignación histórica no encontrada' });
     expect(await snapshot()).toEqual(before);
@@ -131,7 +135,7 @@ describe('assignment history before a selected week', () => {
     { id: '5', assignmentId: '9007199254740992', error: 'Asignación inválida' },
   ])('rejects malformed detail identifiers without modifying data: $id/$assignmentId', async ({ id, assignmentId, error }) => {
     const before = await snapshot();
-    const response = await GET(new Request('http://localhost/'), { params: Promise.resolve({ id, assignmentId }) });
+    const response = await GET(new Request('http://localhost/', { headers: { cookie } }), { params: Promise.resolve({ id, assignmentId }) });
     expect(response.status).toBe(400);
     expect(await response.json()).toEqual({ error });
     expect(await snapshot()).toEqual(before);

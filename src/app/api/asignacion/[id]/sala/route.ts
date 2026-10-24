@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth/server';
 import { getSetPartSalaUseCase } from '@/infrastructure/config/di';
 import { httpStatusForError, errorPayload } from '@/lib/presentation/apiError';
 import { ValidationError } from '@/core/domain/errors/ValidationError';
@@ -23,7 +24,7 @@ interface RouteParams {
  * Deliberate delta vs the sibling [id]/route.ts: a malformed JSON body is a
  * client error and maps to 400 here, not the sibling's unguarded 500.
  */
-export async function PATCH(request: Request, { params }: RouteParams) {
+export const PATCH = withAuth(async (request: Request, { params }: RouteParams) => {
   try {
     const { id } = await params;
     const idPart = Number(id);
@@ -52,4 +53,4 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       status: httpStatusForError(error),
     });
   }
-}
+});

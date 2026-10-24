@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth/server';
 import { CreateUserUseCase } from '@/core/application/use-cases/CreateUserUseCase';
 import { GetUsersUseCase } from '@/core/application/use-cases/GetUsersUseCase';
 import { getUserRepository } from '@/infrastructure/config/di';
 import { ValidationError } from '@/core/domain/errors/ValidationError';
 
-export async function GET(request: Request) {
+export const GET = withAuth(async (request: Request) => {
   try {
     const { searchParams } = new URL(request.url);
     const grupoId = searchParams.get('grupoId');
@@ -19,9 +20,9 @@ export async function GET(request: Request) {
     }
     return NextResponse.json({ error: 'Error interno del servidor al obtener usuarios' }, { status: 500 });
   }
-}
+});
 
-export async function POST(request: Request) {
+export const POST = withAuth(async (request: Request) => {
   try {
     const data = await request.json();
     const userRepository = getUserRepository();
@@ -37,4 +38,4 @@ export async function POST(request: Request) {
     }
     return NextResponse.json({ error: 'Error interno del servidor al crear usuario' }, { status: 500 });
   }
-}
+});

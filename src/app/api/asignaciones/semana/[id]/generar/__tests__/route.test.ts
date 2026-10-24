@@ -1,4 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { createClient } from '@libsql/client';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { setDatabaseClient } from '@/infrastructure/persistence/database.client';
+import { signIn } from '../../../../../__tests__/auth-helpers';
 import { POST } from '../route';
 import { NotFoundError } from '@/core/domain/errors/NotFoundError';
 
@@ -13,7 +17,9 @@ const state = vi.hoisted(() => ({
   weekExists: true,
 }));
 
-vi.mock('@/infrastructure/config/di', () => ({
+vi.mock('@/infrastructure/config/di', async (importOriginal) => ({
+  // Real session validation (the route is behind withAuth); only the use cases are faked.
+  ...(await importOriginal<typeof import('@/infrastructure/config/di')>()),
   getGetWeekAssignmentsUseCase: () => ({
     execute: async () => {
       state.order.push('get');
@@ -38,6 +44,7 @@ vi.mock('@/infrastructure/config/di', () => ({
 function post(body?: string): Request {
   return new Request('http://localhost/api/asignaciones/semana/1/generar', {
     method: 'POST',
+    headers: { cookie: sessionCookie },
     body,
   });
 }
@@ -46,12 +53,24 @@ async function call(body?: string): Promise<Response> {
   return POST(post(body), { params: Promise.resolve({ id: '1' }) });
 }
 
+let client: ReturnType<typeof createClient>;
+let sessionCookie: string;
+
 describe('POST /api/asignaciones/semana/[id]/generar — salaPolicy contract', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    client = createClient({ url: ':memory:' });
+    await client.executeMultiple(readFileSync('src/db.sql', 'utf8'));
+    setDatabaseClient(client);
+    sessionCookie = (await signIn()).cookie;
     state.order.length = 0;
     state.parts = [];
     state.weekExists = true;
     vi.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    setDatabaseClient(null);
+    client.close();
   });
 
   it('malformed JSON body → 400 and no use case runs', async () => {

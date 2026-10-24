@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth/server';
 import { getGetWeekAssignmentsUseCase, getUserRepository } from '@/infrastructure/config/di';
 import { httpStatusForError, errorPayload } from '@/lib/presentation/apiError';
 
@@ -8,7 +9,7 @@ interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
-export async function GET(_request: Request, { params }: RouteParams) {
+export const GET = withAuth(async (_request: Request, { params }: RouteParams) => {
   try {
     const { id } = await params;
     const idWeek = Number(id);
@@ -22,4 +23,4 @@ export async function GET(_request: Request, { params }: RouteParams) {
       status: httpStatusForError(error),
     });
   }
-}
+});

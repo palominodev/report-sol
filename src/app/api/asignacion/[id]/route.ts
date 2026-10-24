@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth/server';
 import { getOverrideAssignmentUseCase } from '@/infrastructure/config/di';
 import { httpStatusForError, errorPayload } from '@/lib/presentation/apiError';
 
@@ -21,7 +22,7 @@ interface RouteParams {
  * The path `:id` maps to OverrideAssignmentUseCase input `id_part` — the route
  * supports a manual swap of the person fulfilling a given role on a part.
  */
-export async function PATCH(request: Request, { params }: RouteParams) {
+export const PATCH = withAuth(async (request: Request, { params }: RouteParams) => {
   try {
     const { id } = await params;
     const body = await request.json();
@@ -41,4 +42,4 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       status: httpStatusForError(error),
     });
   }
-}
+});

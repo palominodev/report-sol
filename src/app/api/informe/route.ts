@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth/server';
 import { CreateInformeUseCase, GetInformesUseCase } from '@/core/application/use-cases';
 import { getInformeRepository } from '@/infrastructure/config/di';
 import { ValidationError } from '@/core/domain/errors/ValidationError';
 
-export async function GET(request: Request) {
+export const GET = withAuth(async (request: Request) => {
   try {
     const { searchParams } = new URL(request.url);
     const añoParam = searchParams.get('año');
@@ -39,9 +40,9 @@ export async function GET(request: Request) {
     }
     return NextResponse.json({ error: 'Error interno del servidor al obtener informes' }, { status: 500 });
   }
-}
+});
 
-export async function POST(request: Request) {
+export const POST = withAuth(async (request: Request) => {
   try {
     const data = await request.json();
 
@@ -58,4 +59,4 @@ export async function POST(request: Request) {
     }
     return NextResponse.json({ error: 'Error interno del servidor al crear el informe' }, { status: 500 });
   }
-}
+});
