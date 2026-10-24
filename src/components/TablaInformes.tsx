@@ -1,4 +1,5 @@
 'use client';
+import { authedFetch } from '@/lib/auth/authed-fetch';
 
 import { useEffect, useMemo, useState } from 'react';
 import { EditInformeModal, DeleteConfirmModal } from './InformeCard';
@@ -141,7 +142,7 @@ export default function TablaInformes({ informes, onRefresh, onVisibleCountChang
     setIsSubmitting(true);
     setError(null);
     try {
-      const response = await fetch(`/api/informe/${informeEditando.id_informe}`, {
+      const response = await authedFetch(`/api/informe/${informeEditando.id_informe}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -166,7 +167,7 @@ export default function TablaInformes({ informes, onRefresh, onVisibleCountChang
     setIsSubmitting(true);
     setError(null);
     try {
-      const response = await fetch(`/api/informe/${informeAEliminar.id_informe}`, {
+      const response = await authedFetch(`/api/informe/${informeAEliminar.id_informe}`, {
         method: 'DELETE',
       });
 

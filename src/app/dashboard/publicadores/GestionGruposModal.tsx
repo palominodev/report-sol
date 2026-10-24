@@ -1,4 +1,5 @@
 'use client';
+import { authedFetch } from '@/lib/auth/authed-fetch';
 import { useState, useEffect, useRef } from 'react';
 
 interface Grupo {
@@ -22,7 +23,7 @@ export default function GestionGruposModal({ onClose, onGruposChanged }: Gestion
   const inputRef = useRef<HTMLInputElement>(null);
 
   const cargarGrupos = async () => {
-    const res = await fetch('/api/grupos');
+    const res = await authedFetch('/api/grupos');
     const data = await res.json();
     setGrupos(data);
   };
@@ -40,7 +41,7 @@ export default function GestionGruposModal({ onClose, onGruposChanged }: Gestion
     setError(null);
 
     try {
-      const res = await fetch('/api/grupos', {
+      const res = await authedFetch('/api/grupos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nombre: nuevoNombre.trim() }),
@@ -66,7 +67,7 @@ export default function GestionGruposModal({ onClose, onGruposChanged }: Gestion
     setError(null);
 
     try {
-      const res = await fetch('/api/grupos', {
+      const res = await authedFetch('/api/grupos', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),

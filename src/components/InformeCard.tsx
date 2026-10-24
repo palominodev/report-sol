@@ -1,4 +1,5 @@
 'use client';
+import { authedFetch } from '@/lib/auth/authed-fetch';
 
 import React, { useState } from 'react';
 
@@ -46,7 +47,7 @@ export default function InformeCard({ informe, onUpdate, onDelete }: InformeCard
     setIsSubmitting(true);
     setError(null);
     try {
-      const response = await fetch(`/api/informe/${informe.id_informe}`, {
+      const response = await authedFetch(`/api/informe/${informe.id_informe}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -70,7 +71,7 @@ export default function InformeCard({ informe, onUpdate, onDelete }: InformeCard
     setIsSubmitting(true);
     setError(null);
     try {
-      const response = await fetch(`/api/informe/${informe.id_informe}`, {
+      const response = await authedFetch(`/api/informe/${informe.id_informe}`, {
         method: 'DELETE',
       });
 

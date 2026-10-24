@@ -1,4 +1,5 @@
 'use client';
+import { authedFetch } from '@/lib/auth/authed-fetch';
 import { useState, useEffect, useCallback, Suspense } from 'react';
 import ListaInformes from '@/components/ListaInformes';
 import Link from 'next/link';
@@ -62,7 +63,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchGrupos = async () => {
       try {
-        const res = await fetch('/api/grupos');
+        const res = await authedFetch('/api/grupos');
         if (!res.ok) throw new Error('Failed to fetch groups');
         const data = await res.json();
         setGrupos(data.map((row: any) => ({
@@ -80,7 +81,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchPeriodoInicial = async () => {
       try {
-        const res = await fetch('/api/informe/ultimo');
+        const res = await authedFetch('/api/informe/ultimo');
         if (res.ok) {
           const ultimo = await res.json();
           if (ultimo?.año && ultimo?.mes) {
@@ -110,7 +111,7 @@ export default function DashboardPage() {
         if (filtros.rol) params.set('rol', filtros.rol);
         if (filtros.grupo) params.set('grupo', filtros.grupo);
 
-        const response = await fetch(`/api/dashboard/stats?${params.toString()}`);
+        const response = await authedFetch(`/api/dashboard/stats?${params.toString()}`);
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
           throw new Error(errorData.error || `Error ${response.status}`);
@@ -139,7 +140,7 @@ export default function DashboardPage() {
       if (filtros.rol) params.set('rol', filtros.rol);
       if (filtros.grupo) params.set('grupo', filtros.grupo);
 
-      const response = await fetch(`/api/informe/export?${params.toString()}`);
+      const response = await authedFetch(`/api/informe/export?${params.toString()}`);
       if (!response.ok) throw new Error('Error al generar el archivo');
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);

@@ -1,4 +1,5 @@
 'use client';
+import { authedFetch } from '@/lib/auth/authed-fetch';
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -116,7 +117,7 @@ export default function ListaIntegrantes({ integrantes, nombreGrupo, mes, año, 
 
   const handleSubmitInforme = async (data: unknown) => {
     try {
-      const response = await fetch('/api/informe', {
+      const response = await authedFetch('/api/informe', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

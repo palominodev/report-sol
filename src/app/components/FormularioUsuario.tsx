@@ -1,4 +1,5 @@
 'use client';
+import { authedFetch } from '@/lib/auth/authed-fetch';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -152,7 +153,7 @@ export default function FormularioUsuario({
     try {
       const url = esEdicion ? `/api/usuario/${usuarioInicial?.id_usuario}` : '/api/usuario';
 
-      const res = await fetch(url, {
+      const res = await authedFetch(url, {
         method: esEdicion ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

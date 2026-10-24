@@ -1,4 +1,5 @@
 'use client';
+import { authedFetch } from '@/lib/auth/authed-fetch';
 
 import { useState, useEffect, useCallback } from 'react';
 import EstadisticasInformes from './EstadisticasInformes';
@@ -69,7 +70,7 @@ export default function ListaInformes({ filtros, onCountChange, vista = 'lista' 
         if (filtros.rol) queryParams.append('rol', filtros.rol);
         if (filtros.grupo) queryParams.append('grupo', filtros.grupo);
 
-        const res = await fetch(`/api/informe?${queryParams.toString()}`);
+        const res = await authedFetch(`/api/informe?${queryParams.toString()}`);
         if (!res.ok) throw new Error('Error fetching informes');
         const data = await res.json();
         setInformes(data.map((row: any) => ({

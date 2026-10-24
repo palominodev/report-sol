@@ -1,4 +1,5 @@
 'use client'
+import { authedFetch } from '@/lib/auth/authed-fetch';
 import { useState, useEffect } from 'react';
 import Filtro from './Filtro';
 import MenuAcciones from './MenuAcciones';
@@ -27,7 +28,7 @@ export default function Publicadores() {
   const [modalGruposAbierto, setModalGruposAbierto] = useState(false);
 
   useEffect(() => {
-    fetch('/api/grupos')
+    authedFetch('/api/grupos')
       .then(res => res.json())
       .then(setGrupos)
       .catch(console.error);
@@ -35,7 +36,7 @@ export default function Publicadores() {
 
   useEffect(() => {
     const params = grupoSeleccionado ? `?grupoId=${grupoSeleccionado}` : '';
-    fetch(`/api/usuario${params}`)
+    authedFetch(`/api/usuario${params}`)
       .then(res => res.json())
       .then(setPublicadores)
       .catch(console.error);
@@ -43,7 +44,7 @@ export default function Publicadores() {
 
   const handleEliminar = async (idUsuario: number) => {
     try {
-      const response = await fetch(`/api/usuario/${idUsuario}`, {
+      const response = await authedFetch(`/api/usuario/${idUsuario}`, {
         method: 'DELETE',
       });
 
@@ -312,12 +313,12 @@ export default function Publicadores() {
         <GestionGruposModal
           onClose={() => setModalGruposAbierto(false)}
           onGruposChanged={() => {
-            fetch('/api/grupos')
+            authedFetch('/api/grupos')
               .then(res => res.json())
               .then(setGrupos)
               .catch(console.error);
             const params = grupoSeleccionado ? `?grupoId=${grupoSeleccionado}` : '';
-            fetch(`/api/usuario${params}`)
+            authedFetch(`/api/usuario${params}`)
               .then(res => res.json())
               .then(setPublicadores)
               .catch(console.error);
