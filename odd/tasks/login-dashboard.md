@@ -24,6 +24,7 @@ Stack: Next.js 15 (App Router), libsql/Turso, hexagonal (core/domain, core/appli
 ## Slices
 - Slice 1: T1 (af84f1c, 484 lines incl. feature doc and tests) — past the ~400 guide; boundary recorded here, later tasks start slice 2.
 - Slice 2: T2a (00707a5) + T2b (7bbd582), ~600 authored lines incl. tests; boundary recorded, T2c starts slice 3.
+- Slice 3: T2c code (ee9c52b) + T5a (e771593), ~330 authored lines incl. tests; boundary recorded, T5b starts slice 4.
 
 ## Log
 - L1: "vamos a crear un login para iniciar sesión en /dashboard"
