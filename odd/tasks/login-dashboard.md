@@ -21,7 +21,7 @@ Stack: Next.js 15 (App Router), libsql/Turso, hexagonal (core/domain, core/appli
 - T3d (S2) Independent security verification + differential check vs base — route: gentle-ai-verify (Risk items 2,3) — commit: n/a
 - T4a (S3,S4,S6) Deactivate/reactivate use cases, last-active-admin rule — route: inline — commit: 4029070
 - T4b (S3,S4) /api/cuentas routes (withAuth role administrador) + DI wiring — route: inline, after T3b releases src/app/api — commit: dcef3ff
-- T4c (S3,S4) Accounts screen (admin only) — route: inline, after T3c — commit: pending
+- T4c (S3,S4) Accounts screen (admin only) — route: inline, after T3c — commit: 5907e35
 - T5a (S3,S4,S5) Create-account and reset-password use cases — route: inline — commit: e771593
 - T5b (S4,S5) Terminal command: first admin / reset password — route: inline — commit: 2c123a8
 - T6 (S1-S6) Schema in src/db.sql, .env.example, docs, end-to-end check — route: inline — commit: pending
