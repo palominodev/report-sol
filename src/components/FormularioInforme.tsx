@@ -36,7 +36,7 @@ export default function FormularioInforme({ id_usuario, nombre, apellido, roles,
   const mesInformeIdx = mesActualIdx === 0 ? 11 : mesActualIdx - 1;
   const anioInforme = mesActualIdx === 0 ? anioActual - 1 : anioActual;
 
-  const [formData, setFormData] = useState<InformeData>({
+  const [initialFormData] = useState<InformeData>(() => ({
     horas: 0,
     cursos: 0,
     año: anioInforme,
@@ -44,9 +44,25 @@ export default function FormularioInforme({ id_usuario, nombre, apellido, roles,
     participacion: true,
     trabajo_como_auxiliar: false,
     notas: null
-  });
+  }));
+  const [formData, setFormData] = useState<InformeData>(initialFormData);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const hasChanges = formData.horas !== initialFormData.horas
+    || formData.cursos !== initialFormData.cursos
+    || formData.año !== initialFormData.año
+    || formData.mes !== initialFormData.mes
+    || formData.participacion !== initialFormData.participacion
+    || formData.trabajo_como_auxiliar !== initialFormData.trabajo_como_auxiliar
+    || (formData.notas || null) !== (initialFormData.notas || null);
+
+  const handleClose = () => {
+    if (isSubmitting) return;
+    if (hasChanges && !window.confirm('¿Descartar los cambios del informe? Los datos ingresados se perderán.')) return;
+    onClose();
+  };
 
   const esPublicador = roles.includes('publicador');
 
@@ -55,9 +71,12 @@ export default function FormularioInforme({ id_usuario, nombre, apellido, roles,
     if (isSubmitting) return;
 
     setIsSubmitting(true);
+    setSubmitError(null);
     try {
       await onSubmit(formData);
       onClose();
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Error al guardar el informe');
     } finally {
       setIsSubmitting(false);
     }
@@ -87,9 +106,10 @@ export default function FormularioInforme({ id_usuario, nombre, apellido, roles,
             </h2>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleClose}
+            disabled={isSubmitting}
             aria-label="Cerrar"
-            className="flex h-8 w-8 items-center justify-center bg-white/15 text-white transition-colors duration-200 hover:bg-white/25"
+            className="flex h-8 w-8 items-center justify-center bg-white/15 text-white transition-colors duration-200 hover:bg-white/25 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <svg aria-hidden="true" className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -255,11 +275,18 @@ export default function FormularioInforme({ id_usuario, nombre, apellido, roles,
               </div>
             )}
 
+            {submitError && (
+              <div role="alert" className="border border-danger p-4 text-sm text-danger">
+                No se pudo guardar el informe: {submitError}. Los datos ingresados se conservaron.
+                Revisa la conexión e intenta de nuevo con «Guardar Informe».
+              </div>
+            )}
+
             {/* Action Buttons */}
             <div className="flex justify-end space-x-3 border-t border-line-on-light pt-4">
               <button
                 type="button"
-                onClick={onClose}
+                onClick={handleClose}
                 disabled={isSubmitting}
                 className="border border-brand px-5 py-2.5 text-sm font-semibold text-brand transition-colors duration-200 hover:bg-brand-tint disabled:cursor-not-allowed disabled:opacity-50"
               >

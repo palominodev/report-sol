@@ -116,29 +116,25 @@ export default function ListaIntegrantes({ integrantes, nombreGrupo, mes, año, 
   };
 
   const handleSubmitInforme = async (data: unknown) => {
-    try {
-      const response = await authedFetch('/api/informe', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...(data as Record<string, unknown>),
-          id_usuario: selectedIntegrante?.id_usuario,
-        }),
-      });
+    const response = await authedFetch('/api/informe', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        ...(data as Record<string, unknown>),
+        id_usuario: selectedIntegrante?.id_usuario,
+      }),
+    });
 
-      const result = await response.json();
+    const result = await response.json();
 
-      if (!response.ok) {
-        throw new Error(result.error || 'Error al guardar el informe');
-      }
-
-      // Recargar la página después de enviar el informe
-      window.location.reload();
-    } catch (error) {
-      alert(error instanceof Error ? error.message : 'Error al guardar el informe');
+    if (!response.ok) {
+      throw new Error(result.error || 'Error al guardar el informe');
     }
+
+    // Recargar la página después de enviar el informe
+    window.location.reload();
   };
 
   const totalEncargados = integrantes.filter((i) => i.rol_en_grupo === 'encargado').length;

@@ -10,6 +10,16 @@ Este es un sistema web desarrollado con Next.js para la gestión de informes de 
 - Dashboard con filtros avanzados
 - Sistema de roles y permisos
 
+## Registro de informes mensuales
+
+El informe corresponde únicamente al **mes anterior**, sin permitir cambiar mes ni año; en enero corresponde a diciembre del año anterior. Se mantienen los valores iniciales y las condiciones de horas y trabajo auxiliar según el rol.
+
+Si falla el envío por un error de respuesta o de conexión, el formulario permanece abierto con todos los valores ingresados y un mensaje de error. Revisa el problema indicado y pulsa **Guardar Informe** para reintentar. Al guardar correctamente, se recarga la página.
+
+Cerrar con **X** o **Cancelar** pide confirmación solo si hay cambios respecto de los valores iniciales. Cancelar esa confirmación conserva el formulario; aceptarla descarta los cambios. Un formulario sin cambios (incluidos cambios revertidos) se cierra sin preguntar. Mientras se está guardando, ambas acciones de cierre están deshabilitadas.
+
+Esta protección es **solo en memoria mientras el formulario está abierto**: no guarda borradores ni usa almacenamiento local. No protege frente a recargas, navegación, cierre de pestaña o redirección al inicio de sesión por sesión vencida.
+
 ## Asignaciones de la reunión
 
 En `/asignaciones`, abrí una semana para generar, revisar y confirmar sus asignaciones.
